@@ -1,0 +1,6 @@
+namespace KISS.QueryBuilder.Core;
+
+public abstract class Visitor : IVisitor
+{
+    public void Visit(IComponent concreteComponent) => concreteComponent.Accept(this);
+}
