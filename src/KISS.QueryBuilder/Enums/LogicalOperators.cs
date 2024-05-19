@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Enums;
 
-public enum BitwiseOperators
+public enum LogicalOperators
 {
     Or,
     And

@@ -13,11 +13,11 @@ public sealed class CompositeQueries : Visitor
             [ComparisonOperators.LessOrEquals] = " <= ",
         };
 
-    private static Dictionary<BitwiseOperators, string> LogicalOperators { get; } =
+    private static Dictionary<LogicalOperators, string> LogicalOperators { get; } =
         new()
         {
-            [BitwiseOperators.And] = " AND ",
-            [BitwiseOperators.Or] = " OR "
+            [Enums.LogicalOperators.And] = " AND ",
+            [Enums.LogicalOperators.Or] = " OR "
         };
 
     private StringBuilder Builder { get; } = new();
@@ -44,5 +44,11 @@ public sealed class CompositeQueries : Visitor
     {
         var (operatorName, field, value) = operatorFilterDefinition;
         Builder.Append($"{field.FieldName}{FieldMatchingOperators[operatorName]}{value}");
+    }
+
+    public override void Visit(LogicalOperatorFieldDefinition logicalOperatorFieldDefinition)
+    {
+        var filterDefinitions = logicalOperatorFieldDefinition.FilterDefinitions;
+        Join(filterDefinitions);
     }
 }

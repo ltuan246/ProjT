@@ -6,12 +6,12 @@ public class UnitTest1
     public void Test1()
     {
         var builder = Builders<Test>.Filter;
-        var filter = builder.Eq(t => t.Name, "a");
+        var filter = builder.And(builder.Eq(t => t.Name, "a"), builder.Eq(t => t.Name, "b"));
         var result = filter.Render();
     }
 }
 
 public class Test
 {
-    public string Name { get; }
+    public string Name { get; } = "";
 }

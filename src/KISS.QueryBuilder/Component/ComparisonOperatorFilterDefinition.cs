@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record ComparisonOperatorFilterDefinition<TComponent, TField>(ComparisonOperators operatorName, FieldDefinition<TComponent, TField> field, TField value) : IComponent
+public sealed record ComparisonOperatorFilterDefinition<TComponent, TField>(ComparisonOperators operatorName, FieldDefinition<TComponent, TField> field, TField value) : IFilterDefinition
 {
     public ComparisonOperators Operator { get; } = operatorName;
     public FieldDefinition<TComponent, TField> Field { get; } = field;
