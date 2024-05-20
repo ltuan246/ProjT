@@ -14,41 +14,45 @@ public sealed class CompositeQueries : Visitor
         };
 
     private static Dictionary<LogicalOperators, string> LogicalOperators { get; } =
-        new()
-        {
-            [Enums.LogicalOperators.And] = " AND ",
-            [Enums.LogicalOperators.Or] = " OR "
-        };
+        new() { [Enums.LogicalOperators.And] = " AND ", [Enums.LogicalOperators.Or] = " OR " };
 
     private StringBuilder Builder { get; } = new();
 
-    public string Render() => Builder.ToString();
+    private string Operation() => Builder.ToString();
 
     public static string Render(IComponent expression)
     {
         CompositeQueries visitor = new();
         visitor.Visit(expression);
-        return visitor.Render();
+        return visitor.Operation();
     }
 
-    private void Join(IEnumerable<IComponent> expressions)
+    private void Join(string separator, IEnumerable<IComponent> expressions)
     {
-        using var enumerator = expressions.GetEnumerator();
-        while (enumerator.MoveNext())
+        using IEnumerator<IComponent> enumerator = expressions.GetEnumerator();
+        if (enumerator.MoveNext())
         {
             enumerator.Current.Accept(this);
+            while (enumerator.MoveNext())
+            {
+                Builder.Append(separator);
+                enumerator.Current.Accept(this);
+            }
         }
     }
 
-    public override void Visit<TComponent, TField>(ComparisonOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
+    public override void Visit<TComponent, TField>(
+        ComparisonOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        var (operatorName, field, value) = operatorFilterDefinition;
+        (ComparisonOperators operatorName, FieldDefinition<TComponent, TField> field, TField value) =
+            operatorFilterDefinition;
         Builder.Append($"{field.FieldName}{FieldMatchingOperators[operatorName]}{value}");
     }
 
     public override void Visit(LogicalOperatorFieldDefinition logicalOperatorFieldDefinition)
     {
-        var filterDefinitions = logicalOperatorFieldDefinition.FilterDefinitions;
-        Join(filterDefinitions);
+        (LogicalOperators operatorName, IEnumerable<IFilterDefinition> filters) =
+            logicalOperatorFieldDefinition;
+        Join(LogicalOperators[operatorName], filters);
     }
 }

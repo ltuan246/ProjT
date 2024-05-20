@@ -1,12 +1,17 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record FieldDefinition<TComponent, TField>(Expression<Func<TComponent, TField>> expression)
+public sealed record FieldDefinition<TComponent, TField>(Expression<Func<TComponent, TField>> Expr)
 {
-    public Expression<Func<TComponent, TField>> Expression { get; } = expression;
-
     public string FieldName
     {
-        get { return ""; }
+        get
+        {
+            Expression ex = Expr.Body;
+            return ex.NodeType switch
+            {
+                ExpressionType.MemberAccess => ((MemberExpression)ex).Member.Name,
+                _ => throw new NotSupportedException()
+            };
+        }
     }
-
 }
