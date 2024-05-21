@@ -60,18 +60,18 @@ public class FilterDefinitionBuilderTests
     public void AnyIn()
     {
         var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.AnyIn(t => t.Name, "a");
+        var filter = builder.AnyIn(t => t.Name, ["a", "b", "c"]);
         var result = filter.Render();
-        Assert.Equal("Name IN a", result);
+        Assert.Equal("Name IN (a,b,c)", result);
     }
 
     [Fact]
     public void Nin()
     {
         var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Nin(t => t.Name, "a");
+        var filter = builder.Nin(t => t.Name, ["a", "b", "c"]);
         var result = filter.Render();
-        Assert.Equal("Name NOT IN a", result);
+        Assert.Equal("Name NOT IN (a,b,c)", result);
     }
 
     [Fact]

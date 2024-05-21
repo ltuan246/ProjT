@@ -81,10 +81,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>An in filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> AnyIn<TField>(
+    public SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> AnyIn<TField>(
         Expression<Func<TComponent, TField>> field,
-        TField value)
-        => new(ComparisonOperators.Contains, new(field), value);
+        params TField[] value)
+        => new(SingleItemAsArrayOperators.Contains, new(field), value);
 
     /// <summary>
     /// Creates a not in filter.
@@ -93,10 +93,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A not in filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> Nin<TField>(
+    public SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> Nin<TField>(
         Expression<Func<TComponent, TField>> field,
-        TField value)
-        => new(ComparisonOperators.NotContains, new(field), value);
+        params TField[] value)
+        => new(SingleItemAsArrayOperators.NotContains, new(field), value);
 
     /// <summary>
     /// Creates an and filter.

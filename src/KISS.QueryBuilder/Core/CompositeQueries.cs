@@ -10,9 +10,14 @@ public sealed class CompositeQueries : Visitor
             [ComparisonOperators.Greater] = " > ",
             [ComparisonOperators.GreaterOrEquals] = " >= ",
             [ComparisonOperators.Less] = " < ",
-            [ComparisonOperators.LessOrEquals] = " <= ",
-            [ComparisonOperators.Contains] = " IN ",
-            [ComparisonOperators.NotContains] = " NOT IN "
+            [ComparisonOperators.LessOrEquals] = " <= "
+        };
+
+    private static Dictionary<SingleItemAsArrayOperators, string> ItemAsArrayOperators { get; } =
+        new()
+        {
+            [SingleItemAsArrayOperators.Contains] = " IN ",
+            [SingleItemAsArrayOperators.NotContains] = " NOT IN "
         };
 
     private static Dictionary<LogicalOperators, string> LogicalOperators { get; } =
@@ -49,6 +54,14 @@ public sealed class CompositeQueries : Visitor
         (ComparisonOperators operatorName, FieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
         Builder.Append($"{field.FieldName}{FieldMatchingOperators[operatorName]}{value}");
+    }
+
+    public override void Visit<TComponent, TField>(
+        SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
+    {
+        (SingleItemAsArrayOperators operatorName, FieldDefinition<TComponent, TField> field, TField[] value) =
+            operatorFilterDefinition;
+        Builder.Append($"{field.FieldName}{ItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
     }
 
     public override void Visit(LogicalOperatorFieldDefinition logicalOperatorFieldDefinition)
