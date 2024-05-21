@@ -11,6 +11,8 @@ public sealed class CompositeQueries : Visitor
             [ComparisonOperators.GreaterOrEquals] = " >= ",
             [ComparisonOperators.Less] = " < ",
             [ComparisonOperators.LessOrEquals] = " <= ",
+            [ComparisonOperators.Contains] = " IN ",
+            [ComparisonOperators.NotContains] = " NOT IN "
         };
 
     private static Dictionary<LogicalOperators, string> LogicalOperators { get; } =
