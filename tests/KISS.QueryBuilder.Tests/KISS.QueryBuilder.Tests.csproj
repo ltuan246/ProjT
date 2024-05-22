@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\KISS.QueryBuilder\KISS.QueryBuilder.csproj" />
+  </ItemGroup>
+
+</Project>
