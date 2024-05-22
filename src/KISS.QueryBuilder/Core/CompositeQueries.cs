@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Core;
 
-public sealed class CompositeQueries : Visitor
+public sealed class CompositeQueries : IVisitor
 {
     private static Dictionary<ComparisonOperators, string> FieldMatchingOperators { get; } =
         new()
@@ -48,7 +48,9 @@ public sealed class CompositeQueries : Visitor
         }
     }
 
-    public override void Visit<TComponent, TField>(
+    public void Visit(IComponent concreteComponent) => concreteComponent.Accept(this);
+
+    public void Visit<TComponent, TField>(
         ComparisonOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
         (ComparisonOperators operatorName, FieldDefinition<TComponent, TField> field, TField value) =
@@ -56,7 +58,7 @@ public sealed class CompositeQueries : Visitor
         Builder.Append($"{field.FieldName}{FieldMatchingOperators[operatorName]}{value}");
     }
 
-    public override void Visit<TComponent, TField>(
+    public void Visit<TComponent, TField>(
         SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
         (SingleItemAsArrayOperators operatorName, FieldDefinition<TComponent, TField> field, TField[] value) =
@@ -64,7 +66,7 @@ public sealed class CompositeQueries : Visitor
         Builder.Append($"{field.FieldName}{ItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
     }
 
-    public override void Visit(LogicalOperatorFieldDefinition logicalOperatorFieldDefinition)
+    public void Visit(LogicalOperatorFieldDefinition logicalOperatorFieldDefinition)
     {
         (LogicalOperators operatorName, IEnumerable<IFilterDefinition> filters) =
             logicalOperatorFieldDefinition;

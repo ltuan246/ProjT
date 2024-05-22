@@ -1,0 +1,8 @@
+<Project>
+
+  <!-- Use third party .NET libraries -->
+  <ItemGroup>
+    <PackageVersion Include="MailKit" Version="4.4.0" />
+  </ItemGroup>
+
+</Project>

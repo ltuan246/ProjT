@@ -1,3 +1,5 @@
+using System;
+
 namespace KISS.QueryBuilder.Tests;
 
 public class FilterDefinitionBuilderTests
@@ -90,5 +92,13 @@ public class FilterDefinitionBuilderTests
         var filter = builder.Or(builder.Eq(t => t.Name, "a"), builder.Eq(t => t.Name, "b"));
         var result = filter.Render();
         Assert.Equal("Name = a OR Name = b", result);
+    }
+
+    [Fact]
+    public void Build_InvalidInput_ShouldThrowNotSupportedException()
+    {
+        var builder = Builders<ComponentTest>.Filter;
+        var filter = builder.Eq(t => "", "a");
+        Assert.Throws<NotSupportedException>(() => filter.Render());
     }
 }
