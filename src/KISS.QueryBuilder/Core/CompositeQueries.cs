@@ -21,7 +21,11 @@ public sealed class CompositeQueries : IVisitor
         };
 
     private static Dictionary<LogicalOperator, string> LogicalOperators { get; } =
-        new() { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
+        new()
+        {
+            [LogicalOperator.And] = " AND ",
+            [LogicalOperator.Or] = " OR "
+        };
 
     private StringBuilder Builder { get; } = new();
 
@@ -53,7 +57,7 @@ public sealed class CompositeQueries : IVisitor
     public void Visit<TComponent, TField>(
         OperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (ComparisonOperator operatorName, FieldDefinition<TComponent, TField> field, TField value) =
+        (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
         Builder.Append($"{field.FieldName}{FieldMatchingOperators[operatorName]}{value}");
     }
@@ -61,7 +65,7 @@ public sealed class CompositeQueries : IVisitor
     public void Visit<TComponent, TField>(
         SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (SingleItemAsArrayOperator operatorName, FieldDefinition<TComponent, TField> field, TField[] value) =
+        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] value) =
             operatorFilterDefinition;
         Builder.Append($"{field.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
     }
