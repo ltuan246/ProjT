@@ -1,6 +1,7 @@
 namespace KISS.QueryBuilder.Component;
 
 public sealed record ExpressionFieldDefinition<TComponent, TField>(Expression<Func<TComponent, TField>> Expr)
+    where TComponent : IEquatable<TComponent>
 {
     public string FieldName
     {
