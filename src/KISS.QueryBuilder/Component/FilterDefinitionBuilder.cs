@@ -9,10 +9,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>An equality filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> Eq<TField>(
+    public OperatorFilterDefinition<TComponent, TField> Eq<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperators.Equals, new(field), value);
+        => new(ComparisonOperator.Equals, new(field), value);
 
     /// <summary>
     /// Creates a not equal filter.
@@ -21,10 +21,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A not equal filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> Ne<TField>(
+    public OperatorFilterDefinition<TComponent, TField> Ne<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperators.NotEquals, new(field), value);
+        => new(ComparisonOperator.NotEquals, new(field), value);
 
     /// <summary>
     /// Creates a greater than filter.
@@ -33,10 +33,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> Gt<TField>(
+    public OperatorFilterDefinition<TComponent, TField> Gt<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperators.Greater, new(field), value);
+        => new(ComparisonOperator.Greater, new(field), value);
 
     /// <summary>
     /// Creates a greater than or equal filter.
@@ -45,10 +45,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than or equal filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> Gte<TField>(
+    public OperatorFilterDefinition<TComponent, TField> Gte<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperators.GreaterOrEquals, new(field), value);
+        => new(ComparisonOperator.GreaterOrEquals, new(field), value);
 
     /// <summary>
     /// Creates a less than filter.
@@ -57,10 +57,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> Lt<TField>(
+    public OperatorFilterDefinition<TComponent, TField> Lt<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperators.Less, new(field), value);
+        => new(ComparisonOperator.Less, new(field), value);
 
     /// <summary>
     /// Creates a less than or equal filter.
@@ -69,10 +69,10 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than or equal filter.</returns>
-    public ComparisonOperatorFilterDefinition<TComponent, TField> Lte<TField>(
+    public OperatorFilterDefinition<TComponent, TField> Lte<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperators.LessOrEquals, new(field), value);
+        => new(ComparisonOperator.LessOrEquals, new(field), value);
 
     /// <summary>
     /// Creates an in filter for an array field.
@@ -84,7 +84,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> AnyIn<TField>(
         Expression<Func<TComponent, TField>> field,
         params TField[] value)
-        => new(SingleItemAsArrayOperators.Contains, new(field), value);
+        => new(SingleItemAsArrayOperator.Contains, new(field), value);
 
     /// <summary>
     /// Creates a not in filter.
@@ -96,21 +96,21 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> Nin<TField>(
         Expression<Func<TComponent, TField>> field,
         params TField[] value)
-        => new(SingleItemAsArrayOperators.NotContains, new(field), value);
+        => new(SingleItemAsArrayOperator.NotContains, new(field), value);
 
     /// <summary>
     /// Creates an and filter.
     /// </summary>
     /// <param name="filterDefinitions">The filters.</param>
     /// <returns>A filter.</returns>
-    public LogicalOperatorFieldDefinition And(params IFilterDefinition[] filterDefinitions)
-        => new(LogicalOperators.And, filterDefinitions);
+    public AndFilterDefinition And(params IComponent[] filterDefinitions)
+        => new(filterDefinitions);
 
     /// <summary>
     /// Creates an and filter.
     /// </summary>
     /// <param name="filterDefinitions">The filters.</param>
     /// <returns>An or filter.</returns>
-    public LogicalOperatorFieldDefinition Or(params IFilterDefinition[] filterDefinitions)
-        => new(LogicalOperators.Or, filterDefinitions);
+    public OrFilterDefinition Or(params IComponent[] filterDefinitions)
+        => new(filterDefinitions);
 }

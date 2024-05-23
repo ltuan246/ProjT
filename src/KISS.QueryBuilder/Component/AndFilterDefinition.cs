@@ -1,8 +1,6 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record LogicalOperatorFieldDefinition(
-    LogicalOperators Operator,
-    params IFilterDefinition[] FilterDefinitions) : IFilterDefinition
+public sealed record AndFilterDefinition(params IComponent[] FilterDefinitions) : IComponent
 {
     void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
 

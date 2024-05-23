@@ -2,26 +2,26 @@ namespace KISS.QueryBuilder.Core;
 
 public sealed class CompositeQueries : IVisitor
 {
-    private static Dictionary<ComparisonOperators, string> FieldMatchingOperators { get; } =
+    private static Dictionary<ComparisonOperator, string> FieldMatchingOperators { get; } =
         new()
         {
-            [ComparisonOperators.Equals] = " = ",
-            [ComparisonOperators.NotEquals] = " <> ",
-            [ComparisonOperators.Greater] = " > ",
-            [ComparisonOperators.GreaterOrEquals] = " >= ",
-            [ComparisonOperators.Less] = " < ",
-            [ComparisonOperators.LessOrEquals] = " <= "
+            [ComparisonOperator.Equals] = " = ",
+            [ComparisonOperator.NotEquals] = " <> ",
+            [ComparisonOperator.Greater] = " > ",
+            [ComparisonOperator.GreaterOrEquals] = " >= ",
+            [ComparisonOperator.Less] = " < ",
+            [ComparisonOperator.LessOrEquals] = " <= "
         };
 
-    private static Dictionary<SingleItemAsArrayOperators, string> ItemAsArrayOperators { get; } =
+    private static Dictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
         new()
         {
-            [SingleItemAsArrayOperators.Contains] = " IN ",
-            [SingleItemAsArrayOperators.NotContains] = " NOT IN "
+            [SingleItemAsArrayOperator.Contains] = " IN ",
+            [SingleItemAsArrayOperator.NotContains] = " NOT IN "
         };
 
-    private static Dictionary<LogicalOperators, string> LogicalOperators { get; } =
-        new() { [Enums.LogicalOperators.And] = " AND ", [Enums.LogicalOperators.Or] = " OR " };
+    private static Dictionary<LogicalOperator, string> LogicalOperators { get; } =
+        new() { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
 
     private StringBuilder Builder { get; } = new();
 
@@ -51,9 +51,9 @@ public sealed class CompositeQueries : IVisitor
     public void Visit(IComponent concreteComponent) => concreteComponent.Accept(this);
 
     public void Visit<TComponent, TField>(
-        ComparisonOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
+        OperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (ComparisonOperators operatorName, FieldDefinition<TComponent, TField> field, TField value) =
+        (ComparisonOperator operatorName, FieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
         Builder.Append($"{field.FieldName}{FieldMatchingOperators[operatorName]}{value}");
     }
@@ -61,15 +61,18 @@ public sealed class CompositeQueries : IVisitor
     public void Visit<TComponent, TField>(
         SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (SingleItemAsArrayOperators operatorName, FieldDefinition<TComponent, TField> field, TField[] value) =
+        (SingleItemAsArrayOperator operatorName, FieldDefinition<TComponent, TField> field, TField[] value) =
             operatorFilterDefinition;
-        Builder.Append($"{field.FieldName}{ItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
+        Builder.Append($"{field.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
     }
 
-    public void Visit(LogicalOperatorFieldDefinition logicalOperatorFieldDefinition)
+    public void Visit(AndFilterDefinition filterDefinition)
     {
-        (LogicalOperators operatorName, IEnumerable<IFilterDefinition> filters) =
-            logicalOperatorFieldDefinition;
-        Join(LogicalOperators[operatorName], filters);
+        Join(LogicalOperators[LogicalOperator.And], filterDefinition.FilterDefinitions);
+    }
+
+    public void Visit(OrFilterDefinition filterDefinition)
+    {
+        Join(LogicalOperators[LogicalOperator.Or], filterDefinition.FilterDefinitions);
     }
 }
