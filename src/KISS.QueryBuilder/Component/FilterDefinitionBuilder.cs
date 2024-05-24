@@ -12,7 +12,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public OperatorFilterDefinition<TComponent, TField> Eq<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperator.Equals, new(field), value);
+        => new(ComparisonOperator.Equals, new ExpressionFieldDefinition<TComponent, TField>(field), value);
 
     /// <summary>
     /// Creates a not equal filter.
@@ -24,7 +24,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public OperatorFilterDefinition<TComponent, TField> Ne<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperator.NotEquals, new(field), value);
+        => new(ComparisonOperator.NotEquals, new ExpressionFieldDefinition<TComponent, TField>(field), value);
 
     /// <summary>
     /// Creates a greater than filter.
@@ -36,7 +36,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public OperatorFilterDefinition<TComponent, TField> Gt<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperator.Greater, new(field), value);
+        => new(ComparisonOperator.Greater, new ExpressionFieldDefinition<TComponent, TField>(field), value);
 
     /// <summary>
     /// Creates a greater than or equal filter.
@@ -48,7 +48,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public OperatorFilterDefinition<TComponent, TField> Gte<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperator.GreaterOrEquals, new(field), value);
+        => new(ComparisonOperator.GreaterOrEquals, new ExpressionFieldDefinition<TComponent, TField>(field), value);
 
     /// <summary>
     /// Creates a less than filter.
@@ -60,7 +60,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public OperatorFilterDefinition<TComponent, TField> Lt<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperator.Less, new(field), value);
+        => new(ComparisonOperator.Less, new ExpressionFieldDefinition<TComponent, TField>(field), value);
 
     /// <summary>
     /// Creates a less than or equal filter.
@@ -72,7 +72,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public OperatorFilterDefinition<TComponent, TField> Lte<TField>(
         Expression<Func<TComponent, TField>> field,
         TField value)
-        => new(ComparisonOperator.LessOrEquals, new(field), value);
+        => new(ComparisonOperator.LessOrEquals, new ExpressionFieldDefinition<TComponent, TField>(field), value);
 
     /// <summary>
     /// Creates an in filter for an array field.
@@ -84,7 +84,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     public SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> AnyIn<TField>(
         Expression<Func<TComponent, TField>> field,
         params TField[] value)
-        => new(SingleItemAsArrayOperator.Contains, new(field), value);
+        => new(SingleItemAsArrayOperator.Contains, new ExpressionFieldDefinition<TComponent, TField>(field), value);
 
     /// <summary>
     /// Creates a not in filter.

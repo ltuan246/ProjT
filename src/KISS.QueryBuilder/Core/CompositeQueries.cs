@@ -57,9 +57,10 @@ public sealed class CompositeQueries : IVisitor
     public void Visit<TComponent, TField>(
         OperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
+        (ComparisonOperator operatorName, FieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
-        Builder.Append($"{field.FieldName}{FieldMatchingOperators[operatorName]}{value}");
+        var renderedField = field.Render();
+        Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}{value}");
     }
 
     public void Visit<TComponent, TField>(
@@ -67,7 +68,8 @@ public sealed class CompositeQueries : IVisitor
     {
         (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] value) =
             operatorFilterDefinition;
-        Builder.Append($"{field.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
+        var renderedField = field.Render();
+        Builder.Append($"{renderedField.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
     }
 
     public void Visit(AndFilterDefinition filterDefinition)
