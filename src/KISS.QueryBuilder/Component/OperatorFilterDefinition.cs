@@ -1,9 +1,9 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record ComparisonOperatorFilterDefinition<TComponent, TField>(
-    ComparisonOperators Operator,
+public sealed record OperatorFilterDefinition<TComponent, TField>(
+    ComparisonOperator Operator,
     FieldDefinition<TComponent, TField> Field,
-    TField Value) : IFilterDefinition
+    TField Value) : IComponent
 {
     void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
 

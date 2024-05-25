@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Enums;
 
-public enum ComparisonOperators
+public enum ComparisonOperator
 {
     Equals,
     NotEquals,

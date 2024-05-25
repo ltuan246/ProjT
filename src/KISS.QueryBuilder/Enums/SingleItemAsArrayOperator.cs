@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Enums;
 
-public enum SingleItemAsArrayOperators
+public enum SingleItemAsArrayOperator
 {
     Contains,
     NotContains

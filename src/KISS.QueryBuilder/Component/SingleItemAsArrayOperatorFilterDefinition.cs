@@ -1,9 +1,9 @@
 namespace KISS.QueryBuilder.Component;
 
 public sealed record SingleItemAsArrayOperatorFilterDefinition<TComponent, TField>(
-    SingleItemAsArrayOperators Operator,
-    FieldDefinition<TComponent, TField> Field,
-    params TField[] Values) : IFilterDefinition
+    SingleItemAsArrayOperator Operator,
+    ExpressionFieldDefinition<TComponent, TField> Field,
+    params TField[] Values) : IComponent
 {
     void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
 
