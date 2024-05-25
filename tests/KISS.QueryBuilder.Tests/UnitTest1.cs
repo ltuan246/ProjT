@@ -6,7 +6,7 @@ public class UnitTest1
     public void Test1()
     {
         var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.And(builder.Eq(t => t.Name, "a"), builder.Eq(t => t.Name, "b"));
+        var filter = builder.And(builder.Eq(t => t.AsString, "a"), builder.Eq(t => t.AsString, "b"));
         var result = filter.Render();
     }
 }
