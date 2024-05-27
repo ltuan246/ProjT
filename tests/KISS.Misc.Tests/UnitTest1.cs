@@ -20,13 +20,13 @@ public class UnitTest1
 [Options("ApplicationOptions")]
 public record AppOptions
 {
-    public string Title { get; set; } = "";
+    public required string Title { get; init; }
 
-    public string ConnectionString { get; set; } = "";
+    public required string ConnectionString { get; init; }
 
-    public int MaximumRetries { get; set; }
+    public int MaximumRetries { get; init; }
 
-    public TimeSpan RetryInterval { get; set; }
+    public TimeSpan RetryInterval { get; init; }
 
-    public bool IsLive { get; set; }
+    public bool IsLive { get; init; }
 }
