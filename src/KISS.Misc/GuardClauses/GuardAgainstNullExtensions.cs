@@ -1,4 +1,4 @@
-namespace KISS.GuardClauses;
+namespace KISS.Misc.GuardClauses;
 
 public static partial class GuardClauseExtensions
 {
@@ -23,7 +23,7 @@ public static partial class GuardClauseExtensions
         };
 
     public static string NullOrEmpty(this IGuardClause _,
-        [NotNull] string? input,
+        [NotNull] string input,
         string? parameterName = null,
         string? message = null)
         => Ensure.IsNullOrEmpty(input) switch
@@ -33,7 +33,7 @@ public static partial class GuardClauseExtensions
         };
 
     public static string NullOrEmptyOrWhiteSpace(this IGuardClause _,
-        [NotNull] string? input,
+        [NotNull] string input,
         string? parameterName = null,
         string? message = null)
         => (Ensure.IsNullOrEmpty(input) || Ensure.IsNullOrWhiteSpace(input)) switch

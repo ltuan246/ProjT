@@ -1,4 +1,4 @@
-namespace KISS.GuardClauses;
+namespace KISS.Misc.GuardClauses;
 
 public static class Ensure
 {
