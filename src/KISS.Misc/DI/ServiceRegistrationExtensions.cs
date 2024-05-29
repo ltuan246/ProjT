@@ -4,20 +4,25 @@ namespace KISS.Misc.DI;
 
 public static class ServiceRegistrationExtensions
 {
-    public static void LifetimeServiceRegistration(this IServiceCollection services, IConfiguration configuration)
+    public static void LifetimeServiceRegistration(this IServiceCollection services)
     {
         IEnumerable<(Type serviceInterface, Type implementationType, ServiceLifetime serviceLifetime)> targetServices =
             GetServices();
 
         foreach ((Type serviceInterface, Type implementationType, ServiceLifetime serviceLifetime) in targetServices)
         {
-            _ = serviceLifetime switch
+            switch (serviceLifetime)
             {
-                ServiceLifetime.Scoped => services.AddScoped(serviceInterface, implementationType),
-                ServiceLifetime.Singleton => services.AddSingleton(serviceInterface, implementationType),
-                ServiceLifetime.Transient => services.AddTransient(serviceInterface, implementationType),
-                _ => services
-            };
+                case ServiceLifetime.Singleton:
+                    services.AddSingleton(serviceInterface, implementationType);
+                    break;
+                case ServiceLifetime.Scoped:
+                    services.AddScoped(serviceInterface, implementationType);
+                    break;
+                case ServiceLifetime.Transient:
+                    services.AddTransient(serviceInterface, implementationType);
+                    break;
+            }
         }
     }
 
@@ -30,7 +35,7 @@ public static class ServiceRegistrationExtensions
             Type[] types = assembly.GetTypes();
             foreach (Type type in types)
             {
-                Type[] implementedInterfaces = type.GetInterfaces();
+                // Type[] implementedInterfaces = type.GetInterfaces();
 
                 ScopedServiceAttribute? scopedService = type.GetCustomAttribute<ScopedServiceAttribute>();
                 if (Ensure.IsNotNull(scopedService))

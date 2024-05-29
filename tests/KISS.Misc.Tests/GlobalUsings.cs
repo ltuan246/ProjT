@@ -4,3 +4,5 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Options;
 global using KISS.Misc.Options;
+global using KISS.Misc.DI;
+global using KISS.Misc.Tests.Model.DI;
