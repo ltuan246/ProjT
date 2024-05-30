@@ -1,15 +1,30 @@
 namespace KISS.Misc.Tests;
 
-public class ServiceRegistrationTest
+public class ServiceRegistrationTest : IDisposable
 {
-    [Fact]
-    public void Test1()
+    private ServiceProvider ServiceProvider { get; init; }
+
+    public ServiceRegistrationTest()
     {
         IServiceCollection services = new ServiceCollection();
         services.LifetimeServiceRegistration();
-        var serviceProvider = services.BuildServiceProvider();
-        var scopedService = serviceProvider.GetService<IScopedService>();
-        var singletonService = serviceProvider.GetService<ISingletonService>();
-        var transientService = serviceProvider.GetService<ITransientService>();
+        ServiceProvider = services.BuildServiceProvider();
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+    }
+
+    [Fact]
+    public void Test1()
+    {
+        var scopedService = ServiceProvider.GetService<IScopedService>();
+        var singletonService = ServiceProvider.GetService<ISingletonService>();
+        var transientService = ServiceProvider.GetService<ITransientService>();
+
+        Assert.NotNull(scopedService);
+        Assert.NotNull(singletonService);
+        Assert.NotNull(transientService);
     }
 }
