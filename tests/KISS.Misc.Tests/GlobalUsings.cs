@@ -6,3 +6,4 @@ global using Microsoft.Extensions.Options;
 global using KISS.Misc.Options;
 global using KISS.Misc.DI;
 global using KISS.Misc.Tests.Model.DI;
+global using KISS.Misc.Tests.Model.Options;
