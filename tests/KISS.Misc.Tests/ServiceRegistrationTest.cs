@@ -13,6 +13,7 @@ public class ServiceRegistrationTest : IDisposable
 
     public void Dispose()
     {
+        ServiceProvider.Dispose();
         GC.SuppressFinalize(this);
     }
 
