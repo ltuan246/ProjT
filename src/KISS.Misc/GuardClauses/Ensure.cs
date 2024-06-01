@@ -37,6 +37,9 @@ public static class Ensure
     public static bool IsNotNullOrEmpty([NotNullWhen(true)] string? value)
         => !string.IsNullOrEmpty(value);
 
+    public static bool IsNotNullOrEmpty([NotNullWhen(true)] Guid? value)
+        => value.HasValue && !IsEqualTo(value, Guid.Empty);
+
     public static bool IsNotNullOrWhiteSpace([NotNullWhen(true)] string? value)
         => !string.IsNullOrWhiteSpace(value);
 
@@ -44,26 +47,14 @@ public static class Ensure
         => !IsNullOrEmpty(values);
 
     public static bool IsNotNullOrEmptyAndDoesNotContainAnyNulls<T>([NotNullWhen(true)] IEnumerable<T?>? values)
-        where T : struct
         => values switch
         {
             null => false,
             Array and { Length: 0 } => false,
             ICollection<T> and { Count: 0 } => false,
             _ => values.TryGetNonEnumeratedCount(out int count)
-                && count > 0
-                && values.All(val => val.HasValue)
-        };
-
-    public static bool IsNotNullOrEmptyAndDoesNotContainAnyNulls<T>([NotNullWhen(true)] IEnumerable<T?>? values)
-        => values switch
-        {
-            null => false,
-            Array and { Length: 0 } => false,
-            ICollection<T> and { Count: 0 } => false,
-            _ => values.TryGetNonEnumeratedCount(out int count)
-                && count > 0
-                && values.All(val => val is not null)
+                 && count > 0
+                 && values.All(val => val is not null)
         };
 
     public static bool IsEqualTo<T>(T value, T comparand)

@@ -6,7 +6,7 @@ public class ConfigureOptionsTest : IDisposable
 
     public ConfigureOptionsTest()
     {
-        var configuration = new ConfigurationBuilder()
+        IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
             .Build();
@@ -25,7 +25,7 @@ public class ConfigureOptionsTest : IDisposable
     [Fact]
     public void Test1()
     {
-        var options = ServiceProvider.GetService<IOptions<AppSettings>>();
+        IOptions<AppSettings>? options = ServiceProvider.GetService<IOptions<AppSettings>>();
         Assert.NotNull(options);
     }
 }

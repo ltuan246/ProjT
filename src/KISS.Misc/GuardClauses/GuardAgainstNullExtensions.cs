@@ -1,6 +1,6 @@
 namespace KISS.Misc.GuardClauses;
 
-public static partial class GuardClauseExtensions
+public static class GuardClauseExtensions
 {
     public static T Null<T>(this IGuardClause _,
         [NotNull] T? input,
@@ -23,24 +23,30 @@ public static partial class GuardClauseExtensions
         };
 
     public static string NullOrEmpty(this IGuardClause _,
-        [NotNull] string input,
+        [NotNull] string? input,
         string? parameterName = null,
         string? message = null)
-        => Ensure.IsNullOrEmpty(input) switch
+    {
+        if (Ensure.IsNullOrEmpty(input))
         {
-            true => throw new ArgumentNullException(parameterName, message),
-            false => input
-        };
+            throw new ArgumentNullException(parameterName, message);
+        }
+
+        return input;
+    }
 
     public static string NullOrEmptyOrWhiteSpace(this IGuardClause _,
-        [NotNull] string input,
+        [NotNull] string? input,
         string? parameterName = null,
         string? message = null)
-        => (Ensure.IsNullOrEmpty(input) || Ensure.IsNullOrWhiteSpace(input)) switch
+    {
+        if (Ensure.IsNullOrEmpty(input) || Ensure.IsNullOrWhiteSpace(input))
         {
-            true => throw new ArgumentNullException(parameterName, message),
-            false => input
-        };
+            throw new ArgumentNullException(parameterName, message);
+        }
+
+        return input;
+    }
 
     public static Guid NullOrEmpty(this IGuardClause _,
         [NotNull] Guid? input,
