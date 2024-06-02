@@ -14,18 +14,10 @@ public sealed class CompositeQueries : IVisitor
         };
 
     private static Dictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
-        new()
-        {
-            [SingleItemAsArrayOperator.Contains] = " IN ",
-            [SingleItemAsArrayOperator.NotContains] = " NOT IN "
-        };
+        new() { [SingleItemAsArrayOperator.Contains] = " IN ", [SingleItemAsArrayOperator.NotContains] = " NOT IN " };
 
     private static Dictionary<LogicalOperator, string> LogicalOperators { get; } =
-        new()
-        {
-            [LogicalOperator.And] = " AND ",
-            [LogicalOperator.Or] = " OR "
-        };
+        new() { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
 
     private StringBuilder Builder { get; } = new();
 
@@ -57,9 +49,9 @@ public sealed class CompositeQueries : IVisitor
     public void Visit<TComponent, TField>(
         OperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (ComparisonOperator operatorName, FieldDefinition<TComponent, TField> field, TField value) =
+        (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
-        var renderedField = field.Render();
+        RenderedFieldDefinition renderedField = field.Render();
         Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}{value}");
     }
 
@@ -68,8 +60,9 @@ public sealed class CompositeQueries : IVisitor
     {
         (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] value) =
             operatorFilterDefinition;
-        var renderedField = field.Render();
-        Builder.Append($"{renderedField.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
+        RenderedFieldDefinition renderedField = field.Render();
+        Builder.Append(
+            $"{renderedField.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
     }
 
     public void Visit(AndFilterDefinition filterDefinition)
