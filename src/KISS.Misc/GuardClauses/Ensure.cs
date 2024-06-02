@@ -28,10 +28,6 @@ public static class Ensure
         };
 
     public static bool IsNotNull<T>([NotNullWhen(true)] T? value)
-        where T : struct
-        => value.HasValue;
-
-    public static bool IsNotNull<T>([NotNullWhen(true)] T? value)
         => value is not null;
 
     public static bool IsNotNullOrEmpty([NotNullWhen(true)] string? value)
