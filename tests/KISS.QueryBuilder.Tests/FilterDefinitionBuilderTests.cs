@@ -1,5 +1,3 @@
-using System;
-
 namespace KISS.QueryBuilder.Tests;
 
 public class FilterDefinitionBuilderTests
