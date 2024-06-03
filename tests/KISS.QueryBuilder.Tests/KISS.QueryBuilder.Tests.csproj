@@ -4,4 +4,10 @@
     <ProjectReference Include="..\..\src\KISS.QueryBuilder\KISS.QueryBuilder.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

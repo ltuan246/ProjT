@@ -5,7 +5,7 @@ global using System.Linq.Expressions;
 global using System.Data;
 global using System.Threading.Tasks;
 global using Microsoft.Extensions.Options;
-global using Microsoft.Data.SqlClient;
+global using Microsoft.Data.Sqlite;
 global using Dapper;
 global using KISS.QueryBuilder.Core;
 global using KISS.QueryBuilder.Component;
