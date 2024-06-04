@@ -13,9 +13,4 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             }
         );
     }
-
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    // {
-    //     optionsBuilder.UseSqlite("Data Source=:memory:;Version=3;New=True;");
-    // }
 }

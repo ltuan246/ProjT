@@ -1,8 +1,8 @@
 namespace KISS.QueryBuilder.DataAccess;
 
-public sealed class GenericRepository<T>(DapperContext context)
+public sealed class GenericRepository<TEntity>(IDbTransaction transaction)
 {
-    private DapperContext Context { get; init; } = context;
+    private IDbConnection Connection { get; init; } = transaction.Connection ?? default!;
 
     private IComponent? Filter { get; set; }
 
@@ -11,19 +11,17 @@ public sealed class GenericRepository<T>(DapperContext context)
         Filter = filter;
     }
 
-    public IEnumerable<T> GetList()
+    public IEnumerable<TEntity> GetList()
     {
         var query = GetQuery();
-        using var connection = Context.CreateConnection();
-        var result = connection.Query<T>(query);
+        var result = Connection.Query<TEntity>(query);
         return result;
     }
 
-    public async Task<IEnumerable<T>> GetListAsync()
+    public async Task<IEnumerable<TEntity>> GetListAsync()
     {
         var query = GetQuery();
-        using var connection = Context.CreateConnection();
-        var result = await connection.QueryAsync<T>(query);
+        var result = await Connection.QueryAsync<TEntity>(query);
         return result;
     }
 
