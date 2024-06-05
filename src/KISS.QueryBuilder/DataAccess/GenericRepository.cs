@@ -1,8 +1,8 @@
 namespace KISS.QueryBuilder.DataAccess;
 
-public sealed class GenericRepository<TEntity>(IDbTransaction transaction)
+public sealed class GenericRepository<TEntity>(DbContext dbContext)
 {
-    private IDbConnection Connection { get; init; } = transaction.Connection ?? default!;
+    private IDbConnection Connection { get; init; } = dbContext.Database.GetDbConnection();
 
     private IComponent? Filter { get; set; }
 
@@ -13,8 +13,13 @@ public sealed class GenericRepository<TEntity>(IDbTransaction transaction)
 
     public IEnumerable<TEntity> GetList()
     {
-        var query = GetQuery();
-        var result = Connection.Query<TEntity>(query);
+        // var query = GetQuery();
+        if (Connection.State != ConnectionState.Open)
+        {
+            Connection.Open();
+        }
+
+        var result = Connection.Query<TEntity>($"SELECT * FROM Users");
         return result;
     }
 

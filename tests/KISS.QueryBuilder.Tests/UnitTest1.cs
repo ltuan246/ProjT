@@ -1,25 +1,49 @@
-using Dapper;
+using System.Linq;
 
 namespace KISS.QueryBuilder.Tests;
 
-public class UnitTest1 : ContextFixture
+public class UnitTest1 : IDisposable
 {
+    private SqliteConnection Connection { get; init; }
+    private ApplicationDbContext Context { get; init; }
+    private GenericRepository<User> Repo { get; init; }
+
+    public UnitTest1()
+    {
+        Connection = new SqliteConnection("datasource=:memory:");
+        Connection.Open();
+
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(Connection)
+            .Options;
+
+        Context = new ApplicationDbContext(options);
+        Context.Database.EnsureCreated();
+
+        Repo = new(Context);
+    }
+
+    public void Dispose()
+    {
+        Context.Database.EnsureDeleted();
+        Connection.Close();
+        Connection.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     [Fact]
     public void Test1()
     {
-        using SqliteConnection connection = CreateConnection();
-        using var context = CreateContext(connection);
-
-        Assert.True(context.Users.Any());
-
         var query = $"SELECT * FROM Users";
-        var users = connection.Query<User>(query);
+        var conn = Context.Database.GetDbConnection();
+        var users = conn.Query<User>(query);
+        Assert.True(users.Any());
+    }
 
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.And(builder.Eq(t => t.AsString, "a"), builder.Eq(t => t.AsString, "b"));
-        var result = filter.Render();
-
-        // repo!.Find(filter);
-        // var rs = repo.GetList();
+    [Fact]
+    public void Test2()
+    {
+        var users = Repo.GetList();
+        Assert.True(users.Any());
     }
 }

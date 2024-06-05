@@ -4,6 +4,7 @@ global using System.Collections.Generic;
 global using System.Linq.Expressions;
 global using System.Data;
 global using System.Threading.Tasks;
+global using Microsoft.EntityFrameworkCore;
 global using Dapper;
 global using KISS.QueryBuilder.Core;
 global using KISS.QueryBuilder.Component;
