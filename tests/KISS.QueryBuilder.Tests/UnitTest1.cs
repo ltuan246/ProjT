@@ -43,7 +43,8 @@ public class UnitTest1 : IDisposable
     [Fact]
     public void Test2()
     {
-        var users = Repo.GetList();
+        var filter = Repo.Filter.Eq(t => t.Id, "a");
+        var users = Repo.Query(filter);
         Assert.True(users.Any());
     }
 }

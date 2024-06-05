@@ -1,38 +1,37 @@
 namespace KISS.QueryBuilder.DataAccess;
 
-public sealed class GenericRepository<TEntity>(DbContext dbContext)
+public sealed record GenericRepository<TEntity>(DbContext Context)
 {
-    private IDbConnection Connection { get; init; } = dbContext.Database.GetDbConnection();
+    public FilterDefinitionBuilder<TEntity> Filter { get; } = Builders<TEntity>.Filter;
 
-    private IComponent? Filter { get; set; }
-
-    public void Find(IComponent filter)
+    private IDbConnection GetConnection()
     {
-        Filter = filter;
+        var connection = Context.Database.GetDbConnection();
+        if (connection.State != ConnectionState.Open)
+        {
+            connection.Open();
+        }
+
+        return connection;
+    }
+
+    public IEnumerable<TEntity> Query(IComponent filter)
+    {
+        string render = CompositeQueries.Render(filter);
+
+        StringBuilder builder = new();
+        builder.Append($"SELECT * FROM {typeof(TEntity).Name}s");
+        builder.AppendLine(render);
+        string query = builder.ToString();
+
+        var connection = GetConnection();
+        return connection.Query<TEntity>(query);
     }
 
     public IEnumerable<TEntity> GetList()
     {
-        // var query = GetQuery();
-        if (Connection.State != ConnectionState.Open)
-        {
-            Connection.Open();
-        }
-
-        var result = Connection.Query<TEntity>($"SELECT * FROM Users");
-        return result;
-    }
-
-    public async Task<IEnumerable<TEntity>> GetListAsync()
-    {
-        var query = GetQuery();
-        var result = await Connection.QueryAsync<TEntity>(query);
-        return result;
-    }
-
-    private string GetQuery()
-    {
-        var query = CompositeQueries.Render(Filter!);
-        return query;
+        string query = $"SELECT * FROM {typeof(TEntity).Name}s";
+        var connection = GetConnection();
+        return connection.Query<TEntity>(query);
     }
 }
