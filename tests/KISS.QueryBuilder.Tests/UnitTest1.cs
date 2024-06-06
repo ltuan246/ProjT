@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-
 namespace KISS.QueryBuilder.Tests;
 
 public class UnitTest1 : IDisposable
@@ -12,6 +8,9 @@ public class UnitTest1 : IDisposable
 
     public UnitTest1()
     {
+        SqlMapper.AddTypeHandler(new GuidHandler());
+
+        // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
         Connection = new SqliteConnection("datasource=:memory:");
         Connection.Open();
 
@@ -45,8 +44,22 @@ public class UnitTest1 : IDisposable
     [Fact]
     public void Test2()
     {
-        var filter = Repo.Filter.Eq(t => t.Id, "a");
+        var filter = Repo.Filter.Eq(t => t.Id, Guid.Empty);
         IEnumerable<User> users = Repo.Query(filter);
         Assert.True(users.Any());
     }
+}
+
+
+public abstract class SqliteTypeHandler<T> : SqlMapper.TypeHandler<T>
+{
+    // Parameters are converted by Microsoft.Data.Sqlite
+    public override void SetValue(IDbDataParameter parameter, T? value)
+        => parameter.Value = value;
+}
+
+public class GuidHandler : SqliteTypeHandler<Guid>
+{
+    public override Guid Parse(object value)
+        => Guid.Parse((string)value);
 }

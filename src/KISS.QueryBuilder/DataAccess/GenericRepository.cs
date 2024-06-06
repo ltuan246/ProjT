@@ -1,6 +1,3 @@
-using System.Linq;
-using System.Reflection;
-
 namespace KISS.QueryBuilder.DataAccess;
 
 public sealed record GenericRepository<TEntity>(DbContext Context)

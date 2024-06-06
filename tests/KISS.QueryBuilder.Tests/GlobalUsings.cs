@@ -1,4 +1,8 @@
 global using System;
+global using System.Data;
+global using System.Data.Common;
+global using System.Collections.Generic;
+global using System.Linq;
 global using Dapper;
 global using Microsoft.Data.Sqlite;
 global using Microsoft.EntityFrameworkCore;
