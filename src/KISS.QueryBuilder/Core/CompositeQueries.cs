@@ -52,7 +52,7 @@ public sealed class CompositeQueries : IVisitor
         (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
         RenderedFieldDefinition renderedField = field.Render();
-        Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}{value}");
+        Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}'{value}'");
     }
 
     public void Visit<TComponent, TField>(

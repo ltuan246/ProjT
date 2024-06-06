@@ -11,7 +11,8 @@ public class UnitTest1 : IDisposable
         SqlMapper.AddTypeHandler(new GuidHandler());
 
         // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
-        Connection = new SqliteConnection("datasource=:memory:");
+        const string connectionString = "datasource=:memory:";
+        Connection = new SqliteConnection(connectionString);
         Connection.Open();
 
         DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -44,7 +45,7 @@ public class UnitTest1 : IDisposable
     [Fact]
     public void Test2()
     {
-        var filter = Repo.Filter.Eq(t => t.Id, Guid.Empty);
+        var filter = Repo.Filter.Eq(t => t.Name, "Tuna");
         IEnumerable<User> users = Repo.Query(filter);
         Assert.True(users.Any());
     }

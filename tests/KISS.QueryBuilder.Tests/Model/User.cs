@@ -1,7 +1,7 @@
 namespace KISS.QueryBuilder.Tests.Model;
 
-public class User
+public sealed record User
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = "";
+    public required Guid Id { get; set; }
+    public required string Name { get; set; }
 }

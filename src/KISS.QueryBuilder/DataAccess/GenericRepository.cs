@@ -24,7 +24,7 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
 
         StringBuilder builder = new();
         builder.Append($"SELECT {string.Join(", ", propsName)} FROM {typeof(TEntity).Name}s");
-        // builder.AppendLine(render);
+        builder.Append($" WHERE {render}");
         string query = builder.ToString();
 
         DbConnection connection = GetConnection();

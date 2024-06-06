@@ -8,7 +8,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.Eq(t => t.AsString, "a");
         var result = filter.Render();
-        Assert.Equal("AsString = a", result);
+        Assert.Equal("AsString = 'a'", result);
     }
 
     [Fact]
@@ -17,7 +17,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.Ne(t => t.AsString, "a");
         var result = filter.Render();
-        Assert.Equal("AsString <> a", result);
+        Assert.Equal("AsString <> 'a'", result);
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.Gt(t => t.AsString, "a");
         var result = filter.Render();
-        Assert.Equal("AsString > a", result);
+        Assert.Equal("AsString > 'a'", result);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.Gte(t => t.AsString, "a");
         var result = filter.Render();
-        Assert.Equal("AsString >= a", result);
+        Assert.Equal("AsString >= 'a'", result);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.Lt(t => t.AsString, "a");
         var result = filter.Render();
-        Assert.Equal("AsString < a", result);
+        Assert.Equal("AsString < 'a'", result);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.Lte(t => t.AsString, "a");
         var result = filter.Render();
-        Assert.Equal("AsString <= a", result);
+        Assert.Equal("AsString <= 'a'", result);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.And(builder.Eq(t => t.AsString, "a"), builder.Eq(t => t.AsString, "b"));
         var result = filter.Render();
-        Assert.Equal("AsString = a AND AsString = b", result);
+        Assert.Equal("AsString = 'a' AND AsString = 'b'", result);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class FilterDefinitionBuilderTests
         var builder = Builders<ComponentTest>.Filter;
         var filter = builder.Or(builder.Eq(t => t.AsString, "a"), builder.Eq(t => t.AsString, "b"));
         var result = filter.Render();
-        Assert.Equal("AsString = a OR AsString = b", result);
+        Assert.Equal("AsString = 'a' OR AsString = 'b'", result);
     }
 
     [Fact]
