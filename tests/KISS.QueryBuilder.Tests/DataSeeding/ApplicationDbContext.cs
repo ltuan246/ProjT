@@ -7,10 +7,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                Id = Guid.NewGuid().ToString()
-            }
+            new User { Id = Guid.NewGuid().ToString(), Name = "Tuna" }
         );
     }
 }

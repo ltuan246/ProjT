@@ -1,12 +1,17 @@
+using System.Linq;
+using System.Reflection;
+
 namespace KISS.QueryBuilder.DataAccess;
 
 public sealed record GenericRepository<TEntity>(DbContext Context)
 {
-    public FilterDefinitionBuilder<TEntity> Filter { get; } = Builders<TEntity>.Filter;
+    public FilterDefinitionBuilder<TEntity> Filter => Builders<TEntity>.Filter;
+    private static Type Entity => typeof(TEntity);
+    private static IEnumerable<PropertyInfo> Properties => Entity.GetProperties();
 
-    private IDbConnection GetConnection()
+    private DbConnection GetConnection()
     {
-        var connection = Context.Database.GetDbConnection();
+        DbConnection connection = Context.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
         {
             connection.Open();
@@ -18,20 +23,21 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
     public IEnumerable<TEntity> Query(IComponent filter)
     {
         string render = CompositeQueries.Render(filter);
+        string[] propsName = Properties.Select(p => p.Name).ToArray();
 
         StringBuilder builder = new();
-        builder.Append($"SELECT * FROM {typeof(TEntity).Name}s");
-        builder.AppendLine(render);
+        builder.Append($"SELECT {string.Join(", ", propsName)} FROM {typeof(TEntity).Name}s");
+        // builder.AppendLine(render);
         string query = builder.ToString();
 
-        var connection = GetConnection();
+        DbConnection connection = GetConnection();
         return connection.Query<TEntity>(query);
     }
 
     public IEnumerable<TEntity> GetList()
     {
-        string query = $"SELECT * FROM {typeof(TEntity).Name}s";
-        var connection = GetConnection();
+        string query = $"SELECT * FROM {Entity.Name}s";
+        DbConnection connection = GetConnection();
         return connection.Query<TEntity>(query);
     }
 }

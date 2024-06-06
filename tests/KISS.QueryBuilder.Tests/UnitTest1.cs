@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 
 namespace KISS.QueryBuilder.Tests;
@@ -13,7 +15,7 @@ public class UnitTest1 : IDisposable
         Connection = new SqliteConnection("datasource=:memory:");
         Connection.Open();
 
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+        DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlite(Connection)
             .Options;
 
@@ -34,9 +36,9 @@ public class UnitTest1 : IDisposable
     [Fact]
     public void Test1()
     {
-        var query = $"SELECT * FROM Users";
-        var conn = Context.Database.GetDbConnection();
-        var users = conn.Query<User>(query);
+        const string query = "SELECT * FROM Users";
+        DbConnection conn = Context.Database.GetDbConnection();
+        IEnumerable<User> users = conn.Query<User>(query);
         Assert.True(users.Any());
     }
 
@@ -44,7 +46,7 @@ public class UnitTest1 : IDisposable
     public void Test2()
     {
         var filter = Repo.Filter.Eq(t => t.Id, "a");
-        var users = Repo.Query(filter);
+        IEnumerable<User> users = Repo.Query(filter);
         Assert.True(users.Any());
     }
 }
