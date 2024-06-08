@@ -1,5 +1,3 @@
-using KISS.Misc.GuardClauses;
-
 namespace KISS.Misc.DI;
 
 public static class ServiceRegistrationExtensions

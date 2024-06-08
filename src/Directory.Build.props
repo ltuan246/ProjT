@@ -16,7 +16,6 @@
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
-    <PackageReference Include="Dapper" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +27,11 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(MicrosoftExtensionsPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageVersion Include="Dapper" Version="2.1.35" />
+    <PackageVersion Include="CsvHelper" Version="32.0.3" />
   </ItemGroup>
 
 </Project>

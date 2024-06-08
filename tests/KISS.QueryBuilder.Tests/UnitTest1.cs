@@ -36,6 +36,9 @@ public class UnitTest1 : IDisposable
     [Fact]
     public void Test1()
     {
+        string fileName = "Assets/GlobalWeatherRepository.csv";
+        var weather = CsvAssists.FromCsv<Weather>(fileName);
+
         const string query = "SELECT * FROM Users";
         DbConnection conn = Context.Database.GetDbConnection();
         IEnumerable<User> users = conn.Query<User>(query);
