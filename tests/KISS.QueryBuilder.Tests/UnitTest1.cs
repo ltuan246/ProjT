@@ -4,7 +4,7 @@ public class UnitTest1 : IDisposable
 {
     private SqliteConnection Connection { get; init; }
     private ApplicationDbContext Context { get; init; }
-    private GenericRepository<User> Repo { get; init; }
+    private GenericRepository<Weather> Repo { get; init; }
 
     public UnitTest1()
     {
@@ -36,20 +36,18 @@ public class UnitTest1 : IDisposable
     [Fact]
     public void Test1()
     {
-        string fileName = "Assets/GlobalWeatherRepository.csv";
-        var weather = CsvAssists.FromCsv<Weather>(fileName);
-
-        const string query = "SELECT * FROM Users";
+        const string query = "SELECT * FROM Weathers WHERE Id = @Id";
+        Dictionary<string, object> dic = new() { ["@Id"] = new Guid("2DFA8730-2541-11EF-83FE-B1C709C359B7") };
         DbConnection conn = Context.Database.GetDbConnection();
-        IEnumerable<User> users = conn.Query<User>(query);
+        IEnumerable<Weather> users = conn.Query<Weather>(query, new DynamicParameters(dic));
         Assert.True(users.Any());
     }
 
     [Fact]
     public void Test2()
     {
-        var filter = Repo.Filter.Eq(t => t.Name, "Tuna");
-        IEnumerable<User> users = Repo.Query(filter);
+        var filter = Repo.Filter.Eq(t => t.Id, new("2DFA8730-2541-11EF-83FE-B1C709C359B7"));
+        IEnumerable<Weather> users = Repo.Query(filter);
         Assert.True(users.Any());
     }
 }
