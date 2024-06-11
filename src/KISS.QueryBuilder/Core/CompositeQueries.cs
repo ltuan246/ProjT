@@ -21,13 +21,17 @@ public sealed class CompositeQueries : IVisitor
 
     private StringBuilder Builder { get; } = new();
 
+    private static Dictionary<string, object> QueryParameters { get; } = new();
+
+    private static int Position => QueryParameters.Count;
+
     private string Operation() => Builder.ToString();
 
-    public static string Render(IComponent expression)
+    public static (string, Dictionary<string, object>) Render(IComponent expression)
     {
         CompositeQueries visitor = new();
         visitor.Visit(expression);
-        return visitor.Operation();
+        return (visitor.Operation(), QueryParameters);
     }
 
     private void Join(string separator, IEnumerable<IComponent> expressions)
@@ -52,17 +56,27 @@ public sealed class CompositeQueries : IVisitor
         (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
         RenderedFieldDefinition renderedField = field.Render();
-        Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}'{value}'");
+        string namedParameter = $"@p{Position}";
+        Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}{namedParameter}");
+        QueryParameters.Add(namedParameter, value!);
     }
 
     public void Visit<TComponent, TField>(
         SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] value) =
+        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] values) =
             operatorFilterDefinition;
         RenderedFieldDefinition renderedField = field.Render();
+        string[] namedParameters = values.Select((value, i) =>
+        {
+            string namedParameter = $"@p{i + Position}";
+            QueryParameters.Add(namedParameter, value!);
+
+            return namedParameter;
+        }).ToArray();
+
         Builder.Append(
-            $"{renderedField.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
+            $"{renderedField.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', namedParameters)})");
     }
 
     public void Visit(AndFilterDefinition filterDefinition)

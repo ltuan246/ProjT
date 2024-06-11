@@ -4,5 +4,5 @@ public sealed record AndFilterDefinition(params IComponent[] FilterDefinitions) 
 {
     void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
 
-    public string Render() => CompositeQueries.Render(this);
+    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

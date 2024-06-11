@@ -19,7 +19,7 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
 
     public IEnumerable<TEntity> Query(IComponent filter)
     {
-        string render = CompositeQueries.Render(filter);
+        (string render, Dictionary<string, object> queryParameters) = CompositeQueries.Render(filter);
         string[] propsName = Properties.Select(p => p.Name).ToArray();
 
         StringBuilder builder = new();
@@ -28,7 +28,7 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
         string query = builder.ToString();
 
         DbConnection connection = GetConnection();
-        return connection.Query<TEntity>(query);
+        return connection.Query<TEntity>(query, queryParameters);
     }
 
     public IEnumerable<TEntity> GetList()

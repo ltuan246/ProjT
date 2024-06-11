@@ -7,5 +7,5 @@ public sealed record OperatorFilterDefinition<TComponent, TField>(
 {
     void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
 
-    public string Render() => CompositeQueries.Render(this);
+    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

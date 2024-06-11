@@ -46,12 +46,14 @@ public class UnitTest1 : IDisposable
     [Fact]
     public void Test2()
     {
-        var filter = Repo.Filter.Eq(t => t.Id, new("2DFA8730-2541-11EF-83FE-B1C709C359B7"));
+        var queryBuilder = Repo.Filter;
+        var idFilter = queryBuilder.Eq(t => t.Id, new("2DFA8730-2541-11EF-83FE-B1C709C359B7"));
+        var countryFilter = queryBuilder.Eq(t => t.Country, "Argentina");
+        var filter = queryBuilder.And(idFilter, countryFilter);
         IEnumerable<Weather> users = Repo.Query(filter);
-        Assert.True(users.Any());
+        Assert.Single(users);
     }
 }
-
 
 public abstract class SqliteTypeHandler<T> : SqlMapper.TypeHandler<T>
 {
