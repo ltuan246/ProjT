@@ -2,8 +2,8 @@ namespace KISS.QueryBuilder.Core;
 
 public sealed class CompositeQueries : IVisitor
 {
-    private static Dictionary<ComparisonOperator, string> FieldMatchingOperators { get; } =
-        new()
+    private static IReadOnlyDictionary<ComparisonOperator, string> FieldMatchingOperators { get; } =
+        new Dictionary<ComparisonOperator, string>()
         {
             [ComparisonOperator.Equals] = " = ",
             [ComparisonOperator.NotEquals] = " <> ",
@@ -13,15 +13,23 @@ public sealed class CompositeQueries : IVisitor
             [ComparisonOperator.LessOrEquals] = " <= "
         };
 
-    private static Dictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
-        new() { [SingleItemAsArrayOperator.Contains] = " IN ", [SingleItemAsArrayOperator.NotContains] = " NOT IN " };
+    private static IReadOnlyDictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
+        new Dictionary<SingleItemAsArrayOperator, string>()
+        {
+            [SingleItemAsArrayOperator.Contains] = " IN ",
+            [SingleItemAsArrayOperator.NotContains] = " NOT IN "
+        };
 
-    private static Dictionary<LogicalOperator, string> LogicalOperators { get; } =
-        new() { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
+    private static IReadOnlyDictionary<LogicalOperator, string> LogicalOperators { get; } =
+        new Dictionary<LogicalOperator, string>()
+        {
+            [LogicalOperator.And] = " AND ",
+            [LogicalOperator.Or] = " OR "
+        };
 
     private StringBuilder Builder { get; } = new();
 
-    private static Dictionary<string, object> QueryParameters { get; } = new();
+    private static Dictionary<string, object> QueryParameters { get; } = [];
 
     private static int Position => QueryParameters.Count;
 

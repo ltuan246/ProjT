@@ -2,7 +2,6 @@
 
 - [Dynamic Service Registration](DI\README.md)
 - [Dynamic Options Registration](Options\README.md)
-- [GuardClauses](GuardClauses\README.md)
 
 ## Acknowledgements
 
