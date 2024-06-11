@@ -9,6 +9,5 @@ global using Microsoft.EntityFrameworkCore;
 global using CsvHelper.Configuration.Attributes;
 global using KISS.QueryBuilder.Tests.Model;
 global using KISS.QueryBuilder.Tests.DataSeeding;
-global using KISS.QueryBuilder.Component;
 global using KISS.QueryBuilder.DataAccess;
 global using KISS.Misc.DataAccess;

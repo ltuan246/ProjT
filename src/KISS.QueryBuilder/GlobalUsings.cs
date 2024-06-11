@@ -6,7 +6,6 @@ global using System.Linq;
 global using System.Linq.Expressions;
 global using System.Data;
 global using System.Data.Common;
-global using System.Threading.Tasks;
 global using Microsoft.EntityFrameworkCore;
 global using Dapper;
 global using KISS.QueryBuilder.Core;
