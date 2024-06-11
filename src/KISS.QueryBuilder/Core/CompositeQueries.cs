@@ -63,10 +63,16 @@ public sealed class CompositeQueries : IVisitor
     {
         (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
-        RenderedFieldDefinition renderedField = field.Render();
+
+        Guard.Against.Null(value);
+
         string namedParameter = $"@p{Position}";
-        Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}{namedParameter}");
-        QueryParameters.Add(namedParameter, value!);
+        QueryParameters.Add(namedParameter, value);
+
+        RenderedFieldDefinition renderedField = field.Render();
+        string query = string.Join(' ', [renderedField.FieldName, FieldMatchingOperators[operatorName], namedParameter]);
+
+        Builder.Append(query);
     }
 
     public void Visit<TComponent, TField>(
@@ -74,17 +80,23 @@ public sealed class CompositeQueries : IVisitor
     {
         (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] values) =
             operatorFilterDefinition;
-        RenderedFieldDefinition renderedField = field.Render();
+
+        Guard.Against.NullOrEmpty(values);
+
         string[] namedParameters = values.Select((value, i) =>
         {
+            Guard.Against.Null(value);
+
             string namedParameter = $"@p{i + Position}";
-            QueryParameters.Add(namedParameter, value!);
+            QueryParameters.Add(namedParameter, value);
 
             return namedParameter;
         }).ToArray();
 
-        Builder.Append(
-            $"{renderedField.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', namedParameters)})");
+        RenderedFieldDefinition renderedField = field.Render();
+        string query = string.Join(' ', [renderedField.FieldName, SingleItemAsArrayOperators[operatorName], $"({string.Join(',', namedParameters)})"]);
+
+        Builder.Append(query);
     }
 
     public void Visit(AndFilterDefinition filterDefinition)
