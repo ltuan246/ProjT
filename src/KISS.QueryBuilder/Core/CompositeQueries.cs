@@ -87,7 +87,7 @@ public sealed class CompositeQueries : IVisitor
         {
             Guard.Against.Null(value);
 
-            string namedParameter = $"@p{i + Position}";
+            string namedParameter = $"@p{Position}";
             QueryParameters.Add(namedParameter, value);
 
             return namedParameter;
