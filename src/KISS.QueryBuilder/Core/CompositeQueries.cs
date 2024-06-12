@@ -2,8 +2,8 @@ namespace KISS.QueryBuilder.Core;
 
 public sealed class CompositeQueries : IVisitor
 {
-    private static Dictionary<ComparisonOperator, string> FieldMatchingOperators { get; } =
-        new()
+    private static IReadOnlyDictionary<ComparisonOperator, string> FieldMatchingOperators { get; } =
+        new Dictionary<ComparisonOperator, string>()
         {
             [ComparisonOperator.Equals] = " = ",
             [ComparisonOperator.NotEquals] = " <> ",
@@ -13,21 +13,33 @@ public sealed class CompositeQueries : IVisitor
             [ComparisonOperator.LessOrEquals] = " <= "
         };
 
-    private static Dictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
-        new() { [SingleItemAsArrayOperator.Contains] = " IN ", [SingleItemAsArrayOperator.NotContains] = " NOT IN " };
+    private static IReadOnlyDictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
+        new Dictionary<SingleItemAsArrayOperator, string>()
+        {
+            [SingleItemAsArrayOperator.Contains] = " IN ",
+            [SingleItemAsArrayOperator.NotContains] = " NOT IN "
+        };
 
-    private static Dictionary<LogicalOperator, string> LogicalOperators { get; } =
-        new() { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
+    private static IReadOnlyDictionary<LogicalOperator, string> LogicalOperators { get; } =
+        new Dictionary<LogicalOperator, string>()
+        {
+            [LogicalOperator.And] = " AND ",
+            [LogicalOperator.Or] = " OR "
+        };
 
     private StringBuilder Builder { get; } = new();
 
+    private static Dictionary<string, object> QueryParameters { get; } = [];
+
+    private static int Position => QueryParameters.Count;
+
     private string Operation() => Builder.ToString();
 
-    public static string Render(IComponent expression)
+    public static (string, Dictionary<string, object>) Render(IComponent expression)
     {
         CompositeQueries visitor = new();
         visitor.Visit(expression);
-        return visitor.Operation();
+        return (visitor.Operation(), QueryParameters);
     }
 
     private void Join(string separator, IEnumerable<IComponent> expressions)
@@ -51,18 +63,40 @@ public sealed class CompositeQueries : IVisitor
     {
         (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
             operatorFilterDefinition;
+
+        Guard.Against.Null(value);
+
+        string namedParameter = $"@p{Position}";
+        QueryParameters.Add(namedParameter, value);
+
         RenderedFieldDefinition renderedField = field.Render();
-        Builder.Append($"{renderedField.FieldName}{FieldMatchingOperators[operatorName]}{value}");
+        string query = string.Join(' ', [renderedField.FieldName, FieldMatchingOperators[operatorName], namedParameter]);
+
+        Builder.Append(query);
     }
 
     public void Visit<TComponent, TField>(
         SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
     {
-        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] value) =
+        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] values) =
             operatorFilterDefinition;
+
+        Guard.Against.NullOrEmpty(values);
+
+        string[] namedParameters = values.Select((value, i) =>
+        {
+            Guard.Against.Null(value);
+
+            string namedParameter = $"@p{Position}";
+            QueryParameters.Add(namedParameter, value);
+
+            return namedParameter;
+        }).ToArray();
+
         RenderedFieldDefinition renderedField = field.Render();
-        Builder.Append(
-            $"{renderedField.FieldName}{SingleItemAsArrayOperators[operatorName]}({string.Join(',', value)})");
+        string query = string.Join(' ', [renderedField.FieldName, SingleItemAsArrayOperators[operatorName], $"({string.Join(',', namedParameters)})"]);
+
+        Builder.Append(query);
     }
 
     public void Visit(AndFilterDefinition filterDefinition)

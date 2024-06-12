@@ -1,5 +1,3 @@
-using KISS.Misc.GuardClauses;
-
 namespace KISS.Misc.Options;
 
 public static class ConfigureOptionsExtensions

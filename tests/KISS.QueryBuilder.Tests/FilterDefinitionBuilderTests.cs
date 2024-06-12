@@ -1,104 +1,242 @@
-using System;
-
 namespace KISS.QueryBuilder.Tests;
 
-public class FilterDefinitionBuilderTests
+public class FilterDefinitionBuilderTests : IDisposable
 {
+    private SqliteConnection Connection { get; init; }
+    private ApplicationDbContext Context { get; init; }
+    private GenericRepository<Weather> WeatherRepository { get; init; }
+
+    public FilterDefinitionBuilderTests()
+    {
+        // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
+        SqlMapper.AddTypeHandler(new GuidHandler());
+
+        const string connectionString = "datasource=:memory:";
+        Connection = new SqliteConnection(connectionString);
+        Connection.Open();
+
+        DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(Connection)
+            .Options;
+
+        Context = new ApplicationDbContext(options);
+        Context.Database.EnsureCreated();
+
+        WeatherRepository = new(Context);
+    }
+
+    public void Dispose()
+    {
+        Context.Database.EnsureDeleted();
+        Connection.Close();
+        Connection.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    [Fact]
+    public void WhenGettingAllWeathers_ThenAllWeathersReturn()
+    {
+        // Arrange
+        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.GetList();
+
+        // Assert
+        Assert.Equal(100, weathers.Count());
+        Assert.Contains(weathers, weather => weather.Id == exId);
+    }
+
     [Fact]
     public void Eq()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Eq(t => t.AsString, "a");
-        var result = filter.Render();
-        Assert.Equal("AsString = a", result);
+        // Arrange
+        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+
+        var query = WeatherRepository.Filter;
+        var idFilter = query.Eq(t => t.Id, exId);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(idFilter);
+
+        // Assert
+        Assert.Single(weathers);
+        Assert.Collection(weathers, weather => Assert.Equal(exId, weather.Id));
     }
 
     [Fact]
     public void Ne()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Ne(t => t.AsString, "a");
-        var result = filter.Render();
-        Assert.Equal("AsString <> a", result);
+        // Arrange
+        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+        const string exCountry = "Argentina";
+
+        var query = WeatherRepository.Filter;
+        var idFilter = query.Eq(t => t.Id, exId);
+        var countryFilter = query.Ne(t => t.Country, exCountry);
+        var filter = query.And(idFilter, countryFilter);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(filter);
+
+        // Assert
+        Assert.Empty(weathers);
     }
 
     [Fact]
     public void Gt()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Gt(t => t.AsString, "a");
-        var result = filter.Render();
-        Assert.Equal("AsString > a", result);
+        // Arrange
+        const float exTemperatureCelsius = 29;
+
+        var query = WeatherRepository.Filter;
+        var temperatureFilter = query.Gt(t => t.TemperatureCelsius, exTemperatureCelsius);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+
+        // Assert
+        Assert.Equal(9, weathers.Count());
+        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius > exTemperatureCelsius));
     }
 
     [Fact]
     public void Gte()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Gte(t => t.AsString, "a");
-        var result = filter.Render();
-        Assert.Equal("AsString >= a", result);
+        // Arrange
+        const float exTemperatureCelsius = 29;
+
+        var query = WeatherRepository.Filter;
+        var temperatureFilter = query.Gte(t => t.TemperatureCelsius, exTemperatureCelsius);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+
+        // Assert
+        Assert.Equal(10, weathers.Count());
+        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius >= exTemperatureCelsius));
     }
 
     [Fact]
     public void Lt()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Lt(t => t.AsString, "a");
-        var result = filter.Render();
-        Assert.Equal("AsString < a", result);
+        // Arrange
+        const float exTemperatureCelsius = 10;
+
+        var query = WeatherRepository.Filter;
+        var temperatureFilter = query.Lt(t => t.TemperatureCelsius, exTemperatureCelsius);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+
+        // Assert
+        Assert.Equal(27, weathers.Count());
+        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius < exTemperatureCelsius));
     }
 
     [Fact]
     public void Lte()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Lte(t => t.AsString, "a");
-        var result = filter.Render();
-        Assert.Equal("AsString <= a", result);
+        // Arrange
+        const float exTemperatureCelsius = 10;
+
+        var query = WeatherRepository.Filter;
+        var temperatureFilter = query.Lte(t => t.TemperatureCelsius, exTemperatureCelsius);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+
+        // Assert
+        Assert.Equal(32, weathers.Count());
+        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius <= exTemperatureCelsius));
     }
 
     [Fact]
     public void AnyIn()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.AnyIn(t => t.AsString, ["a", "b", "c"]);
-        var result = filter.Render();
-        Assert.Equal("AsString IN (a,b,c)", result);
+        // Arrange
+        string[] exCountries = ["Vietnam", "Canada"];
+
+        var query = WeatherRepository.Filter;
+        var countryFilter = query.AnyIn(t => t.Country, exCountries);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(countryFilter);
+
+        // Assert
+        Assert.Equal(20, weathers.Count());
+        Assert.All(weathers, weather => exCountries.Contains(weather.Country));
     }
 
     [Fact]
     public void Nin()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Nin(t => t.AsString, ["a", "b", "c"]);
-        var result = filter.Render();
-        Assert.Equal("AsString NOT IN (a,b,c)", result);
+        // Arrange
+        string[] exCountries = ["Argentina", "Iceland", "Australia"];
+
+        var query = WeatherRepository.Filter;
+        var countryFilter = query.Nin(t => t.Country, exCountries);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(countryFilter);
+
+        // Assert
+        Assert.Equal(63, weathers.Count());
+        Assert.DoesNotContain(weathers, weather => exCountries.Contains(weather.Country));
     }
 
     [Fact]
     public void And()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.And(builder.Eq(t => t.AsString, "a"), builder.Eq(t => t.AsString, "b"));
-        var result = filter.Render();
-        Assert.Equal("AsString = a AND AsString = b", result);
+        // Arrange
+        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+        const string exCountry = "Argentina";
+
+        var query = WeatherRepository.Filter;
+        var idFilter = query.Eq(t => t.Id, exId);
+        var countryFilter = query.Eq(t => t.Country, exCountry);
+        var filter = query.And(idFilter, countryFilter);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(filter);
+
+        // Assert
+        Assert.Single(weathers);
+        Assert.Collection(weathers,
+         weather =>
+         {
+             Assert.Equal(exId, weather.Id);
+             Assert.Equal(exCountry, weather.Country);
+         });
     }
 
     [Fact]
     public void Or()
     {
-        var builder = Builders<ComponentTest>.Filter;
-        var filter = builder.Or(builder.Eq(t => t.AsString, "a"), builder.Eq(t => t.AsString, "b"));
-        var result = filter.Render();
-        Assert.Equal("AsString = a OR AsString = b", result);
+        // Arrange
+        Guid[] exIds = [new("2DFA8730-2541-11EF-83FE-B1C709C359B7"), new("2DFA8731-2541-11EF-83FE-B1C709C359B7")];
+
+        var query = WeatherRepository.Filter;
+        var idFilter1 = query.Eq(t => t.Id, exIds[0]);
+        var idFilter2 = query.Eq(t => t.Id, exIds[1]);
+        var filter = query.Or(idFilter1, idFilter2);
+
+        // Act
+        IEnumerable<Weather> weathers = WeatherRepository.Query(filter);
+
+        // Assert
+        Assert.Equal(2, weathers.Count());
+        Assert.All(weathers, weather => exIds.Contains(weather.Id));
     }
 
     [Fact]
-    public void Build_InvalidInput_ShouldThrowNotSupportedException()
+    public void GivenInvalidInput_WhenBuildQuery_ThenNotSupportedReturns()
     {
-        var builder = Builders<ComponentTest>.Filter;
+        // Arrange
+        var builder = WeatherRepository.Filter;
         var filter = builder.Eq(t => "", "a");
+
+        // Assert
         Assert.Throws<NotSupportedException>(() => filter.Render());
     }
 }

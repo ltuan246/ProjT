@@ -7,5 +7,5 @@ public sealed record SingleItemAsArrayOperatorFilterDefinition<TComponent, TFiel
 {
     void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
 
-    public string Render() => CompositeQueries.Render(this);
+    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }
