@@ -14,3 +14,8 @@ public sealed record ExpressionFieldDefinition<TComponent, TField>(Expression<Fu
         return new(fieldName);
     }
 }
+
+public sealed record ExpressionFieldDefinition<TDocument>(LambdaExpression Expression) : FieldDefinition<TDocument>
+{
+
+}

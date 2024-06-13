@@ -1,5 +1,6 @@
 namespace KISS.QueryBuilder.Component;
 
-public class DirectionalSortDefinition
+public sealed record DirectionalSortDefinition<TComponent>(FieldDefinition<TComponent> Field, SortDirection Direction)
 {
+
 }
