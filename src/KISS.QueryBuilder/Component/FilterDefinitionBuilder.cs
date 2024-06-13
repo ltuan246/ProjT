@@ -93,7 +93,7 @@ public sealed record FilterDefinitionBuilder<TComponent>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A not in filter.</returns>
-    public SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> Nin<TField>(
+    public SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> NotIn<TField>(
         Expression<Func<TComponent, TField>> field,
         params TField[] value)
         => new(SingleItemAsArrayOperator.NotContains, new(field), value);

@@ -17,7 +17,7 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
         return connection;
     }
 
-    public IEnumerable<TEntity> Query(IComponent filter)
+    public List<TEntity> Query(IComponent filter)
     {
         const string sqlWhereClause = """
                                           SELECT {0} FROM {1}s
@@ -34,13 +34,34 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
         string query = builder.ToString();
 
         DbConnection connection = GetConnection();
-        return connection.Query<TEntity>(query, queryParameters);
+        return connection.Query<TEntity>(query, queryParameters).ToList();
     }
 
-    public IEnumerable<TEntity> GetList()
+    public List<TEntity> GetList()
     {
-        string query = $"SELECT * FROM {Entity.Name}s";
+        const string sqlSelectClause = "SELECT {0} FROM {1}s";
+        string[] propsName = Properties.Select(p => p.Name).ToArray();
+        string columns = string.Join(", ", propsName);
+        string table = Entity.Name;
+
+        StringBuilder builder = new();
+        builder.AppendFormat(sqlSelectClause, columns, table);
+        string query = builder.ToString();
+
         DbConnection connection = GetConnection();
-        return connection.Query<TEntity>(query);
+        return connection.Query<TEntity>(query).ToList();
+    }
+
+    public int Count()
+    {
+        const string sqlCount = "SELECT COUNT(1) FROM {0}s";
+        string table = Entity.Name;
+
+        StringBuilder builder = new();
+        builder.AppendFormat(sqlCount, table);
+        string query = builder.ToString();
+
+        DbConnection connection = GetConnection();
+        return connection.ExecuteScalar<int>(query);
     }
 }

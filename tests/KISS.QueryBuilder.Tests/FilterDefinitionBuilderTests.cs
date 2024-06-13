@@ -40,11 +40,21 @@ public class FilterDefinitionBuilderTests : IDisposable
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.GetList();
+        List<Weather> weathers = WeatherRepository.GetList();
 
         // Assert
         Assert.Equal(100, weathers.Count());
         Assert.Contains(weathers, weather => weather.Id == exId);
+    }
+
+    [Fact]
+    public void Count()
+    {
+        // Act
+        int count = WeatherRepository.Count();
+
+        // Assert
+        Assert.Equal(100, count);
     }
 
     [Fact]
@@ -57,7 +67,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         var idFilter = query.Eq(t => t.Id, exId);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(idFilter);
+        List<Weather> weathers = WeatherRepository.Query(idFilter);
 
         // Assert
         Assert.Single(weathers);
@@ -77,7 +87,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         var filter = query.And(idFilter, countryFilter);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(filter);
+        List<Weather> weathers = WeatherRepository.Query(filter);
 
         // Assert
         Assert.Empty(weathers);
@@ -93,7 +103,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         var temperatureFilter = query.Gt(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
         Assert.Equal(9, weathers.Count());
@@ -110,7 +120,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         var temperatureFilter = query.Gte(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
         Assert.Equal(10, weathers.Count());
@@ -127,7 +137,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         var temperatureFilter = query.Lt(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
         Assert.Equal(27, weathers.Count());
@@ -144,7 +154,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         var temperatureFilter = query.Lte(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
         Assert.Equal(32, weathers.Count());
@@ -161,24 +171,24 @@ public class FilterDefinitionBuilderTests : IDisposable
         var countryFilter = query.AnyIn(t => t.Country, exCountries);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(countryFilter);
+        List<Weather> weathers = WeatherRepository.Query(countryFilter);
 
         // Assert
         Assert.Equal(20, weathers.Count());
-        Assert.All(weathers, weather => exCountries.Contains(weather.Country));
+        Assert.All(weathers, weather => Assert.Contains(weather.Country, exCountries));
     }
 
     [Fact]
-    public void Nin()
+    public void NotIn()
     {
         // Arrange
         string[] exCountries = ["Argentina", "Iceland", "Australia"];
 
         var query = WeatherRepository.Filter;
-        var countryFilter = query.Nin(t => t.Country, exCountries);
+        var countryFilter = query.NotIn(t => t.Country, exCountries);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(countryFilter);
+        List<Weather> weathers = WeatherRepository.Query(countryFilter);
 
         // Assert
         Assert.Equal(63, weathers.Count());
@@ -198,16 +208,16 @@ public class FilterDefinitionBuilderTests : IDisposable
         var filter = query.And(idFilter, countryFilter);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(filter);
+        List<Weather> weathers = WeatherRepository.Query(filter);
 
         // Assert
         Assert.Single(weathers);
         Assert.Collection(weathers,
-         weather =>
-         {
-             Assert.Equal(exId, weather.Id);
-             Assert.Equal(exCountry, weather.Country);
-         });
+            weather =>
+                Assert.Multiple(
+                    () => Assert.NotNull(weather),
+                    () => Assert.Equal(exId, weather.Id),
+                    () => Assert.Equal(exCountry, weather.Country)));
     }
 
     [Fact]
@@ -222,11 +232,11 @@ public class FilterDefinitionBuilderTests : IDisposable
         var filter = query.Or(idFilter1, idFilter2);
 
         // Act
-        IEnumerable<Weather> weathers = WeatherRepository.Query(filter);
+        List<Weather> weathers = WeatherRepository.Query(filter);
 
         // Assert
         Assert.Equal(2, weathers.Count());
-        Assert.All(weathers, weather => exIds.Contains(weather.Id));
+        Assert.All(weathers, weather => Assert.Contains(weather.Id, exIds));
     }
 
     [Fact]
