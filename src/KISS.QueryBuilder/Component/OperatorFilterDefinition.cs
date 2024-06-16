@@ -1,11 +1,11 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record OperatorFilterDefinition<TComponent, TField>(
+public sealed record OperatorFilterDefinition<TEntity, TField>(
     ComparisonOperator Operator,
-    ExpressionFieldDefinition<TComponent, TField> Field,
-    TField Value) : IComponent
+    RenderedFieldDefinition Field,
+    TField Value) : IFilterDefinition<TEntity>
 {
-    void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
+    void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
 
     public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

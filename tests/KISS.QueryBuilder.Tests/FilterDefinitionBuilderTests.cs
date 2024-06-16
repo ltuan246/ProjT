@@ -244,9 +244,8 @@ public class FilterDefinitionBuilderTests : IDisposable
     {
         // Arrange
         var builder = WeatherRepository.Filter;
-        var filter = builder.Eq(t => "", "a");
 
         // Assert
-        Assert.Throws<NotSupportedException>(() => filter.Render());
+        Assert.Throws<NotSupportedException>(() => builder.Eq(t => "", "a"));
     }
 }

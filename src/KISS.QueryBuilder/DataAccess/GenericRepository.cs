@@ -17,7 +17,7 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
         return connection;
     }
 
-    public List<TEntity> Query(IComponent filter)
+    public List<TEntity> Query(IQuerying filter)
     {
         const string sqlWhereClause = """
                                           SELECT {0} FROM {1}s

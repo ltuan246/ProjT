@@ -1,3 +1,6 @@
 namespace KISS.QueryBuilder.Interfaces;
 
-public interface IFilterDefinition { }
+public interface IFilterDefinition<TEntity> : IQuerying
+{
+    // TEntity Entity { get; init; }
+}

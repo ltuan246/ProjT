@@ -10,5 +10,6 @@ global using Microsoft.EntityFrameworkCore;
 global using Dapper;
 global using KISS.GuardClauses;
 global using KISS.QueryBuilder.Core;
+global using KISS.QueryBuilder.Interfaces;
 global using KISS.QueryBuilder.Component;
 global using KISS.QueryBuilder.Enums;

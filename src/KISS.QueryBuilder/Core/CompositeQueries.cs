@@ -3,7 +3,7 @@ namespace KISS.QueryBuilder.Core;
 public sealed class CompositeQueries : IVisitor
 {
     private static IReadOnlyDictionary<ComparisonOperator, string> FieldMatchingOperators { get; } =
-        new Dictionary<ComparisonOperator, string>()
+        new Dictionary<ComparisonOperator, string>
         {
             [ComparisonOperator.Equals] = " = ",
             [ComparisonOperator.NotEquals] = " <> ",
@@ -14,18 +14,13 @@ public sealed class CompositeQueries : IVisitor
         };
 
     private static IReadOnlyDictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
-        new Dictionary<SingleItemAsArrayOperator, string>()
+        new Dictionary<SingleItemAsArrayOperator, string>
         {
-            [SingleItemAsArrayOperator.Contains] = " IN ",
-            [SingleItemAsArrayOperator.NotContains] = " NOT IN "
+            [SingleItemAsArrayOperator.Contains] = " IN ", [SingleItemAsArrayOperator.NotContains] = " NOT IN "
         };
 
     private static IReadOnlyDictionary<LogicalOperator, string> LogicalOperators { get; } =
-        new Dictionary<LogicalOperator, string>()
-        {
-            [LogicalOperator.And] = " AND ",
-            [LogicalOperator.Or] = " OR "
-        };
+        new Dictionary<LogicalOperator, string> { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
 
     private StringBuilder Builder { get; } = new();
 
@@ -35,16 +30,16 @@ public sealed class CompositeQueries : IVisitor
 
     private string Operation() => Builder.ToString();
 
-    public static (string, Dictionary<string, object>) Render(IComponent expression)
+    public static (string, Dictionary<string, object>) Render(IQuerying expression)
     {
         CompositeQueries visitor = new();
         visitor.Visit(expression);
         return (visitor.Operation(), QueryParameters);
     }
 
-    private void Join(string separator, IEnumerable<IComponent> expressions)
+    private void Join(string separator, IEnumerable<IQuerying> expressions)
     {
-        using IEnumerator<IComponent> enumerator = expressions.GetEnumerator();
+        using IEnumerator<IQuerying> enumerator = expressions.GetEnumerator();
         if (enumerator.MoveNext())
         {
             enumerator.Current.Accept(this);
@@ -56,12 +51,12 @@ public sealed class CompositeQueries : IVisitor
         }
     }
 
-    public void Visit(IComponent concreteComponent) => concreteComponent.Accept(this);
+    public void Visit(IQuerying concreteQuerying) => concreteQuerying.Accept(this);
 
-    public void Visit<TComponent, TField>(
-        OperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
+    public void Visit<TEntity, TField>(
+        OperatorFilterDefinition<TEntity, TField> operatorFilterDefinition)
     {
-        (ComparisonOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField value) =
+        (ComparisonOperator operatorName, RenderedFieldDefinition field, TField value) =
             operatorFilterDefinition;
 
         Guard.Against.Null(value);
@@ -69,21 +64,21 @@ public sealed class CompositeQueries : IVisitor
         string namedParameter = $"@p{Position}";
         QueryParameters.Add(namedParameter, value);
 
-        RenderedFieldDefinition renderedField = field.Render();
-        string query = string.Join(' ', [renderedField.FieldName, FieldMatchingOperators[operatorName], namedParameter]);
+        string query = string.Join(' ',
+            [field.FieldName, FieldMatchingOperators[operatorName], namedParameter]);
 
         Builder.Append(query);
     }
 
-    public void Visit<TComponent, TField>(
-        SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition)
+    public void Visit<TEntity, TField>(
+        SingleItemAsArrayOperatorFilterDefinition<TEntity, TField> operatorFilterDefinition)
     {
-        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TComponent, TField> field, TField[] values) =
+        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TEntity, TField> field, TField[] values) =
             operatorFilterDefinition;
 
         Guard.Against.NullOrEmpty(values);
 
-        string[] namedParameters = values.Select((value, i) =>
+        string[] namedParameters = values.Select((value, _) =>
         {
             Guard.Against.Null(value);
 
@@ -94,7 +89,10 @@ public sealed class CompositeQueries : IVisitor
         }).ToArray();
 
         RenderedFieldDefinition renderedField = field.Render();
-        string query = string.Join(' ', [renderedField.FieldName, SingleItemAsArrayOperators[operatorName], $"({string.Join(',', namedParameters)})"]);
+        string query = string.Join(' ',
+        [
+            renderedField.FieldName, SingleItemAsArrayOperators[operatorName], $"({string.Join(',', namedParameters)})"
+        ]);
 
         Builder.Append(query);
     }

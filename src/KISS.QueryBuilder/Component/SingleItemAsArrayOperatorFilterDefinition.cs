@@ -1,11 +1,11 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record SingleItemAsArrayOperatorFilterDefinition<TComponent, TField>(
+public sealed record SingleItemAsArrayOperatorFilterDefinition<TEntity, TField>(
     SingleItemAsArrayOperator Operator,
-    ExpressionFieldDefinition<TComponent, TField> Field,
-    params TField[] Values) : IComponent
+    ExpressionFieldDefinition<TEntity, TField> Field,
+    params TField[] Values) : IQuerying
 {
-    void IComponent.Accept(IVisitor visitor) => visitor.Visit(this);
+    void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
 
     public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

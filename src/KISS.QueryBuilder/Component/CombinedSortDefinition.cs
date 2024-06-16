@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record CombinedSortDefinition<TComponent>(IEnumerable<DirectionalSortDefinition<TComponent>> Sorts)
+public sealed record CombinedSortDefinition<TEntity>(IEnumerable<DirectionalSortDefinition<TEntity>> Sorts)
 {
 
 }
