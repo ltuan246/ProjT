@@ -53,19 +53,17 @@ public sealed class CompositeQueries : IVisitor
 
     public void Visit(IQuerying concreteQuerying) => concreteQuerying.Accept(this);
 
-    public void Visit<TEntity, TField>(
-        OperatorFilterDefinition<TEntity, TField> operatorFilterDefinition)
+    public void Visit(
+        IFilterDefinition filterDefinition)
     {
-        (ComparisonOperator operatorName, RenderedFieldDefinition field, TField value) =
-            operatorFilterDefinition;
-
-        Guard.Against.Null(value);
+        (ComparisonOperator operatorName, string fieldName, object value) =
+            filterDefinition.QueryParameter;
 
         string namedParameter = $"@p{Position}";
         QueryParameters.Add(namedParameter, value);
 
         string query = string.Join(' ',
-            [field.FieldName, FieldMatchingOperators[operatorName], namedParameter]);
+            [fieldName, FieldMatchingOperators[operatorName], namedParameter]);
 
         Builder.Append(query);
     }

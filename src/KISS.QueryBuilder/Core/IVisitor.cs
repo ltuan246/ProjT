@@ -4,7 +4,7 @@ public interface IVisitor
 {
     void Visit(IQuerying concreteQuerying);
 
-    void Visit<TEntity, TField>(OperatorFilterDefinition<TEntity, TField> operatorFilterDefinition);
+    void Visit(IFilterDefinition filterDefinition);
 
     void Visit<TEntity, TField>(SingleItemAsArrayOperatorFilterDefinition<TEntity, TField> operatorFilterDefinition);
 

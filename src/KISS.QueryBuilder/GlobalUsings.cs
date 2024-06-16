@@ -6,6 +6,7 @@ global using System.Linq;
 global using System.Linq.Expressions;
 global using System.Data;
 global using System.Data.Common;
+global using System.Diagnostics.CodeAnalysis;
 global using Microsoft.EntityFrameworkCore;
 global using Dapper;
 global using KISS.GuardClauses;

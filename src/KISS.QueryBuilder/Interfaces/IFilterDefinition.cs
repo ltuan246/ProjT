@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Interfaces;
 
-public interface IFilterDefinition<TEntity> : IQuerying
+public interface IFilterDefinition : IQuerying
 {
-    // TEntity Entity { get; init; }
+    (ComparisonOperator comparisonOperator, string fieldName, object value) QueryParameter { get; }
 }

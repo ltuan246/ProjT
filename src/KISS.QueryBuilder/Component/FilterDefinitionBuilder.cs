@@ -11,7 +11,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <returns>An equality filter.</returns>
     public OperatorFilterDefinition<TEntity, TField> Eq<TField>(
         Expression<Func<TEntity, TField>> field,
-        TField value)
+        [DisallowNull] TField value)
         => new(ComparisonOperator.Equals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
 
     /// <summary>
@@ -23,7 +23,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <returns>A not equal filter.</returns>
     public OperatorFilterDefinition<TEntity, TField> Ne<TField>(
         Expression<Func<TEntity, TField>> field,
-        TField value)
+        [DisallowNull] TField value)
         => new(ComparisonOperator.NotEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
 
     /// <summary>
@@ -35,7 +35,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <returns>A greater than filter.</returns>
     public OperatorFilterDefinition<TEntity, TField> Gt<TField>(
         Expression<Func<TEntity, TField>> field,
-        TField value)
+        [DisallowNull] TField value)
         => new(ComparisonOperator.Greater, new ExpressionFieldDefinition<TEntity, TField>(field), value);
 
     /// <summary>
@@ -47,7 +47,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <returns>A greater than or equal filter.</returns>
     public OperatorFilterDefinition<TEntity, TField> Gte<TField>(
         Expression<Func<TEntity, TField>> field,
-        TField value)
+        [DisallowNull] TField value)
         => new(ComparisonOperator.GreaterOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
 
     /// <summary>
@@ -59,7 +59,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <returns>A less than filter.</returns>
     public OperatorFilterDefinition<TEntity, TField> Lt<TField>(
         Expression<Func<TEntity, TField>> field,
-        TField value)
+        [DisallowNull] TField value)
         => new(ComparisonOperator.Less, new ExpressionFieldDefinition<TEntity, TField>(field), value);
 
     /// <summary>
@@ -71,7 +71,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <returns>A less than or equal filter.</returns>
     public OperatorFilterDefinition<TEntity, TField> Lte<TField>(
         Expression<Func<TEntity, TField>> field,
-        TField value)
+        [DisallowNull] TField value)
         => new(ComparisonOperator.LessOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
 
     /// <summary>
