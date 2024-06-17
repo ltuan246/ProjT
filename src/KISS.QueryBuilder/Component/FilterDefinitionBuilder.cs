@@ -9,7 +9,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>An equality filter.</returns>
-    public OperatorFilterDefinition<TEntity, TField> Eq<TField>(
+    public OperatorFilterDefinition Eq<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Equals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -21,7 +21,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A not equal filter.</returns>
-    public OperatorFilterDefinition<TEntity, TField> Ne<TField>(
+    public OperatorFilterDefinition Ne<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.NotEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -33,7 +33,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than filter.</returns>
-    public OperatorFilterDefinition<TEntity, TField> Gt<TField>(
+    public OperatorFilterDefinition Gt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Greater, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -45,7 +45,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than or equal filter.</returns>
-    public OperatorFilterDefinition<TEntity, TField> Gte<TField>(
+    public OperatorFilterDefinition Gte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.GreaterOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -57,7 +57,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than filter.</returns>
-    public OperatorFilterDefinition<TEntity, TField> Lt<TField>(
+    public OperatorFilterDefinition Lt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Less, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -69,7 +69,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than or equal filter.</returns>
-    public OperatorFilterDefinition<TEntity, TField> Lte<TField>(
+    public OperatorFilterDefinition Lte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.LessOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -78,25 +78,25 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// Creates an in filter for an array field.
     /// </summary>
     /// <param name="field">The field.</param>
-    /// <param name="value">The value.</param>
+    /// <param name="values">The values.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>An in filter.</returns>
-    public SingleItemAsArrayOperatorFilterDefinition<TEntity, TField> AnyIn<TField>(
+    public SingleItemAsArrayOperatorFilterDefinition<TField> AnyIn<TField>(
         Expression<Func<TEntity, TField>> field,
-        params TField[] value)
-        => new(SingleItemAsArrayOperator.Contains, new ExpressionFieldDefinition<TEntity, TField>(field), value);
+        params TField[] values)
+        => new(SingleItemAsArrayOperator.Contains, new ExpressionFieldDefinition<TEntity, TField>(field), values);
 
     /// <summary>
     /// Creates a not in filter.
     /// </summary>
     /// <param name="field">The field.</param>
-    /// <param name="value">The value.</param>
+    /// <param name="values">The values.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A not in filter.</returns>
-    public SingleItemAsArrayOperatorFilterDefinition<TEntity, TField> NotIn<TField>(
+    public SingleItemAsArrayOperatorFilterDefinition<TField> NotIn<TField>(
         Expression<Func<TEntity, TField>> field,
-        params TField[] value)
-        => new(SingleItemAsArrayOperator.NotContains, new(field), value);
+        params TField[] values)
+        => new(SingleItemAsArrayOperator.NotContains, new ExpressionFieldDefinition<TEntity, TField>(field), values);
 
     /// <summary>
     /// Creates an and filter.

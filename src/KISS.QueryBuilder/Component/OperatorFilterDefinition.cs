@@ -1,12 +1,12 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record OperatorFilterDefinition<TEntity, TField>(
-    ComparisonOperator Operator,
-    RenderedFieldDefinition Field,
-    [DisallowNull] TField Value) : IFilterDefinition
+public sealed class OperatorFilterDefinition(
+    ComparisonOperator comparisonOperator,
+    RenderedFieldDefinition fieldDefinition,
+    object value) : IFilterDefinition
 {
-    public (ComparisonOperator comparisonOperator, string fieldName, object value) QueryParameter { get; init; } =
-        new(Operator, Field.FieldName, Value);
+    public (ComparisonOperator comparisonOperator, string fieldName, object value) QueryParameter { get; } =
+        new(comparisonOperator, fieldDefinition.FieldName, value);
 
     void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
 

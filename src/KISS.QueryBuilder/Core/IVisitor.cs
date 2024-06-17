@@ -6,9 +6,7 @@ public interface IVisitor
 
     void Visit(IFilterDefinition filterDefinition);
 
-    void Visit<TEntity, TField>(SingleItemAsArrayOperatorFilterDefinition<TEntity, TField> operatorFilterDefinition);
+    void Visit(ISingleItemAsArrayOperatorFilterDefinition operatorFilterDefinition);
 
-    void Visit(AndFilterDefinition logicalOperatorFieldDefinition);
-
-    void Visit(OrFilterDefinition logicalOperatorFieldDefinition);
+    void Visit(IGroupingFilterDefinition groupingFilterDefinition);
 }

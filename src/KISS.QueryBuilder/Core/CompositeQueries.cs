@@ -59,6 +59,8 @@ public sealed class CompositeQueries : IVisitor
         (ComparisonOperator operatorName, string fieldName, object value) =
             filterDefinition.QueryParameter;
 
+        Guard.Against.Null(value);
+
         string namedParameter = $"@p{Position}";
         QueryParameters.Add(namedParameter, value);
 
@@ -68,11 +70,11 @@ public sealed class CompositeQueries : IVisitor
         Builder.Append(query);
     }
 
-    public void Visit<TEntity, TField>(
-        SingleItemAsArrayOperatorFilterDefinition<TEntity, TField> operatorFilterDefinition)
+    public void Visit(
+        ISingleItemAsArrayOperatorFilterDefinition operatorFilterDefinition)
     {
-        (SingleItemAsArrayOperator operatorName, ExpressionFieldDefinition<TEntity, TField> field, TField[] values) =
-            operatorFilterDefinition;
+        (SingleItemAsArrayOperator singleItemAsArrayOperator, string fieldName, object[] values) =
+            operatorFilterDefinition.QueryParameter;
 
         Guard.Against.NullOrEmpty(values);
 
@@ -86,22 +88,18 @@ public sealed class CompositeQueries : IVisitor
             return namedParameter;
         }).ToArray();
 
-        RenderedFieldDefinition renderedField = field.Render();
         string query = string.Join(' ',
         [
-            renderedField.FieldName, SingleItemAsArrayOperators[operatorName], $"({string.Join(',', namedParameters)})"
+            fieldName, SingleItemAsArrayOperators[singleItemAsArrayOperator], $"({string.Join(',', namedParameters)})"
         ]);
 
         Builder.Append(query);
     }
 
-    public void Visit(AndFilterDefinition filterDefinition)
+    public void Visit(IGroupingFilterDefinition groupingFilterDefinition)
     {
-        Join(LogicalOperators[LogicalOperator.And], filterDefinition.FilterDefinitions);
-    }
-
-    public void Visit(OrFilterDefinition filterDefinition)
-    {
-        Join(LogicalOperators[LogicalOperator.Or], filterDefinition.FilterDefinitions);
+        (LogicalOperator logicalOperator, IQuerying[] filterDefinitions) =
+            groupingFilterDefinition.GroupingFilterDefinition;
+        Join(LogicalOperators[logicalOperator], filterDefinitions);
     }
 }
