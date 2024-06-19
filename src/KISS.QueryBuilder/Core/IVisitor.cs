@@ -9,4 +9,6 @@ public interface IVisitor
     void Visit(ISingleItemAsArrayOperatorFilterDefinition operatorFilterDefinition);
 
     void Visit(IMultipleFiltersDefinition multipleFiltersDefinition);
+
+    void Visit(ISortDefinition filterDefinition);
 }

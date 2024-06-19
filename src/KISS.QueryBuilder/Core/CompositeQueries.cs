@@ -22,6 +22,12 @@ public sealed class CompositeQueries : IVisitor
     private static IReadOnlyDictionary<LogicalOperator, string> LogicalOperators { get; } =
         new Dictionary<LogicalOperator, string> { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
 
+    private static IReadOnlyDictionary<SortDirection, string> OrderByOperators { get; } =
+        new Dictionary<SortDirection, string>
+        {
+            [SortDirection.Ascending] = " ASC ", [SortDirection.Descending] = " DESC "
+        };
+
     private StringBuilder Builder { get; } = new();
 
     private static Dictionary<string, object> QueryParameters { get; } = [];
@@ -103,20 +109,16 @@ public sealed class CompositeQueries : IVisitor
         Join(LogicalOperators[logicalOperator], filterDefinitions);
     }
 
-    public void Visit(
-        ISortDefinition filterDefinition)
+    public void Visit(ISortDefinition filterDefinition)
     {
         (SortDirection sortDirection, string fieldName) =
             filterDefinition.OrderParameter;
 
         Guard.Against.Null(fieldName);
 
-        // string namedParameter = $"@p{Position}";
-        // QueryParameters.Add(namedParameter, value);
-        //
-        // string query = string.Join(' ',
-        //     [fieldName, FieldMatchingOperators[sortDirection], namedParameter]);
-        //
-        // Builder.Append(query);
+        string query = string.Join(' ',
+            [fieldName, OrderByOperators[sortDirection]]);
+
+        Builder.Append(query);
     }
 }
