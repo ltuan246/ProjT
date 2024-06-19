@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record AndFilterDefinition(params IQuerying[] FilterDefinitions) : IGroupingFilterDefinition
+public sealed record AndFilterDefinition(params IQuerying[] FilterDefinitions) : IMultipleFiltersDefinition
 {
     public (LogicalOperator logicalOperator, IQuerying[] filterDefinitions) GroupingFilterDefinition { get; } =
         new(LogicalOperator.And, FilterDefinitions);

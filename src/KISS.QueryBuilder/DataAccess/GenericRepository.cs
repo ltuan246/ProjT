@@ -3,6 +3,8 @@ namespace KISS.QueryBuilder.DataAccess;
 public sealed record GenericRepository<TEntity>(DbContext Context)
 {
     public FilterDefinitionBuilder<TEntity> Filter => Builders<TEntity>.Filter;
+    public SortDefinitionBuilder<TEntity> Sort => Builders<TEntity>.Sort;
+
     private static Type Entity => typeof(TEntity);
     private static IEnumerable<PropertyInfo> Properties => Entity.GetProperties();
 

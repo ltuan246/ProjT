@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Interfaces;
 
-public interface IGroupingFilterDefinition : IQuerying
+public interface IMultipleFiltersDefinition : IQuerying
 {
     (LogicalOperator logicalOperator, IQuerying[] filterDefinitions) GroupingFilterDefinition { get; }
 }

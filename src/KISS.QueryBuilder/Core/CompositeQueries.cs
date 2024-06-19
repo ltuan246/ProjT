@@ -96,10 +96,27 @@ public sealed class CompositeQueries : IVisitor
         Builder.Append(query);
     }
 
-    public void Visit(IGroupingFilterDefinition groupingFilterDefinition)
+    public void Visit(IMultipleFiltersDefinition multipleFiltersDefinition)
     {
         (LogicalOperator logicalOperator, IQuerying[] filterDefinitions) =
-            groupingFilterDefinition.GroupingFilterDefinition;
+            multipleFiltersDefinition.GroupingFilterDefinition;
         Join(LogicalOperators[logicalOperator], filterDefinitions);
+    }
+
+    public void Visit(
+        ISortDefinition filterDefinition)
+    {
+        (SortDirection sortDirection, string fieldName) =
+            filterDefinition.OrderParameter;
+
+        Guard.Against.Null(fieldName);
+
+        // string namedParameter = $"@p{Position}";
+        // QueryParameters.Add(namedParameter, value);
+        //
+        // string query = string.Join(' ',
+        //     [fieldName, FieldMatchingOperators[sortDirection], namedParameter]);
+        //
+        // Builder.Append(query);
     }
 }

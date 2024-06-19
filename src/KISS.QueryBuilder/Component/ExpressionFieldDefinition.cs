@@ -27,6 +27,17 @@ public sealed record ExpressionFieldDefinition<TEntity, TField>(Expression<Func<
     }
 }
 
-public sealed record ExpressionFieldDefinition<TEntity>(LambdaExpression Expression) : FieldDefinition<TEntity>
-{
-}
+// public sealed record ExpressionFieldDefinition<TEntity>(LambdaExpression Expression)
+// {
+//     public static implicit operator RenderedFieldDefinition(ExpressionFieldDefinition<TEntity> field)
+//     {
+//         Expression ex = field.Expr.Body;
+//         string fieldName = ex.NodeType switch
+//         {
+//             ExpressionType.MemberAccess => ((MemberExpression)ex).Member.Name,
+//             _ => throw new NotSupportedException()
+//         };
+//
+//         return new(fieldName);
+//     }
+// }

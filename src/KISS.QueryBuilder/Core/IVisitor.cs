@@ -8,5 +8,5 @@ public interface IVisitor
 
     void Visit(ISingleItemAsArrayOperatorFilterDefinition operatorFilterDefinition);
 
-    void Visit(IGroupingFilterDefinition groupingFilterDefinition);
+    void Visit(IMultipleFiltersDefinition multipleFiltersDefinition);
 }
