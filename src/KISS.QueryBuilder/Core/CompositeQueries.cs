@@ -88,10 +88,10 @@ public sealed class CompositeQueries : IVisitor
         PopState();
     }
 
-    public void Visit(IFilterDefinition filterDefinition)
+    public void Visit(IOperatorFilterDefinition operatorFilterDefinition)
     {
         (ComparisonOperator operatorName, string fieldName, object value) =
-            filterDefinition.QueryParameter;
+            operatorFilterDefinition.QueryParameter;
 
         Guard.Against.Null(value);
 
@@ -131,6 +131,34 @@ public sealed class CompositeQueries : IVisitor
         [
             fieldName, SingleItemAsArrayOperators[singleItemAsArrayOperator], $"({string.Join(',', namedParameters)})"
         ]);
+
+        if (Context != QueryingContext.MultipleFilters ||
+            (Context == QueryingContext.MultipleFilters && StackStatePosition == 0))
+        {
+            query = $" WHERE {query}";
+        }
+
+        Builder.Append(query);
+    }
+
+    public void Visit(IRangeFilterDefinition rangeFilterDefinition)
+    {
+        (string fieldName, object beginValue, object endValue) =
+            rangeFilterDefinition.QueryParameter;
+
+        Guard.Against.Null(beginValue);
+        Guard.Against.Null(endValue);
+
+        string beginNamedParameter = NamedParameterMarkers;
+        QueryParameters.Add(beginNamedParameter, beginValue);
+
+        string endNamedParameter = NamedParameterMarkers;
+        QueryParameters.Add(endNamedParameter, endValue);
+
+        const string betweenOperator = "({0} BETWEEN {1} AND {2})";
+        StringBuilder betweenOperatorBuilder = new();
+        betweenOperatorBuilder.AppendFormat(betweenOperator, fieldName, beginNamedParameter, endNamedParameter);
+        string query = betweenOperatorBuilder.ToString();
 
         if (Context != QueryingContext.MultipleFilters ||
             (Context == QueryingContext.MultipleFilters && StackStatePosition == 0))

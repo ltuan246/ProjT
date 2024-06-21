@@ -1,9 +1,9 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed class OperatorFilterDefinition(
+public sealed class OperatorOperatorFilterDefinition(
     ComparisonOperator comparisonOperator,
     RenderedFieldDefinition fieldDefinition,
-    object value) : IFilterDefinition
+    object value) : IOperatorFilterDefinition
 {
     public (ComparisonOperator comparisonOperator, string fieldName, object value) QueryParameter { get; } =
         new(comparisonOperator, fieldDefinition.FieldName, value);

@@ -9,7 +9,9 @@ public class SortDefinitionBuilderTests : IDisposable
     public SortDefinitionBuilderTests()
     {
         // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
+        SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
         SqlMapper.AddTypeHandler(new GuidHandler());
+        SqlMapper.AddTypeHandler(new TimeSpanHandler());
 
         const string connectionString = "datasource=:memory:";
         Connection = new SqliteConnection(connectionString);
@@ -43,7 +45,7 @@ public class SortDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.GetList();
 
         // Assert
-        Assert.Equal(100, weathers.Count());
+        Assert.Equal(100, weathers.Count);
         Assert.Contains(weathers, weather => weather.Id == exId);
     }
 
@@ -66,7 +68,7 @@ public class SortDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(filters, ascId);
 
         // Assert
-        Assert.Equal(3, weathers.Count());
+        Assert.Equal(3, weathers.Count);
         Assert.Collection(weathers,
             weather =>
                 Assert.Multiple(
@@ -107,7 +109,7 @@ public class SortDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(filters, descId);
 
         // Assert
-        Assert.Equal(3, weathers.Count());
+        Assert.Equal(3, weathers.Count);
         Assert.Collection(weathers,
             weather =>
                 Assert.Multiple(

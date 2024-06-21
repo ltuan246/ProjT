@@ -12,4 +12,6 @@ public class Weather
     [Name("temperature_celsius")] public required double TemperatureCelsius { get; init; }
 
     [Name("wind_mph")] public required double WindMph { get; init; }
+
+    [Name("last_updated")] public required DateTime LastUpdated { get; init; }
 }

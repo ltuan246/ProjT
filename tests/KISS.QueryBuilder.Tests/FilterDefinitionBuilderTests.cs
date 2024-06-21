@@ -9,7 +9,9 @@ public class FilterDefinitionBuilderTests : IDisposable
     public FilterDefinitionBuilderTests()
     {
         // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
+        SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
         SqlMapper.AddTypeHandler(new GuidHandler());
+        SqlMapper.AddTypeHandler(new TimeSpanHandler());
 
         const string connectionString = "datasource=:memory:";
         Connection = new SqliteConnection(connectionString);
@@ -43,7 +45,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.GetList();
 
         // Assert
-        Assert.Equal(100, weathers.Count());
+        Assert.Equal(100, weathers.Count);
         Assert.Contains(weathers, weather => weather.Id == exId);
     }
 
@@ -106,7 +108,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
-        Assert.Equal(9, weathers.Count());
+        Assert.Equal(9, weathers.Count);
         Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius > exTemperatureCelsius));
     }
 
@@ -123,7 +125,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
-        Assert.Equal(10, weathers.Count());
+        Assert.Equal(10, weathers.Count);
         Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius >= exTemperatureCelsius));
     }
 
@@ -140,7 +142,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
-        Assert.Equal(27, weathers.Count());
+        Assert.Equal(27, weathers.Count);
         Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius < exTemperatureCelsius));
     }
 
@@ -157,7 +159,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
 
         // Assert
-        Assert.Equal(32, weathers.Count());
+        Assert.Equal(32, weathers.Count);
         Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius <= exTemperatureCelsius));
     }
 
@@ -174,7 +176,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(countryFilter);
 
         // Assert
-        Assert.Equal(20, weathers.Count());
+        Assert.Equal(20, weathers.Count);
         Assert.All(weathers, weather => Assert.Contains(weather.Country, exCountries));
     }
 
@@ -191,8 +193,26 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(countryFilter);
 
         // Assert
-        Assert.Equal(63, weathers.Count());
+        Assert.Equal(63, weathers.Count);
         Assert.DoesNotContain(weathers, weather => exCountries.Contains(weather.Country));
+    }
+
+    [Fact]
+    public void Within()
+    {
+        // Arrange
+        DateTime exDtBegin = new(2024, 5, 19);
+        DateTime exDtEnd = new(2024, 5, 21);
+
+        var query = WeatherRepository.Filter;
+        var rangeFilter = query.Within(t => t.LastUpdated, exDtBegin, exDtEnd);
+
+        // Act
+        List<Weather> weathers = WeatherRepository.Query(rangeFilter);
+
+        // Assert
+        Assert.Equal(10, weathers.Count);
+        Assert.All(weathers, weather => Assert.InRange(weather.LastUpdated, exDtBegin, exDtEnd));
     }
 
     [Fact]
@@ -235,7 +255,7 @@ public class FilterDefinitionBuilderTests : IDisposable
         List<Weather> weathers = WeatherRepository.Query(filter);
 
         // Assert
-        Assert.Equal(2, weathers.Count());
+        Assert.Equal(2, weathers.Count);
         Assert.All(weathers, weather => Assert.Contains(weather.Id, exIds));
     }
 

@@ -9,7 +9,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>An equality filter.</returns>
-    public OperatorFilterDefinition Eq<TField>(
+    public OperatorOperatorFilterDefinition Eq<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Equals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -21,7 +21,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A not equal filter.</returns>
-    public OperatorFilterDefinition Ne<TField>(
+    public OperatorOperatorFilterDefinition Ne<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.NotEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -33,7 +33,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than filter.</returns>
-    public OperatorFilterDefinition Gt<TField>(
+    public OperatorOperatorFilterDefinition Gt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Greater, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -45,7 +45,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than or equal filter.</returns>
-    public OperatorFilterDefinition Gte<TField>(
+    public OperatorOperatorFilterDefinition Gte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.GreaterOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -57,7 +57,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than filter.</returns>
-    public OperatorFilterDefinition Lt<TField>(
+    public OperatorOperatorFilterDefinition Lt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Less, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -69,7 +69,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than or equal filter.</returns>
-    public OperatorFilterDefinition Lte<TField>(
+    public OperatorOperatorFilterDefinition Lte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.LessOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -97,6 +97,20 @@ public sealed record FilterDefinitionBuilder<TEntity>
         Expression<Func<TEntity, TField>> field,
         params TField[] values)
         => new(SingleItemAsArrayOperator.NotContains, new ExpressionFieldDefinition<TEntity, TField>(field), values);
+
+    /// <summary>
+    /// Creates the between filter.
+    /// </summary>
+    /// <param name="field">The field.</param>
+    /// <param name="beginValue">The begin values.</param>
+    /// <param name="endValue">The end values.</param>
+    /// <typeparam name="TField"></typeparam>
+    /// <returns>The between filter.</returns>
+    public RangeFilterDefinition Within<TField>(
+        Expression<Func<TEntity, TField>> field,
+        [DisallowNull] TField beginValue,
+        [DisallowNull] TField endValue)
+        => new(new ExpressionFieldDefinition<TEntity, TField>(field), beginValue, endValue);
 
     /// <summary>
     /// Creates an and filter.
