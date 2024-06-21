@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Component;
 
-public sealed record MultipleSortsDefinition(IEnumerable<DirectionalSortDefinition> Sorts) : IMultipleSortsDefinition
+public sealed record QueryBuilders(IEnumerable<IQuerying> Queries) : IQueryBuilders
 {
     void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
 

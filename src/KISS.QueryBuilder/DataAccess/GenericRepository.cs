@@ -2,8 +2,8 @@ namespace KISS.QueryBuilder.DataAccess;
 
 public sealed record GenericRepository<TEntity>(DbContext Context)
 {
-    public FilterDefinitionBuilder<TEntity> Filter => Builders<TEntity>.Filter;
-    public SortDefinitionBuilder<TEntity> Sort => Builders<TEntity>.Sort;
+    public FilterDefinitionBuilder<TEntity> Filter => DefinitionBuilder<TEntity>.Filter;
+    public SortDefinitionBuilder<TEntity> Sort => DefinitionBuilder<TEntity>.Sort;
 
     private static Type Entity => typeof(TEntity);
     private static IEnumerable<PropertyInfo> Properties => Entity.GetProperties();
@@ -19,14 +19,12 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
         return connection;
     }
 
-    public List<TEntity> Query(IQuerying filter)
+    public List<TEntity> Query(params IQuerying[] queries)
     {
-        const string sqlWhereClause = """
-                                          SELECT {0} FROM {1}s
-                                          WHERE {2}
-                                      """;
+        const string sqlWhereClause = "SELECT {0} FROM {1}s {2}";
 
-        (string conditions, Dictionary<string, object> queryParameters) = CompositeQueries.Render(filter);
+        QueryBuilders queryBuilders = new(queries);
+        (string conditions, Dictionary<string, object> queryParameters) = queryBuilders.Render();
         string[] propsName = Properties.Select(p => p.Name).ToArray();
         string columns = string.Join(", ", propsName);
         string table = Entity.Name;
