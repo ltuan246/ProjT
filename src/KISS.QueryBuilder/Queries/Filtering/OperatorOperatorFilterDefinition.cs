@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries.Filtering;
 
 public sealed class OperatorOperatorFilterDefinition(
     ComparisonOperator comparisonOperator,
@@ -9,6 +9,4 @@ public sealed class OperatorOperatorFilterDefinition(
         new(comparisonOperator, fieldDefinition.FieldName, value);
 
     void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
-
-    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

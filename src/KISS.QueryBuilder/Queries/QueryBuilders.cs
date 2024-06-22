@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries;
 
 public sealed record QueryBuilders(IEnumerable<IQuerying> Queries) : IQueryBuilders
 {

@@ -12,5 +12,7 @@ global using Dapper;
 global using KISS.GuardClauses;
 global using KISS.QueryBuilder.Core;
 global using KISS.QueryBuilder.Interfaces;
-global using KISS.QueryBuilder.Component;
 global using KISS.QueryBuilder.Enums;
+global using KISS.QueryBuilder.Queries;
+global using KISS.QueryBuilder.Queries.Filtering;
+global using KISS.QueryBuilder.Queries.Sorting;

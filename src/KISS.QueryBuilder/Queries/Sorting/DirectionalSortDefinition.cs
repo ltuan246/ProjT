@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries.Sorting;
 
 public sealed class DirectionalSortDefinition(SortDirection sortDirection, RenderedFieldDefinition fieldDefinition)
     : ISortDefinition
@@ -7,6 +7,4 @@ public sealed class DirectionalSortDefinition(SortDirection sortDirection, Rende
         new(sortDirection, fieldDefinition.FieldName);
 
     void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
-
-    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

@@ -1,8 +1,6 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries.Sorting;
 
 public sealed record MultipleSortsDefinition(IEnumerable<DirectionalSortDefinition> Sorts) : IMultipleSortsDefinition
 {
     void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
-
-    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

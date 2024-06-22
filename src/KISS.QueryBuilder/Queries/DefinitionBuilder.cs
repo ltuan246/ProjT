@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries;
 
 /// <summary>
 /// A static helper class containing various builders.

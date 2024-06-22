@@ -16,7 +16,8 @@ public sealed class CompositeQueries : IVisitor
     private static IReadOnlyDictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
         new Dictionary<SingleItemAsArrayOperator, string>
         {
-            [SingleItemAsArrayOperator.Contains] = " IN ", [SingleItemAsArrayOperator.NotContains] = " NOT IN "
+            [SingleItemAsArrayOperator.Contains] = " IN ",
+            [SingleItemAsArrayOperator.NotContains] = " NOT IN "
         };
 
     private static IReadOnlyDictionary<LogicalOperator, string> LogicalOperators { get; } =
@@ -25,7 +26,8 @@ public sealed class CompositeQueries : IVisitor
     private static IReadOnlyDictionary<SortDirection, string> OrderByOperators { get; } =
         new Dictionary<SortDirection, string>
         {
-            [SortDirection.Ascending] = " ASC ", [SortDirection.Descending] = " DESC "
+            [SortDirection.Ascending] = " ASC ",
+            [SortDirection.Descending] = " DESC "
         };
 
     private StringBuilder Builder { get; } = new();

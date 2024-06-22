@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries.Filtering;
 
 public sealed class SingleItemAsArrayOperatorFilterDefinition<TField>(
     SingleItemAsArrayOperator comparisonOperator,
@@ -9,6 +9,4 @@ public sealed class SingleItemAsArrayOperatorFilterDefinition<TField>(
         QueryParameter { get; } = new(comparisonOperator, fieldDefinition.FieldName, values.Cast<object>().ToArray());
 
     void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
-
-    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

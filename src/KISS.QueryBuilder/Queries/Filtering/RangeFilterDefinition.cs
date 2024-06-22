@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries.Filtering;
 
 public sealed class RangeFilterDefinition(
     RenderedFieldDefinition fieldDefinition,
@@ -9,6 +9,4 @@ public sealed class RangeFilterDefinition(
         new(fieldDefinition.FieldName, beginValue, endValue);
 
     void IQuerying.Accept(IVisitor visitor) => visitor.Visit(this);
-
-    public (string, Dictionary<string, object>) Render() => CompositeQueries.Render(this);
 }

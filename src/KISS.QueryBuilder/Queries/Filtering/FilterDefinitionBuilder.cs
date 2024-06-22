@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Component;
+namespace KISS.QueryBuilder.Queries.Filtering;
 
 public sealed record FilterDefinitionBuilder<TEntity>
 {
