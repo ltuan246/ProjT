@@ -4,7 +4,7 @@ public interface IVisitor
 {
     void Visit(IQuerying concreteQuerying);
 
-    void Visit(IQueryBuilders queryBuilders);
+    void Visit(IBuilder builder);
 
     void Visit(IOperatorFilterDefinition operatorFilterDefinition);
 

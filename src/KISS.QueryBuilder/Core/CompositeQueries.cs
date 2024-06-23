@@ -1,34 +1,10 @@
 namespace KISS.QueryBuilder.Core;
 
-public sealed class CompositeQueries : IVisitor
+public sealed class CompositeQueries<TEntity> : IVisitor
 {
-    private static IReadOnlyDictionary<ComparisonOperator, string> FieldMatchingOperators { get; } =
-        new Dictionary<ComparisonOperator, string>
-        {
-            [ComparisonOperator.Equals] = " = ",
-            [ComparisonOperator.NotEquals] = " <> ",
-            [ComparisonOperator.Greater] = " > ",
-            [ComparisonOperator.GreaterOrEquals] = " >= ",
-            [ComparisonOperator.Less] = " < ",
-            [ComparisonOperator.LessOrEquals] = " <= "
-        };
+    private static Type Entity => typeof(TEntity);
 
-    private static IReadOnlyDictionary<SingleItemAsArrayOperator, string> SingleItemAsArrayOperators { get; } =
-        new Dictionary<SingleItemAsArrayOperator, string>
-        {
-            [SingleItemAsArrayOperator.Contains] = " IN ",
-            [SingleItemAsArrayOperator.NotContains] = " NOT IN "
-        };
-
-    private static IReadOnlyDictionary<LogicalOperator, string> LogicalOperators { get; } =
-        new Dictionary<LogicalOperator, string> { [LogicalOperator.And] = " AND ", [LogicalOperator.Or] = " OR " };
-
-    private static IReadOnlyDictionary<SortDirection, string> OrderByOperators { get; } =
-        new Dictionary<SortDirection, string>
-        {
-            [SortDirection.Ascending] = " ASC ",
-            [SortDirection.Descending] = " DESC "
-        };
+    private static IEnumerable<PropertyInfo> Columns => Entity.GetProperties();
 
     private StringBuilder Builder { get; } = new();
 
@@ -53,17 +29,15 @@ public sealed class CompositeQueries : IVisitor
         set => StackStates.Peek().Position = value;
     }
 
-    private static Dictionary<string, object> QueryParameters { get; } = [];
+    private Dictionary<string, object> QueryParameters { get; } = [];
 
-    private static string NamedParameterMarkers => $"@p{QueryParameters.Count}";
-
-    private string Operation() => Builder.ToString();
+    private string NamedParameterMarkers => $"@p{QueryParameters.Count}";
 
     public static (string, Dictionary<string, object>) Render(IQuerying expression)
     {
-        CompositeQueries visitor = new();
+        CompositeQueries<TEntity> visitor = new();
         visitor.Visit(expression);
-        return (visitor.Operation(), QueryParameters);
+        return (visitor.Builder.ToString(), visitor.QueryParameters);
     }
 
     private void Join(string separator, IEnumerable<IQuerying> expressions)
@@ -83,10 +57,10 @@ public sealed class CompositeQueries : IVisitor
 
     public void Visit(IQuerying concreteQuerying) => concreteQuerying.Accept(this);
 
-    public void Visit(IQueryBuilders queryBuilders)
+    public void Visit(IBuilder builder)
     {
-        PushState(QueryingContext.Composite, queryBuilders.Queries.Count());
-        Join(string.Empty, queryBuilders.Queries);
+        PushState(QueryingContext.Composite, builder.Queries.Count());
+        Join(string.Empty, builder.Queries);
         PopState();
     }
 
@@ -101,7 +75,7 @@ public sealed class CompositeQueries : IVisitor
         QueryParameters.Add(namedParameter, value);
 
         string query = string.Join(' ',
-            [fieldName, FieldMatchingOperators[operatorName], namedParameter]);
+            [fieldName, QueryBuildHelper.FieldMatchingOperators[operatorName], namedParameter]);
 
         if (Context != QueryingContext.MultipleFilters ||
             (Context == QueryingContext.MultipleFilters && StackStatePosition == 0))
@@ -131,7 +105,9 @@ public sealed class CompositeQueries : IVisitor
 
         string query = string.Join(' ',
         [
-            fieldName, SingleItemAsArrayOperators[singleItemAsArrayOperator], $"({string.Join(',', namedParameters)})"
+            fieldName,
+            QueryBuildHelper.SingleItemAsArrayOperators[singleItemAsArrayOperator],
+            $"({string.Join(',', namedParameters)})"
         ]);
 
         if (Context != QueryingContext.MultipleFilters ||
@@ -177,7 +153,7 @@ public sealed class CompositeQueries : IVisitor
             filters.GroupingFilterDefinition;
 
         PushState(QueryingContext.MultipleFilters, filterDefinitions.Length);
-        Join(LogicalOperators[logicalOperator], filterDefinitions);
+        Join(QueryBuildHelper.LogicalOperators[logicalOperator], filterDefinitions);
         PopState();
     }
 
@@ -189,7 +165,7 @@ public sealed class CompositeQueries : IVisitor
         Guard.Against.Null(fieldName);
 
         string query = string.Join(' ',
-            [fieldName, OrderByOperators[sortDirection]]);
+            [fieldName, QueryBuildHelper.OrderByOperators[sortDirection]]);
 
         if (Context != QueryingContext.MultipleSorts ||
             (Context == QueryingContext.MultipleSorts && StackStatePosition == 0))
@@ -205,14 +181,5 @@ public sealed class CompositeQueries : IVisitor
         PushState(QueryingContext.MultipleSorts, sorts.Sorts.Count());
         Join(", ", sorts.Sorts);
         PopState();
-    }
-
-    private sealed class StatesBuilder
-    {
-        public required QueryingContext Context { get; init; }
-
-        public required int Position { get; set; }
-
-        public required int Length { get; init; }
     }
 }

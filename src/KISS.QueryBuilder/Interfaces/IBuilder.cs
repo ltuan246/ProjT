@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Interfaces;
 
-public interface IQueryBuilders : IQuerying
+public interface IBuilder : IQuerying
 {
     IEnumerable<IQuerying> Queries { get; }
 }
