@@ -16,3 +16,4 @@ global using KISS.QueryBuilder.Enums;
 global using KISS.QueryBuilder.Queries;
 global using KISS.QueryBuilder.Queries.Filtering;
 global using KISS.QueryBuilder.Queries.Sorting;
+global using KISS.QueryBuilder.Queries.Utils;

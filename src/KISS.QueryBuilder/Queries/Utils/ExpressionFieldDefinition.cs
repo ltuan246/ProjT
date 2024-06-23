@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Queries;
+namespace KISS.QueryBuilder.Queries.Utils;
 
 public sealed record ExpressionFieldDefinition<TEntity, TField>(Expression<Func<TEntity, TField>> Expr)
 {
