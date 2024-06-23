@@ -1,6 +1,5 @@
 global using System;
 global using System.Data;
-global using System.Data.Common;
 global using System.Collections.Generic;
 global using System.Linq;
 global using System.ComponentModel.DataAnnotations;
@@ -8,8 +7,8 @@ global using Dapper;
 global using Microsoft.Data.Sqlite;
 global using Microsoft.EntityFrameworkCore;
 global using CsvHelper.Configuration.Attributes;
+global using KISS.Misc.DataAccess;
+global using KISS.QueryBuilder.DataAccess;
 global using KISS.QueryBuilder.Tests.Model;
 global using KISS.QueryBuilder.Tests.DataSeeding;
-global using KISS.QueryBuilder.DataAccess;
-global using KISS.Misc.DataAccess;
 global using KISS.QueryBuilder.Tests.Utils;

@@ -6,5 +6,12 @@ public class Weather
 
     [Name("country"), MaxLength(100)] public required string Country { get; init; }
 
-    [Name("temperature_celsius")] public required float TemperatureCelsius { get; init; }
+    [Name("location_name"), MaxLength(100)]
+    public required string LocationName { get; init; }
+
+    [Name("temperature_celsius")] public required double TemperatureCelsius { get; init; }
+
+    [Name("wind_mph")] public required double WindMph { get; init; }
+
+    [Name("last_updated")] public required DateTime LastUpdated { get; init; }
 }

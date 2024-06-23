@@ -2,13 +2,25 @@ namespace KISS.QueryBuilder.Core;
 
 public interface IVisitor
 {
-    void Visit(IComponent concreteComponent);
+    void Visit(IQuerying concreteQuerying);
 
-    void Visit<TComponent, TField>(OperatorFilterDefinition<TComponent, TField> operatorFilterDefinition);
+    void Visit(IBuilder builder);
 
-    void Visit<TComponent, TField>(SingleItemAsArrayOperatorFilterDefinition<TComponent, TField> operatorFilterDefinition);
+    void Visit(IOperatorFilterDefinition operatorFilterDefinition);
 
-    void Visit(AndFilterDefinition logicalOperatorFieldDefinition);
+    void Visit(ISingleItemAsArrayOperatorFilterDefinition operatorFilterDefinition);
 
-    void Visit(OrFilterDefinition logicalOperatorFieldDefinition);
+    void Visit(IRangeFilterDefinition rangeFilterDefinition);
+
+    void Visit(ICombinedFilterDefinition combinedFilterDefinition);
+
+    void Visit(ISortDefinition filterDefinition);
+
+    void Visit(ICombinedSortDefinition sorts);
+
+    void Visit(ISingleFieldProjectionDefinition singleFieldProjection);
+
+    void Visit(ISliceProjectionDefinition singleFieldProjection);
+
+    void Visit(ICombinedProjectionDefinition singleFieldProjection);
 }

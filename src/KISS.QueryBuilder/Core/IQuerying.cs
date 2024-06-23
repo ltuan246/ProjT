@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Core;
 
-public interface IComponent
+public interface IQuerying
 {
     void Accept(IVisitor visitor);
 }
