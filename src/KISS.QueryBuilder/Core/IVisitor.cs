@@ -12,11 +12,11 @@ public interface IVisitor
 
     void Visit(IRangeFilterDefinition rangeFilterDefinition);
 
-    void Visit(IMultipleFiltersDefinition multipleFiltersDefinition);
+    void Visit(ICombinedFilterDefinition combinedFilterDefinition);
 
     void Visit(ISortDefinition filterDefinition);
 
-    void Visit(IMultipleSortsDefinition sorts);
+    void Visit(ICombinedSortDefinition sorts);
 
     void Visit(ISingleFieldProjectionDefinition singleFieldProjection);
 

@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Queries.Filtering;
+namespace KISS.QueryBuilder.Queries;
 
 public sealed record FilterDefinitionBuilder<TEntity>
 {
@@ -9,7 +9,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>An equality filter.</returns>
-    public OperatorOperatorFilterDefinition Eq<TField>(
+    public OperatorFilterDefinition Eq<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Equals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -21,7 +21,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A not equal filter.</returns>
-    public OperatorOperatorFilterDefinition Ne<TField>(
+    public OperatorFilterDefinition Ne<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.NotEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -33,7 +33,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than filter.</returns>
-    public OperatorOperatorFilterDefinition Gt<TField>(
+    public OperatorFilterDefinition Gt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Greater, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -45,7 +45,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A greater than or equal filter.</returns>
-    public OperatorOperatorFilterDefinition Gte<TField>(
+    public OperatorFilterDefinition Gte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.GreaterOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -57,7 +57,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than filter.</returns>
-    public OperatorOperatorFilterDefinition Lt<TField>(
+    public OperatorFilterDefinition Lt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.Less, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -69,7 +69,7 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// <param name="value">The value.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>A less than or equal filter.</returns>
-    public OperatorOperatorFilterDefinition Lte<TField>(
+    public OperatorFilterDefinition Lte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
         => new(ComparisonOperator.LessOrEquals, new ExpressionFieldDefinition<TEntity, TField>(field), value);
@@ -117,14 +117,14 @@ public sealed record FilterDefinitionBuilder<TEntity>
     /// </summary>
     /// <param name="filterDefinitions">The filters.</param>
     /// <returns>A filter.</returns>
-    public AndFilterDefinition And(params IQuerying[] filterDefinitions)
-        => new(filterDefinitions);
+    public CombinedFilterDefinition And(params IQuerying[] filterDefinitions)
+        => new(LogicalOperator.And, filterDefinitions);
 
     /// <summary>
     /// Creates an and filter.
     /// </summary>
     /// <param name="filterDefinitions">The filters.</param>
     /// <returns>An or filter.</returns>
-    public OrFilterDefinition Or(params IQuerying[] filterDefinitions)
-        => new(filterDefinitions);
+    public CombinedFilterDefinition Or(params IQuerying[] filterDefinitions)
+        => new(LogicalOperator.Or, filterDefinitions);
 }

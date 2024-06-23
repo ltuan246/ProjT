@@ -149,7 +149,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         Builder.Append(query);
     }
 
-    public void Visit(IMultipleFiltersDefinition filters)
+    public void Visit(ICombinedFilterDefinition filters)
     {
         (LogicalOperator logicalOperator, IQuerying[] filterDefinitions) =
             filters.GroupingFilterDefinition;
@@ -178,7 +178,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         Builder.Append(query);
     }
 
-    public void Visit(IMultipleSortsDefinition sorts)
+    public void Visit(ICombinedSortDefinition sorts)
     {
         PushState(QueryingContext.MultipleSorts, sorts.Sorts.Count());
         Join(", ", sorts.Sorts);

@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Queries.Sorting;
+namespace KISS.QueryBuilder.Queries;
 
 public class SortDefinitionBuilder<TEntity>
 {
@@ -23,6 +23,6 @@ public class SortDefinitionBuilder<TEntity>
     /// </summary>
     /// <param name="sorts">The sorts.</param>
     /// <returns>A combined sort.</returns>
-    public MultipleSortsDefinition Combine(params DirectionalSortDefinition[] sorts)
+    public CombinedSortDefinition Combine(params DirectionalSortDefinition[] sorts)
         => new(sorts);
 }

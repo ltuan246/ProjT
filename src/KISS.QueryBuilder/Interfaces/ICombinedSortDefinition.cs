@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Interfaces;
 
-public interface IMultipleSortsDefinition : IQuerying
+public interface ICombinedSortDefinition : IQuerying
 {
     IEnumerable<DirectionalSortDefinition> Sorts { get; }
 }

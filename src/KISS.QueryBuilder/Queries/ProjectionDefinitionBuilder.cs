@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Queries.Projections;
+namespace KISS.QueryBuilder.Queries;
 
 public sealed record ProjectionDefinitionBuilder<TEntity>
 {

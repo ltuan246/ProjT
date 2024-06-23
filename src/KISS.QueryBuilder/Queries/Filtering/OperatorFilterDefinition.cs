@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Queries.Filtering;
 
-public sealed class OperatorOperatorFilterDefinition(
+public sealed class OperatorFilterDefinition(
     ComparisonOperator comparisonOperator,
     RenderedFieldDefinition fieldDefinition,
     object value) : IOperatorFilterDefinition
