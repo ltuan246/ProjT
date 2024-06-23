@@ -17,4 +17,10 @@ public interface IVisitor
     void Visit(ISortDefinition filterDefinition);
 
     void Visit(IMultipleSortsDefinition sorts);
+
+    void Visit(ISingleFieldProjectionDefinition singleFieldProjection);
+
+    void Visit(ISliceProjectionDefinition singleFieldProjection);
+
+    void Visit(ICombinedProjectionDefinition singleFieldProjection);
 }

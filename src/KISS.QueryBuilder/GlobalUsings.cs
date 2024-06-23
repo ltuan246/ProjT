@@ -18,3 +18,4 @@ global using KISS.QueryBuilder.Queries;
 global using KISS.QueryBuilder.Queries.Common;
 global using KISS.QueryBuilder.Queries.Filtering;
 global using KISS.QueryBuilder.Queries.Sorting;
+global using KISS.QueryBuilder.Queries.Projections;

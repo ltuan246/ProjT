@@ -4,7 +4,9 @@ public sealed class CompositeQueries<TEntity> : IVisitor
 {
     private static Type Entity => typeof(TEntity);
 
-    private static IEnumerable<PropertyInfo> Columns => Entity.GetProperties();
+    private static IEnumerable<PropertyInfo> Properties => Entity.GetProperties();
+
+    private List<string> Columns { get; } = [];
 
     private StringBuilder Builder { get; } = new();
 
@@ -180,6 +182,43 @@ public sealed class CompositeQueries<TEntity> : IVisitor
     {
         PushState(QueryingContext.MultipleSorts, sorts.Sorts.Count());
         Join(", ", sorts.Sorts);
+        PopState();
+    }
+
+    public void Visit(ISingleFieldProjectionDefinition singleFieldProjection)
+    {
+        (RenderedFieldDefinition field, bool isIncluding) =
+            singleFieldProjection.FieldDefinition;
+
+        if (isIncluding)
+        {
+            Columns.Add(field.FieldName);
+        }
+        else
+        {
+            if (!Columns.Any())
+            {
+                Columns.AddRange(Properties.Select(p => p.Name).ToArray());
+            }
+
+            Columns.Remove(field.FieldName);
+        }
+    }
+
+    public void Visit(ISliceProjectionDefinition sliceProjectionDefinition)
+    {
+        if (Context != QueryingContext.CombinedProjection ||
+            (Context == QueryingContext.CombinedProjection && StackStatePosition == 0))
+        {
+            string query = $" SELECT TOP {sliceProjectionDefinition.Limit} ";
+            Builder.Append(query);
+        }
+    }
+
+    public void Visit(ICombinedProjectionDefinition combinedProjectionDefinition)
+    {
+        PushState(QueryingContext.CombinedProjection, combinedProjectionDefinition.Projections.Length);
+        Join(string.Empty, combinedProjectionDefinition.Projections);
         PopState();
     }
 }

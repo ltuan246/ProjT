@@ -6,6 +6,8 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
 
     public SortDefinitionBuilder<TEntity> Sort { get; } = new();
 
+    public ProjectionDefinitionBuilder<TEntity> Projection { get; } = new();
+
     private static Type Entity => typeof(TEntity);
 
     private static IEnumerable<PropertyInfo> Properties => Entity.GetProperties();

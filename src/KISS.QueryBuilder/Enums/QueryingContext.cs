@@ -4,5 +4,6 @@ public enum QueryingContext
 {
     Composite,
     MultipleFilters,
-    MultipleSorts
+    MultipleSorts,
+    CombinedProjection
 }
