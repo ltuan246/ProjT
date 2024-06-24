@@ -10,26 +10,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
 
     private StringBuilder Builder { get; } = new();
 
-    private Stack<StatesBuilder> StackStates { get; } = new();
-
-    private void PushState(QueryingContext context, int length = 1)
-    {
-        StatesBuilder newState = new() { Context = context, Position = 0, Length = length };
-        StackStates.Push(newState);
-    }
-
-    private void PopState()
-    {
-        StackStates.Pop();
-    }
-
-    private QueryingContext Context => StackStates.Peek().Context;
-
-    private int StackStatePosition
-    {
-        get => StackStates.Peek().Position;
-        set => StackStates.Peek().Position = value;
-    }
+    private ConcurrentDictionary<QueryClause, StringBuilder> DicBuilder { get; } = new();
 
     private Dictionary<string, object> QueryParameters { get; } = [];
 
@@ -42,7 +23,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         return (visitor.Builder.ToString(), visitor.QueryParameters);
     }
 
-    private void Join(string separator, IEnumerable<IQuerying> expressions)
+    private void Join(QueryClause clause, string separator, IEnumerable<IQuerying> expressions)
     {
         using IEnumerator<IQuerying> enumerator = expressions.GetEnumerator();
         if (enumerator.MoveNext())
@@ -50,8 +31,11 @@ public sealed class CompositeQueries<TEntity> : IVisitor
             enumerator.Current.Accept(this);
             while (enumerator.MoveNext())
             {
-                ++StackStatePosition;
-                Builder.Append(separator);
+                if (clause != QueryClause.Default && DicBuilder.TryGetValue(clause, out StringBuilder? value))
+                {
+                    value.Append(separator);
+                }
+
                 enumerator.Current.Accept(this);
             }
         }
@@ -61,9 +45,30 @@ public sealed class CompositeQueries<TEntity> : IVisitor
 
     public void Visit(IBuilder builder)
     {
-        PushState(QueryingContext.Composite, builder.Queries.Count());
-        Join(string.Empty, builder.Queries);
-        PopState();
+        Join(QueryClause.Default, string.Empty, builder.Queries);
+        QueryClause[] clauses =
+            [QueryClause.Projection, QueryClause.Where, QueryClause.OrderBy, QueryClause.SliceProjection];
+        foreach (QueryClause clause in clauses)
+        {
+            string query = DicBuilder.TryGetValue(clause, out StringBuilder? built) switch
+            {
+                true => built.ToString(),
+                false => string.Empty
+            };
+
+            if (string.IsNullOrEmpty(query) && clause == QueryClause.Projection)
+            {
+                const string sqlSelectClause = " SELECT {0} FROM {1}s ";
+                string[] propsName = Properties.Select(p => p.Name).ToArray();
+                string columns = string.Join(", ", propsName);
+                string table = Entity.Name;
+                StringBuilder sqlBuilder = new();
+                sqlBuilder.AppendFormat(sqlSelectClause, columns, table);
+                query = sqlBuilder.ToString();
+            }
+
+            Builder.Append(query);
+        }
     }
 
     public void Visit(IOperatorFilterDefinition operatorFilterDefinition)
@@ -79,13 +84,8 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         string query = string.Join(' ',
             [fieldName, QueryBuildHelper.FieldMatchingOperators[operatorName], namedParameter]);
 
-        if (Context != QueryingContext.MultipleFilters ||
-            (Context == QueryingContext.MultipleFilters && StackStatePosition == 0))
-        {
-            query = $" WHERE {query}";
-        }
-
-        Builder.Append(query);
+        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query}"),
+            (_, built) => built.Append(query));
     }
 
     public void Visit(ISingleItemAsArrayOperatorFilterDefinition operatorFilterDefinition)
@@ -112,13 +112,8 @@ public sealed class CompositeQueries<TEntity> : IVisitor
             $"({string.Join(',', namedParameters)})"
         ]);
 
-        if (Context != QueryingContext.MultipleFilters ||
-            (Context == QueryingContext.MultipleFilters && StackStatePosition == 0))
-        {
-            query = $" WHERE {query}";
-        }
-
-        Builder.Append(query);
+        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query}"),
+            (_, built) => built.Append(query));
     }
 
     public void Visit(IRangeFilterDefinition rangeFilterDefinition)
@@ -140,13 +135,8 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         betweenOperatorBuilder.AppendFormat(betweenOperator, fieldName, beginNamedParameter, endNamedParameter);
         string query = betweenOperatorBuilder.ToString();
 
-        if (Context != QueryingContext.MultipleFilters ||
-            (Context == QueryingContext.MultipleFilters && StackStatePosition == 0))
-        {
-            query = $" WHERE {query}";
-        }
-
-        Builder.Append(query);
+        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query}"),
+            (_, built) => built.Append(query));
     }
 
     public void Visit(ICombinedFilterDefinition filters)
@@ -154,9 +144,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         (LogicalOperator logicalOperator, IQuerying[] filterDefinitions) =
             filters.GroupingFilterDefinition;
 
-        PushState(QueryingContext.MultipleFilters, filterDefinitions.Length);
-        Join(QueryBuildHelper.LogicalOperators[logicalOperator], filterDefinitions);
-        PopState();
+        Join(QueryClause.Where, QueryBuildHelper.LogicalOperators[logicalOperator], filterDefinitions);
     }
 
     public void Visit(ISortDefinition filterDefinition)
@@ -169,20 +157,13 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         string query = string.Join(' ',
             [fieldName, QueryBuildHelper.OrderByOperators[sortDirection]]);
 
-        if (Context != QueryingContext.MultipleSorts ||
-            (Context == QueryingContext.MultipleSorts && StackStatePosition == 0))
-        {
-            query = $" ORDER BY {query}";
-        }
-
-        Builder.Append(query);
+        DicBuilder.AddOrUpdate(QueryClause.OrderBy, new StringBuilder($" ORDER BY {query}"),
+            (_, built) => built.Append(query));
     }
 
     public void Visit(ICombinedSortDefinition sorts)
     {
-        PushState(QueryingContext.MultipleSorts, sorts.Sorts.Count());
-        Join(", ", sorts.Sorts);
-        PopState();
+        Join(QueryClause.OrderBy, ", ", sorts.Sorts);
     }
 
     public void Visit(ISingleFieldProjectionDefinition singleFieldProjection)
@@ -198,7 +179,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         {
             if (!Columns.Any())
             {
-                Columns.AddRange(Properties.Select(p => p.Name).ToArray());
+                Columns.AddRange(Properties.Select(p => $"[{p.Name}]").ToArray());
             }
 
             Columns.Remove(field.FieldName);
@@ -207,18 +188,32 @@ public sealed class CompositeQueries<TEntity> : IVisitor
 
     public void Visit(ISliceProjectionDefinition sliceProjectionDefinition)
     {
-        if (Context != QueryingContext.CombinedProjection ||
-            (Context == QueryingContext.CombinedProjection && StackStatePosition == 0))
+        StringBuilder builder = new();
+        if (sliceProjectionDefinition.Limit > 0)
         {
-            string query = $" SELECT TOP {sliceProjectionDefinition.Limit} ";
-            Builder.Append(query);
+            builder.Append($" LIMIT {sliceProjectionDefinition.Limit} ");
         }
+
+        if (sliceProjectionDefinition.Skip > 0)
+        {
+            builder.Append($" OFFSET {sliceProjectionDefinition.Skip} ");
+        }
+
+        DicBuilder.AddOrUpdate(QueryClause.SliceProjection,
+            builder,
+            (_, _) => builder);
     }
 
     public void Visit(ICombinedProjectionDefinition combinedProjectionDefinition)
     {
-        PushState(QueryingContext.CombinedProjection, combinedProjectionDefinition.Projections.Length);
-        Join(string.Empty, combinedProjectionDefinition.Projections);
-        PopState();
+        Join(QueryClause.Projection, string.Empty, combinedProjectionDefinition.Projections);
+        const string sqlSelectClause = " {0} FROM {1}s ";
+        string columns = string.Join(", ", Columns);
+        string table = Entity.Name;
+        StringBuilder builder = new();
+        builder.AppendFormat(sqlSelectClause, columns, table);
+        string query = builder.ToString();
+        DicBuilder.AddOrUpdate(QueryClause.Projection, new StringBuilder($" SELECT {query} "),
+            (_, built) => built.Insert(0, " SELECT ").Append(query));
     }
 }

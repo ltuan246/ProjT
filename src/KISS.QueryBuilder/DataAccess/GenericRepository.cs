@@ -25,17 +25,8 @@ public sealed record GenericRepository<TEntity>(DbContext Context)
 
     public List<TEntity> Query(params IQuerying[] queries)
     {
-        const string sqlWhereClause = "SELECT {0} FROM {1}s {2}";
-
         Builder<TEntity> queryBuilder = new(queries);
-        (string conditions, Dictionary<string, object> queryParameters) = queryBuilder.Render();
-        string[] propsName = Properties.Select(p => p.Name).ToArray();
-        string columns = string.Join(", ", propsName);
-        string table = Entity.Name;
-
-        StringBuilder builder = new();
-        builder.AppendFormat(sqlWhereClause, columns, table, conditions);
-        string query = builder.ToString();
+        (string query, Dictionary<string, object> queryParameters) = queryBuilder.Render();
 
         DbConnection connection = GetConnection();
         return connection.Query<TEntity>(query, queryParameters).ToList();
