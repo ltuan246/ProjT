@@ -1,9 +1,10 @@
 namespace KISS.QueryBuilder.Enums;
 
-public enum QueryingContext
+public enum QueryClause
 {
-    Composite,
-    MultipleFilters,
-    MultipleSorts,
-    CombinedProjection
+    Default,
+    Projection,
+    Where,
+    OrderBy,
+    SliceProjection
 }
