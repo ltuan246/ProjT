@@ -5,10 +5,10 @@
     <!-- <ImplicitUsings>enable</ImplicitUsings> -->
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Authors>ltuan</Authors>
-    <Product>KeepItSimple</Product>
-    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- <AnalysisMode>All</AnalysisMode> -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 </Project>
