@@ -1,24 +1,25 @@
 namespace KISS.QueryBuilder.Tests;
 
-public class FilterDefinitionBuilderTests : IDisposable
+[Collection(nameof(SqliteTestsCollection))]
+public sealed class FilterDefinitionBuilderTests : IDisposable
 {
-    private SqliteConnection Connection { get; init; }
+    // private SqliteConnection Connection { get; init; }
     private ApplicationDbContext Context { get; init; }
     private GenericRepository<Weather> WeatherRepository { get; init; }
 
-    public FilterDefinitionBuilderTests()
+    public FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     {
         // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
         SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
         SqlMapper.AddTypeHandler(new GuidHandler());
         SqlMapper.AddTypeHandler(new TimeSpanHandler());
 
-        const string connectionString = "datasource=:memory:";
-        Connection = new SqliteConnection(connectionString);
-        Connection.Open();
+        // const string connectionString = "datasource=:memory:";
+        // Connection = new SqliteConnection(connectionString);
+        // Connection.Open();
 
         DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlite(Connection)
+            .UseSqlite(fixture.Connection)
             .Options;
 
         Context = new ApplicationDbContext(options);
@@ -30,8 +31,8 @@ public class FilterDefinitionBuilderTests : IDisposable
     public void Dispose()
     {
         Context.Database.EnsureDeleted();
-        Connection.Close();
-        Connection.Dispose();
+        // Connection.Close();
+        // Connection.Dispose();
         GC.SuppressFinalize(this);
     }
 

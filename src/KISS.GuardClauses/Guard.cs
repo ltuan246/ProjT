@@ -1,8 +1,6 @@
 namespace KISS.GuardClauses;
 
-public interface IGuardClause
-{
-}
+public interface IGuardClause;
 
 public sealed record Guard : IGuardClause
 {

@@ -177,7 +177,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         }
         else
         {
-            if (!Columns.Any())
+            if (Columns.Count == 0)
             {
                 Columns.AddRange(Properties.Select(p => $"[{p.Name}]").ToArray());
             }
