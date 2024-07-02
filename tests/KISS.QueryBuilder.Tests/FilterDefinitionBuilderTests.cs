@@ -261,6 +261,42 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
     }
 
     [Fact]
+    public void AndWithOr()
+    {
+        // Arrange
+        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+        const string exCountry = "Argentina";
+        const int exTemperatureCelsius = 10;
+        const double exWindMph = 19.2;
+
+        var query = WeatherRepository.Filter;
+        var idFilter = query.Eq(t => t.Id, exId);
+        var countryFilter = query.Eq(t => t.Country, exCountry);
+
+        var temperatureCelsiusFilter = query.Eq(t => t.TemperatureCelsius, exTemperatureCelsius);
+        var windMphFilter = query.Eq(t => t.WindMph, exWindMph);
+
+        var filter = query.Or(query.And(idFilter, countryFilter), query.And(temperatureCelsiusFilter, windMphFilter));
+
+        // Act
+        List<Weather> weathers = WeatherRepository.Query(filter);
+
+        // Assert
+        Assert.Equal(2, weathers.Count);
+        Assert.Collection(weathers,
+            weather =>
+                Assert.Multiple(
+                    () => Assert.NotNull(weather),
+                    () => Assert.Equal(exId, weather.Id),
+                    () => Assert.Equal(exCountry, weather.Country)),
+            weather =>
+                Assert.Multiple(
+                    () => Assert.NotNull(weather),
+                    () => Assert.Equal(exTemperatureCelsius, weather.TemperatureCelsius),
+                    () => Assert.Equal(exWindMph, weather.WindMph)));
+    }
+
+    [Fact]
     public void GivenInvalidInput_WhenBuildQuery_ThenNotSupportedReturns()
     {
         // Arrange

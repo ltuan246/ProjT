@@ -28,15 +28,25 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         using IEnumerator<IQuerying> enumerator = expressions.GetEnumerator();
         if (enumerator.MoveNext())
         {
+            if (clause == QueryClause.Where && DicBuilder.TryGetValue(clause, out StringBuilder? value))
+            {
+                value.Append(" (");
+            }
+
             enumerator.Current.Accept(this);
             while (enumerator.MoveNext())
             {
-                if (clause != QueryClause.Default && DicBuilder.TryGetValue(clause, out StringBuilder? value))
+                if (clause != QueryClause.Default && DicBuilder.TryGetValue(clause, out value))
                 {
                     value.Append(separator);
                 }
 
                 enumerator.Current.Accept(this);
+            }
+
+            if (clause == QueryClause.Where && DicBuilder.TryGetValue(clause, out value))
+            {
+                value.Append(") ");
             }
         }
     }
@@ -84,7 +94,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         string query = string.Join(' ',
             [fieldName, QueryBuildHelper.FieldMatchingOperators[operatorName], namedParameter]);
 
-        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query}"),
+        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query} "),
             (_, built) => built.Append(query));
     }
 
@@ -112,7 +122,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
             $"({string.Join(',', namedParameters)})"
         ]);
 
-        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query}"),
+        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query} "),
             (_, built) => built.Append(query));
     }
 
@@ -135,7 +145,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         betweenOperatorBuilder.AppendFormat(betweenOperator, fieldName, beginNamedParameter, endNamedParameter);
         string query = betweenOperatorBuilder.ToString();
 
-        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query}"),
+        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder($" WHERE {query} "),
             (_, built) => built.Append(query));
     }
 
@@ -144,6 +154,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         (LogicalOperator logicalOperator, IQuerying[] filterDefinitions) =
             filters.GroupingFilterDefinition;
 
+        DicBuilder.AddOrUpdate(QueryClause.Where, new StringBuilder(" WHERE "), (_, built) => built);
         Join(QueryClause.Where, QueryBuildHelper.LogicalOperators[logicalOperator], filterDefinitions);
     }
 
@@ -157,7 +168,7 @@ public sealed class CompositeQueries<TEntity> : IVisitor
         string query = string.Join(' ',
             [fieldName, QueryBuildHelper.OrderByOperators[sortDirection]]);
 
-        DicBuilder.AddOrUpdate(QueryClause.OrderBy, new StringBuilder($" ORDER BY {query}"),
+        DicBuilder.AddOrUpdate(QueryClause.OrderBy, new StringBuilder($" ORDER BY {query} "),
             (_, built) => built.Append(query));
     }
 
