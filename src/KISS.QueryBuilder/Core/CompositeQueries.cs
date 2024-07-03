@@ -1,5 +1,9 @@
 namespace KISS.QueryBuilder.Core;
 
+/// <summary>
+/// Query predicates composition
+/// </summary>
+/// <typeparam name="TEntity"></typeparam>
 public sealed class CompositeQueries<TEntity> : IVisitor
 {
     private static Type Entity => typeof(TEntity);

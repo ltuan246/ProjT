@@ -1,0 +1,13 @@
+global using System;
+global using System.Text;
+global using System.Collections.Generic;
+global using System.Collections.Concurrent;
+global using System.Reflection;
+global using System.Linq;
+global using System.Linq.Expressions;
+global using System.Data;
+global using System.Data.Common;
+global using System.Diagnostics.CodeAnalysis;
+global using KISS.QueryPredicateBuilder.Core;
+global using KISS.QueryPredicateBuilder.Component;
+global using KISS.QueryPredicateBuilder.Builders.WhereBuilders;
