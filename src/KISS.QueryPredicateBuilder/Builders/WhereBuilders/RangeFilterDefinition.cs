@@ -1,6 +1,6 @@
 namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 
-public sealed record OperatorFilterDefinition(FormattableString Formattable) : IComponent
+public sealed record RangeFilterDefinition(FormattableString Formattable) : IComponent
 {
     public void Accept(IVisitor visitor) => visitor.Visit(this);
 }

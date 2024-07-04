@@ -1,4 +1,4 @@
-namespace KISS.QueryPredicateBuilder.Common;
+namespace KISS.QueryPredicateBuilder.Builders.Common;
 
 internal static class ClauseConstants
 {

@@ -8,6 +8,7 @@ global using System.Linq.Expressions;
 global using System.Data;
 global using System.Data.Common;
 global using System.Diagnostics.CodeAnalysis;
+global using Dapper;
 global using KISS.QueryPredicateBuilder.Core;
-global using KISS.QueryPredicateBuilder.Component;
+global using KISS.QueryPredicateBuilder.Builders.Common;
 global using KISS.QueryPredicateBuilder.Builders.WhereBuilders;

@@ -1,6 +1,6 @@
-namespace KISS.QueryPredicateBuilder.Common;
+namespace KISS.QueryPredicateBuilder.Builders.Common;
 
-internal enum ClauseAction
+public enum ClauseAction
 {
     None,
     Delete,
