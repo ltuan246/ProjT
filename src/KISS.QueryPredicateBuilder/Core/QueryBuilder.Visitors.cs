@@ -3,22 +3,18 @@ namespace KISS.QueryPredicateBuilder.Core;
 public sealed partial class QueryBuilder : IVisitor
 {
     public void Visit(OperatorFilterDefinition element)
-    {
-        Builder.Append("OperatorFilterDefinition");
-    }
+        => AppendFormattable(element.Formattable);
 
     public void Visit(SingleItemAsArrayOperatorFilterDefinition element)
-    {
-        Builder.Append("OperatorFilterDefinition");
-    }
+        => AppendFormattable(element.Formattable);
 
     public void Visit(RangeFilterDefinition element)
-    {
-        Builder.Append("OperatorFilterDefinition");
-    }
+        => AppendFormattable(element.Formattable);
 
     public void Visit(CombinedFilterDefinition element)
     {
+        PushState(element.Clause, element.Components.Length);
         Join(element.Separator, element.Components);
+        PopState();
     }
 }

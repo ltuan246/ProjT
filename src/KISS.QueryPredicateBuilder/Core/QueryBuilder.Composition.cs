@@ -11,6 +11,13 @@ public sealed partial class QueryBuilder
             component.Accept(visitor);
         }
 
-        return visitor.Builder.ToString();
+        StringBuilder stringBuilder = new();
+
+        foreach (var item in visitor.Builder)
+        {
+            stringBuilder.Append(item);
+        }
+
+        return stringBuilder.ToString();
     }
 }

@@ -2,34 +2,76 @@ namespace KISS.QueryPredicateBuilder.Core;
 
 public sealed partial class QueryBuilder
 {
-    private StringBuilder Builder { get; } = new();
+    private ConcurrentDictionary<ClauseAction, StringBuilder> Builder { get; } = new();
 
-    private List<ClauseAction> ClauseActions { get; } = [];
+    private SqlFormatter Formatter { get; } = new();
 
-    private SqlFormatter SqlFormatter { get; } = new();
+    private Stack<ClauseState> State { get; } = new();
 
-    private bool HasOpenParentheses { get; set; } = false;
+    public ClauseState CurrentState => State.Peek();
+
+    public StringBuilder StateBuilder => CurrentState.Builder;
+
+    public bool HasOpenParentheses
+    {
+        get => CurrentState.HasOpenParentheses;
+        set => CurrentState.HasOpenParentheses = value;
+    }
+
+    public int Position
+    {
+        get => CurrentState.Position;
+        set => CurrentState.Position = value;
+    }
+
+    public int Length => CurrentState.Length;
+
+    private void PushState(ClauseAction context, int length = 1)
+    {
+        ClauseState newState = new()
+        {
+            Context = context,
+            Position = 0,
+            Length = length
+        };
+        State.Push(newState);
+    }
+
+    private void PopState()
+    {
+        var recentState = State.Pop();
+        _ = State.TryPeek(out _) switch
+        {
+            true => StateBuilder.Append(recentState.Builder),
+            false => Builder.AddOrUpdate(recentState.Context, recentState.Builder,
+                (_, built) => built.Append(recentState.Builder))
+        };
+    }
 
     private void Join(string separator, IEnumerable<IComponent> expressions)
     {
         using IEnumerator<IComponent> enumerator = expressions.GetEnumerator();
         if (enumerator.MoveNext())
         {
+            OpenParentheses();
             enumerator.Current.Accept(this);
             while (enumerator.MoveNext())
             {
-                Builder.Append(separator);
+                ++Position;
+                StateBuilder.Append(separator);
                 enumerator.Current.Accept(this);
             }
+            CloseOpenParentheses();
         }
     }
 
-    private bool CanAppendClause(ClauseAction clauseAction)
+    private void OpenParentheses()
     {
-        return !ClauseActions.Exists(c => c is ClauseAction.Delete or ClauseAction.Update) ||
-            clauseAction is not ClauseAction.GroupBy and not ClauseAction.Having and not ClauseAction.OrderBy
-            and not ClauseAction.FetchNext and not ClauseAction.Limit and not ClauseAction.Offset
-            and not ClauseAction.Rows and not ClauseAction.Only;
+        HasOpenParentheses = Length > 1;
+        if (HasOpenParentheses)
+        {
+            StateBuilder.Append(ClauseConstants.OpenParentheses);
+        }
     }
 
     private void CloseOpenParentheses()
@@ -39,34 +81,7 @@ public sealed partial class QueryBuilder
             return;
         }
 
-        Builder.Append(ClauseConstants.CloseParentheses);
+        StateBuilder.Append(ClauseConstants.CloseParentheses);
         HasOpenParentheses = false;
-    }
-
-    private void AppendWhere(bool isFilter = false)
-    {
-        if (ClauseActions.Contains(ClauseAction.Where))
-        {
-            Builder
-                // .Append(Constants.Space)
-                .Append(ClauseConstants.Where.AndSeparator);
-        }
-        else
-        {
-            ClauseActions.Add(ClauseAction.Where);
-            Builder
-                .AppendLine()
-                .Append(ClauseConstants.Where.Clause);
-        }
-
-        // Builder.Append(Constants.Space);
-
-        if (!isFilter)
-        {
-            return;
-        }
-
-        Builder.Append(ClauseConstants.OpenParentheses);
-        HasOpenParentheses = true;
     }
 }

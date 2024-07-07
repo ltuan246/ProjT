@@ -23,9 +23,9 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
     }
 
     public string Format(string? format, object? arg, IFormatProvider? formatProvider)
-        => Format(arg);
+        => Format(arg, format);
 
-    public string Format<T>(T value)
+    public string Format<T>(T value, string? format = null)
     {
         if (value is FormattableString formattableString)
         {
@@ -34,6 +34,11 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
                 0 => formattableString.Format,
                 _ => string.Format(this, formattableString.Format, formattableString.GetArguments())
             };
+        }
+
+        if (Constants.RawFormat.Equals(format, StringComparison.OrdinalIgnoreCase))
+        {
+            return value?.ToString() ?? string.Empty;
         }
 
         return AddValueToParameters(value);

@@ -18,7 +18,7 @@ internal static class ClauseConstants
     internal static class Where
     {
         internal const string Clause = "WHERE";
-        internal const string OrSeparator = "OR";
-        internal const string AndSeparator = "AND";
+        internal const string OrSeparator = " OR ";
+        internal const string AndSeparator = " AND ";
     }
 }

@@ -51,6 +51,30 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
     }
 
     [Fact]
+    public void QueryPredicateBuilder()
+    {
+        // Arrange
+        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+        const string exCountry = "Argentina";
+        const int exTemperatureCelsius = 10;
+        const double exWindMph = 19.2;
+
+        var query = PredicateBuilder<Weather>.Filter;
+        var idFilter = query.Eq(t => t.Id, exId);
+        var countryFilter = query.Eq(t => t.Country, exCountry);
+
+        var temperatureCelsiusFilter = query.Eq(t => t.TemperatureCelsius, exTemperatureCelsius);
+        var windMphFilter = query.Eq(t => t.WindMph, exWindMph);
+
+        var filter = query.Or(query.And(idFilter, countryFilter), query.And(temperatureCelsiusFilter, windMphFilter));
+
+        KISS.QueryPredicateBuilder.Core.QueryBuilder builder = new();
+        var sql = builder.Operation(filter);
+
+        // Act
+    }
+
+    [Fact]
     public void Count()
     {
         // Act
