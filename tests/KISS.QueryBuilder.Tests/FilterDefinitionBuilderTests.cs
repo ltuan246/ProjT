@@ -3,7 +3,7 @@ namespace KISS.QueryBuilder.Tests;
 [Collection(nameof(SqliteTestsCollection))]
 public sealed class FilterDefinitionBuilderTests : IDisposable
 {
-    // private SqliteConnection Connection { get; init; }
+    private SqliteConnection Connection { get; init; }
     private ApplicationDbContext Context { get; init; }
     private GenericRepository<Weather> WeatherRepository { get; init; }
 
@@ -18,8 +18,10 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Connection = new SqliteConnection(connectionString);
         // Connection.Open();
 
+        Connection = fixture.Connection;
+
         DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlite(fixture.Connection)
+            .UseSqlite(Connection)
             .Options;
 
         Context = new ApplicationDbContext(options);
@@ -68,8 +70,7 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
 
         var filter = query.Or(query.And(idFilter, countryFilter), query.And(temperatureCelsiusFilter, windMphFilter));
 
-        KISS.QueryPredicateBuilder.Core.QueryBuilder builder = new();
-        var sql = builder.Operation(filter);
+        Connection.Query<Weather>(filter);
 
         // Act
     }
