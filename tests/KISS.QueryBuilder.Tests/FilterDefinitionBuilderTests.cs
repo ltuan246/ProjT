@@ -70,9 +70,22 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
 
         var filter = query.Or(query.And(idFilter, countryFilter), query.And(temperatureCelsiusFilter, windMphFilter));
 
-        Connection.Query<Weather>(filter);
-
         // Act
+        List<Weather> weathers = Connection.Gets<Weather>(filter);
+
+        // Assert
+        Assert.Equal(2, weathers.Count);
+        Assert.Collection(weathers,
+            weather =>
+                Assert.Multiple(
+                    () => Assert.NotNull(weather),
+                    () => Assert.Equal(exId, weather.Id),
+                    () => Assert.Equal(exCountry, weather.Country)),
+            weather =>
+                Assert.Multiple(
+                    () => Assert.NotNull(weather),
+                    () => Assert.Equal(exTemperatureCelsius, weather.TemperatureCelsius),
+                    () => Assert.Equal(exWindMph, weather.WindMph)));
     }
 
     [Fact]
@@ -91,11 +104,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var idFilter = query.Eq(t => t.Id, exId);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(idFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(idFilter);
 
         // Assert
         Assert.Single(weathers);
@@ -109,13 +122,13 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
         const string exCountry = "Argentina";
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var idFilter = query.Eq(t => t.Id, exId);
         var countryFilter = query.Ne(t => t.Country, exCountry);
         var filter = query.And(idFilter, countryFilter);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(filter);
+        List<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Empty(weathers);
@@ -127,11 +140,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         const float exTemperatureCelsius = 29;
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var temperatureFilter = query.Gt(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(9, weathers.Count);
@@ -144,11 +157,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         const float exTemperatureCelsius = 29;
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var temperatureFilter = query.Gte(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(10, weathers.Count);
@@ -161,11 +174,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         const float exTemperatureCelsius = 10;
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var temperatureFilter = query.Lt(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(27, weathers.Count);
@@ -178,11 +191,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         const float exTemperatureCelsius = 10;
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var temperatureFilter = query.Lte(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(temperatureFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(32, weathers.Count);
@@ -195,11 +208,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         string[] exCountries = ["Vietnam", "Canada"];
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var countryFilter = query.AnyIn(t => t.Country, exCountries);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(countryFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(countryFilter);
 
         // Assert
         Assert.Equal(20, weathers.Count);
@@ -212,11 +225,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         string[] exCountries = ["Argentina", "Iceland", "Australia"];
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var countryFilter = query.NotIn(t => t.Country, exCountries);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(countryFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(countryFilter);
 
         // Assert
         Assert.Equal(63, weathers.Count);
@@ -230,11 +243,11 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         DateTime exDtBegin = new(2024, 5, 19);
         DateTime exDtEnd = new(2024, 5, 21);
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var rangeFilter = query.Within(t => t.LastUpdated, exDtBegin, exDtEnd);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(rangeFilter);
+        List<Weather> weathers = Connection.Gets<Weather>(rangeFilter);
 
         // Assert
         Assert.Equal(10, weathers.Count);
@@ -248,13 +261,13 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
         const string exCountry = "Argentina";
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var idFilter = query.Eq(t => t.Id, exId);
         var countryFilter = query.Eq(t => t.Country, exCountry);
         var filter = query.And(idFilter, countryFilter);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(filter);
+        List<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Single(weathers);
@@ -272,13 +285,13 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         // Arrange
         Guid[] exIds = [new("2DFA8730-2541-11EF-83FE-B1C709C359B7"), new("2DFA8731-2541-11EF-83FE-B1C709C359B7")];
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var idFilter1 = query.Eq(t => t.Id, exIds[0]);
         var idFilter2 = query.Eq(t => t.Id, exIds[1]);
         var filter = query.Or(idFilter1, idFilter2);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(filter);
+        List<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Equal(2, weathers.Count);
@@ -294,7 +307,7 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         const int exTemperatureCelsius = 10;
         const double exWindMph = 19.2;
 
-        var query = WeatherRepository.Filter;
+        var query = PredicateBuilder<Weather>.Filter;
         var idFilter = query.Eq(t => t.Id, exId);
         var countryFilter = query.Eq(t => t.Country, exCountry);
 
@@ -304,7 +317,7 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
         var filter = query.Or(query.And(idFilter, countryFilter), query.And(temperatureCelsiusFilter, windMphFilter));
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(filter);
+        List<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Equal(2, weathers.Count);

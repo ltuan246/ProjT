@@ -2,10 +2,10 @@ namespace KISS.QueryPredicateBuilder;
 
 public static class DbConnectionExtensions
 {
-    public static void Query<TEntity>(this DbConnection dbConnection, params IComponent[] components)
+    public static List<TEntity> Gets<TEntity>(this DbConnection dbConnection, params IComponent[] components)
     {
         QueryBuilder builder = new();
-        builder.SelectFrom<TEntity>();
-        var sql = builder.Operation(components);
+        var (sql, parameters) = builder.Operation<TEntity>(components);
+        return dbConnection.Query<TEntity>(sql, parameters).ToList();
     }
 }

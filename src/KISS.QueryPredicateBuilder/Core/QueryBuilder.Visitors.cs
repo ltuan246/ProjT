@@ -3,13 +3,25 @@ namespace KISS.QueryPredicateBuilder.Core;
 public sealed partial class QueryBuilder : IVisitor
 {
     public void Visit(OperatorFilterDefinition element)
-        => AppendFormattable(element.Formattable);
+    {
+        PushState(ClauseAction.Where);
+        AppendFormattable(element.Formattable);
+        PopState();
+    }
 
     public void Visit(SingleItemAsArrayOperatorFilterDefinition element)
-        => AppendFormattable(element.Formattable);
+    {
+        PushState(ClauseAction.Where);
+        AppendFormattable(element.Formattable);
+        PopState();
+    }
 
     public void Visit(RangeFilterDefinition element)
-        => AppendFormattable(element.Formattable);
+    {
+        PushState(ClauseAction.Where);
+        AppendFormattable(element.Formattable);
+        PopState();
+    }
 
     public void Visit(CombinedFilterDefinition element)
     {
