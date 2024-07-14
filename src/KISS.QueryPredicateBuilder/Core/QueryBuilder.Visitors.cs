@@ -29,4 +29,8 @@ public sealed partial class QueryBuilder : IVisitor
         Join(element.Separator, element.Components);
         PopState();
     }
+
+    public void Visit(ProjectionDefinition element)
+    {
+    }
 }
