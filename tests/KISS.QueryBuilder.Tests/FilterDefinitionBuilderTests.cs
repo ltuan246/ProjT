@@ -70,12 +70,15 @@ public sealed class FilterDefinitionBuilderTests : IDisposable
 
         var filter = query.Or(query.And(idFilter, countryFilter), query.And(temperatureCelsiusFilter, windMphFilter));
 
-        ProjectionDefinition projection = PredicateBuilder<Weather>.Select
+        var projection = PredicateBuilder<Weather>.Select
+            .Include(t => t.Id)
             .Include(t => t.Country)
-            .Include(t => t.WindMph);
+            .Include(t => t.TemperatureCelsius)
+            .Include(t => t.WindMph)
+            .Build();
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filter, projection);
+        List<Weather> weathers = Connection.Gets<Weather>(projection, filter);
 
         // Assert
         Assert.Equal(2, weathers.Count);

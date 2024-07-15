@@ -2,6 +2,9 @@ namespace KISS.QueryPredicateBuilder.Builders;
 
 public sealed record SelectBuilder<TEntity>
 {
+    private static Type Entity => typeof(TEntity);
+    private static IEnumerable<PropertyInfo> Properties => Entity.GetProperties();
+
     private List<string> Columns { get; } = [];
     private List<string> ExColumns { get; } = [];
 
@@ -17,6 +20,25 @@ public sealed record SelectBuilder<TEntity>
         return this;
     }
 
-    public static implicit operator ProjectionDefinition(SelectBuilder<TEntity> selectBuilder)
-        => new($"");
+    public ProjectionDefinition Build()
+        => new($"SELECT {string.Join(", ", GetFields()):raw} FROM {Entity.Name:raw}s");
+
+    public IEnumerable<string> GetFields()
+    {
+        List<string> cols = Columns.Count switch
+        {
+            0 => Properties.Select(p => p.Name).ToList(),
+            _ => Columns
+        };
+
+        foreach (var col in cols)
+        {
+            if (ExColumns.Contains(col))
+            {
+                continue;
+            }
+
+            yield return $"[{col}]";
+        }
+    }
 }

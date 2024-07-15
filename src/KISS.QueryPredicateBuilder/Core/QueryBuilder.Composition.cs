@@ -13,18 +13,26 @@ public sealed partial class QueryBuilder
 
         StringBuilder sqlBuilder = new();
 
-        Type entity = typeof(TEntity);
-        string table = entity.Name;
-        string[] propsName = entity.GetProperties().Select(p => $"[{p.Name}]").ToArray();
-        string columns = string.Join(", ", propsName);
-        const string sqlSelectClause = "SELECT {0} FROM {1}s ";
-        sqlBuilder.AppendFormat(sqlSelectClause, columns, table);
+        if (!visitor.Builder.ContainsKey(ClauseAction.Select))
+        {
+            Type entity = typeof(TEntity);
+            string table = entity.Name;
+            string[] propsName = entity.GetProperties().Select(p => $"[{p.Name}]").ToArray();
+            string columns = string.Join(", ", propsName);
+            const string sqlSelectClause = "SELECT {0} FROM {1}s ";
+            sqlBuilder.AppendFormat(sqlSelectClause, columns, table);
+        }
 
         foreach (var item in visitor.Builder)
         {
-            sqlBuilder.Append(item.Key);
-            sqlBuilder.Append(Constants.Space);
+            if (item.Key != ClauseAction.Select)
+            {
+                sqlBuilder.Append(item.Key);
+                sqlBuilder.Append(Constants.Space);
+            }
+
             sqlBuilder.Append(item.Value);
+            sqlBuilder.Append(Constants.Space);
         }
 
         return (sqlBuilder.ToString(), visitor.Formatter.Parameters);
