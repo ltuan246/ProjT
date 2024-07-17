@@ -1,1 +1,0 @@
-global using KISS.QueryPredicateBuilder.Core;

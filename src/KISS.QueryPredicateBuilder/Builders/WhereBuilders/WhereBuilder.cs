@@ -1,4 +1,4 @@
-namespace KISS.QueryPredicateBuilder.Builders;
+namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 
 public sealed record WhereBuilder<TEntity>
 {

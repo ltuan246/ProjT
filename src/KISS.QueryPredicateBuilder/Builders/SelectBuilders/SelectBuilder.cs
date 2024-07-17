@@ -1,4 +1,4 @@
-namespace KISS.QueryPredicateBuilder.Builders;
+namespace KISS.QueryPredicateBuilder.Builders.SelectBuilders;
 
 public sealed record SelectBuilder<TEntity>
 {
