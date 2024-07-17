@@ -138,18 +138,18 @@ public class SortDefinitionBuilderTests : IDisposable
         const int exTemperatureCelsius = 8;
         const int exWindMph = 15;
 
-        var ft = WeatherRepository.Filter;
+        var ft = PredicateBuilder<Weather>.Filter;
         var temperatureCelsiusFilter = ft.Eq(t => t.TemperatureCelsius, exTemperatureCelsius);
         var windMphFilter = ft.Lt(t => t.WindMph, exWindMph);
         var filters = ft.And(temperatureCelsiusFilter, windMphFilter);
 
-        var sort = WeatherRepository.Sort;
-        var ascCountry = sort.Ascending(t => t.Country);
-        var descWindMph = sort.Descending(t => t.WindMph);
-        var sorts = sort.Combine(ascCountry, descWindMph);
+        var sort = PredicateBuilder<Weather>.Sort
+            .Ascending(t => t.Country)
+            .Descending(t => t.WindMph)
+            .Build();
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(filters, sorts);
+        List<Weather> weathers = Connection.Gets<Weather>(filters, sort);
 
         // Assert
         Assert.Equal(6, weathers.Count);

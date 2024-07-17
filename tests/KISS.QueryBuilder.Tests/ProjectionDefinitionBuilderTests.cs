@@ -95,24 +95,26 @@ public class ProjectionDefinitionBuilderTests : IDisposable
         const int exTemperatureCelsius = 8;
         const int exWindMph = 15;
 
-        var ft = WeatherRepository.Filter;
+        var ft = PredicateBuilder<Weather>.Filter;
         var temperatureCelsiusFilter = ft.Eq(t => t.TemperatureCelsius, exTemperatureCelsius);
         var windMphFilter = ft.Lt(t => t.WindMph, exWindMph);
         var filters = ft.And(temperatureCelsiusFilter, windMphFilter);
 
-        var sort = WeatherRepository.Sort;
-        var ascCountry = sort.Ascending(t => t.Country);
-        var descWindMph = sort.Descending(t => t.WindMph);
-        var sorts = sort.Combine(ascCountry, descWindMph);
+        var sort = PredicateBuilder<Weather>.Sort
+            .Ascending(t => t.Country)
+            .Descending(t => t.WindMph)
+            .Build();
 
-        var projection = WeatherRepository.Projection;
-        var countryColumn = projection.Exclude(t => t.Country);
-        var windMphColumn = projection.Exclude(t => t.LocationName);
-        var limit = projection.Slice(3, 3);
-        var specificColumns = projection.Combine(countryColumn, windMphColumn, limit);
+        var projection = PredicateBuilder<Weather>.Select
+            .Exclude(t => t.Country)
+            .Exclude(t => t.LocationName)
+            .Build();
+
+        var limit = PredicateBuilder<Weather>.Fetch.Limit(3);
+        var offset = PredicateBuilder<Weather>.Offset.Offset(3);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(specificColumns, filters, sorts);
+        List<Weather> weathers = Connection.Gets<Weather>(projection, filters, sort, limit, offset);
 
         // Assert
         Assert.Equal(3, weathers.Count);

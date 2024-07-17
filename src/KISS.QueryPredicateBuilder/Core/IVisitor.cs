@@ -11,4 +11,10 @@ public interface IVisitor
     void Visit(CombinedFilterDefinition element);
 
     void Visit(ProjectionDefinition element);
+
+    void Visit(OffsetDefinition element);
+
+    void Visit(FetchDefinition element);
+
+    void Visit(OrderByDefinition element);
 }

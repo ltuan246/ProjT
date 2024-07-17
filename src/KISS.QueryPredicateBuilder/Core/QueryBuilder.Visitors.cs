@@ -36,4 +36,25 @@ public sealed partial class QueryBuilder : IVisitor
         AppendFormattable(element.Formattable);
         PopState();
     }
+
+    public void Visit(OffsetDefinition element)
+    {
+        PushState(ClauseAction.Offset);
+        AppendFormattable(element.Formattable);
+        PopState();
+    }
+
+    public void Visit(FetchDefinition element)
+    {
+        PushState(ClauseAction.FetchNext);
+        AppendFormattable(element.Formattable);
+        PopState();
+    }
+
+    public void Visit(OrderByDefinition element)
+    {
+        PushState(ClauseAction.OrderBy);
+        AppendFormattable(element.Formattable);
+        PopState();
+    }
 }

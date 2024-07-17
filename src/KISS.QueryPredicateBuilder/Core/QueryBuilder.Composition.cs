@@ -13,7 +13,12 @@ public sealed partial class QueryBuilder
 
         StringBuilder sqlBuilder = new();
 
-        if (!visitor.Builder.ContainsKey(ClauseAction.Select))
+        if (visitor.Builder.TryGetValue(ClauseAction.Select, out StringBuilder? select))
+        {
+            sqlBuilder.Append(select);
+            sqlBuilder.Append(Constants.Space);
+        }
+        else
         {
             Type entity = typeof(TEntity);
             string table = entity.Name;
@@ -23,15 +28,29 @@ public sealed partial class QueryBuilder
             sqlBuilder.AppendFormat(sqlSelectClause, columns, table);
         }
 
-        foreach (var item in visitor.Builder)
+        if (visitor.Builder.TryGetValue(ClauseAction.Where, out StringBuilder? where))
         {
-            if (item.Key != ClauseAction.Select)
-            {
-                sqlBuilder.Append(item.Key);
-                sqlBuilder.Append(Constants.Space);
-            }
+            sqlBuilder.Append(ClauseAction.Where);
+            sqlBuilder.Append(Constants.Space);
+            sqlBuilder.Append(where);
+            sqlBuilder.Append(Constants.Space);
+        }
 
-            sqlBuilder.Append(item.Value);
+        if (visitor.Builder.TryGetValue(ClauseAction.OrderBy, out StringBuilder? sort))
+        {
+            sqlBuilder.Append(sort);
+            sqlBuilder.Append(Constants.Space);
+        }
+
+        if (visitor.Builder.TryGetValue(ClauseAction.FetchNext, out StringBuilder? fetchNext))
+        {
+            sqlBuilder.Append(fetchNext);
+            sqlBuilder.Append(Constants.Space);
+        }
+
+        if (visitor.Builder.TryGetValue(ClauseAction.Offset, out StringBuilder? offset))
+        {
+            sqlBuilder.Append(offset);
             sqlBuilder.Append(Constants.Space);
         }
 

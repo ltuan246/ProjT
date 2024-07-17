@@ -14,3 +14,6 @@ global using KISS.QueryPredicateBuilder.Builders;
 global using KISS.QueryPredicateBuilder.Builders.Common;
 global using KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 global using KISS.QueryPredicateBuilder.Builders.SelectBuilders;
+global using KISS.QueryPredicateBuilder.Builders.OffsetBuilders;
+global using KISS.QueryPredicateBuilder.Builders.FetchBuilders;
+global using KISS.QueryPredicateBuilder.Builders.OrderByBuilders;
