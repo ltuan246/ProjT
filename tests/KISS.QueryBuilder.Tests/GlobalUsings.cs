@@ -13,6 +13,5 @@ global using KISS.Misc.DataAccess;
 global using KISS.QueryBuilder.DataAccess;
 global using KISS.QueryBuilder.Tests.Model;
 global using KISS.QueryBuilder.Tests.DataSeeding;
-global using KISS.QueryBuilder.Tests.Utils;
 global using KISS.QueryBuilder.Tests.Sqlite;
 global using KISS.QueryPredicateBuilder;

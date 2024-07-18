@@ -6,6 +6,8 @@ public sealed class SqliteTestsFixture : IAsyncLifetime
 
     public SqliteConnection Connection { get; private set; } = default!;
 
+    private ApplicationDbContext Context { get; set; } = default!;
+
     public async Task InitializeAsync()
     {
         await InitialiseDbConnectionAsync();
@@ -14,6 +16,7 @@ public sealed class SqliteTestsFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        await Context.Database.EnsureDeletedAsync();
         Connection.Close();
         await Connection.DisposeAsync();
     }
@@ -23,12 +26,22 @@ public sealed class SqliteTestsFixture : IAsyncLifetime
 
     private async Task InitialiseDbConnectionAsync()
     {
+        // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
+        SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
+        SqlMapper.AddTypeHandler(new GuidHandler());
+        SqlMapper.AddTypeHandler(new TimeSpanHandler());
+
         Connection = CreateDbConnection();
         await Connection.OpenAsync();
     }
 
     private async Task CreateSchemaAsync()
     {
-        await Task.CompletedTask;
+        DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(Connection)
+            .Options;
+
+        Context = new ApplicationDbContext(options);
+        await Context.Database.EnsureCreatedAsync();
     }
 }

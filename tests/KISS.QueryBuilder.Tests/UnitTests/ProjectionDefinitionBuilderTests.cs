@@ -1,39 +1,9 @@
-namespace KISS.QueryBuilder.Tests;
+namespace KISS.QueryBuilder.Tests.UnitTests;
 
-public class ProjectionDefinitionBuilderTests : IDisposable
+[Collection(nameof(SqliteTestsCollection))]
+public class ProjectionDefinitionBuilderTests(SqliteTestsFixture fixture)
 {
-    private SqliteConnection Connection { get; init; }
-    private ApplicationDbContext Context { get; init; }
-    private GenericRepository<Weather> WeatherRepository { get; init; }
-
-    public ProjectionDefinitionBuilderTests()
-    {
-        // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/dapper-limitations
-        SqlMapper.AddTypeHandler(new DateTimeOffsetHandler());
-        SqlMapper.AddTypeHandler(new GuidHandler());
-        SqlMapper.AddTypeHandler(new TimeSpanHandler());
-
-        const string connectionString = "datasource=:memory:";
-        Connection = new SqliteConnection(connectionString);
-        Connection.Open();
-
-        DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlite(Connection)
-            .Options;
-
-        Context = new ApplicationDbContext(options);
-        Context.Database.EnsureCreated();
-
-        WeatherRepository = new(Context);
-    }
-
-    public void Dispose()
-    {
-        Context.Database.EnsureDeleted();
-        Connection.Close();
-        Connection.Dispose();
-        GC.SuppressFinalize(this);
-    }
+    private SqliteConnection Connection { get; init; } = fixture.Connection;
 
     [Fact]
     public void ProjectionInclude()
@@ -42,25 +12,26 @@ public class ProjectionDefinitionBuilderTests : IDisposable
         const int exTemperatureCelsius = 8;
         const int exWindMph = 15;
 
-        var ft = WeatherRepository.Filter;
+        var ft = PredicateBuilder<Weather>.Filter;
         var temperatureCelsiusFilter = ft.Eq(t => t.TemperatureCelsius, exTemperatureCelsius);
         var windMphFilter = ft.Lt(t => t.WindMph, exWindMph);
         var filters = ft.And(temperatureCelsiusFilter, windMphFilter);
 
-        var sort = WeatherRepository.Sort;
-        var ascCountry = sort.Ascending(t => t.Country);
-        var descWindMph = sort.Descending(t => t.WindMph);
-        var sorts = sort.Combine(ascCountry, descWindMph);
+        var sort = PredicateBuilder<Weather>.Sort
+            .Ascending(t => t.Country)
+            .Descending(t => t.WindMph)
+            .Build();
 
-        var projection = WeatherRepository.Projection;
-        var countryColumn = projection.Include(t => t.Country);
-        var windMphColumn = projection.Include(t => t.WindMph);
-        var temperatureCelsiusColumn = projection.Include(t => t.TemperatureCelsius);
-        var limit = projection.Slice(3);
-        var specificColumns = projection.Combine(countryColumn, windMphColumn, temperatureCelsiusColumn, limit);
+        var projection = PredicateBuilder<Weather>.Select
+            .Include(t => t.Country)
+            .Include(t => t.WindMph)
+            .Include(t => t.TemperatureCelsius)
+            .Build();
+
+        var limit = PredicateBuilder<Weather>.Fetch.Limit(3);
 
         // Act
-        List<Weather> weathers = WeatherRepository.Query(specificColumns, filters, sorts);
+        List<Weather> weathers = Connection.Gets<Weather>(projection, filters, sort, limit);
 
         // Assert
         Assert.Equal(3, weathers.Count);

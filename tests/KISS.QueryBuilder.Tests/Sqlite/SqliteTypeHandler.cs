@@ -1,4 +1,4 @@
-namespace KISS.QueryBuilder.Tests.Utils;
+namespace KISS.QueryBuilder.Tests.Sqlite;
 
 public abstract class SqliteTypeHandler<T> : SqlMapper.TypeHandler<T>
 {

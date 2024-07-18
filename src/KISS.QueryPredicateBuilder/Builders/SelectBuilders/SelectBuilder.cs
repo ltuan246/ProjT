@@ -23,7 +23,7 @@ public sealed record SelectBuilder<TEntity>
     public ProjectionDefinition Build()
         => new($"SELECT {string.Join(", ", GetFields()):raw} FROM {Entity.Name:raw}s");
 
-    public IEnumerable<string> GetFields()
+    private IEnumerable<string> GetFields()
     {
         List<string> cols = Columns.Count switch
         {
@@ -40,5 +40,8 @@ public sealed record SelectBuilder<TEntity>
 
             yield return $"[{col}]";
         }
+
+        Columns.Clear();
+        ExColumns.Clear();
     }
 }

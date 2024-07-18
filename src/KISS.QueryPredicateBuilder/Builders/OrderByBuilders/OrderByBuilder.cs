@@ -1,6 +1,6 @@
 namespace KISS.QueryPredicateBuilder.Builders.OrderByBuilders;
 
-public sealed record OrderByBuilder<TEntity>
+public sealed class OrderByBuilder<TEntity>
 {
     private List<string> Columns { get; } = [];
 
@@ -17,5 +17,9 @@ public sealed record OrderByBuilder<TEntity>
     }
 
     public OrderByDefinition Build()
-        => new($"ORDER BY {string.Join(", ", Columns):raw}");
+    {
+        OrderByDefinition def = new($"ORDER BY {string.Join(", ", Columns):raw}");
+        Columns.Clear();
+        return def;
+    }
 }
