@@ -2,8 +2,8 @@ namespace KISS.QueryPredicateBuilder.Core;
 
 internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
 {
-    internal const string DefaultDatabaseParameterNameTemplate = "p";
-    internal const string DefaultDatabaseParameterPrefix = "@";
+    private const string DefaultDatabaseParameterNameTemplate = "p";
+    private const string DefaultDatabaseParameterPrefix = "@";
 
     public DynamicParameters Parameters { get; private set; } = new();
 
@@ -12,12 +12,12 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
     private string GetNextParameterName()
         => $"{DefaultDatabaseParameterNameTemplate}{ParamCount++}";
 
-    private string AppendParameterPrefix(string parameterName)
+    private static string AppendParameterPrefix(string parameterName)
         => $"{DefaultDatabaseParameterPrefix}{parameterName}";
 
     private string AddValueToParameters<T>(T value)
     {
-        var parameterName = GetNextParameterName();
+        string parameterName = GetNextParameterName();
         Parameters.Add(parameterName, value, direction: ParameterDirection.Input);
         return AppendParameterPrefix(parameterName);
     }
@@ -25,14 +25,14 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
     public string Format(string? format, object? arg, IFormatProvider? formatProvider)
         => Format(arg, format);
 
-    public string Format<T>(T value, string? format = null)
+    private string Format<T>(T value, string? format = null)
     {
-        if (value is FormattableString formattableString)
+        if (value is FormattableString formatString)
         {
-            return formattableString.ArgumentCount switch
+            return formatString.ArgumentCount switch
             {
-                0 => formattableString.Format,
-                _ => string.Format(this, formattableString.Format, formattableString.GetArguments())
+                0 => formatString.Format,
+                _ => string.Format(this, formatString.Format, formatString.GetArguments())
             };
         }
 

@@ -8,32 +8,27 @@ public sealed partial class QueryBuilder
 
     private Stack<ClauseState> State { get; } = new();
 
-    public ClauseState CurrentState => State.Peek();
+    private ClauseState CurrentState => State.Peek();
 
-    public StringBuilder StateBuilder => CurrentState.Builder;
+    private StringBuilder StateBuilder => CurrentState.Builder;
 
-    public bool HasOpenParentheses
+    private bool HasOpenParentheses
     {
         get => CurrentState.HasOpenParentheses;
         set => CurrentState.HasOpenParentheses = value;
     }
 
-    public int Position
+    private int Position
     {
         get => CurrentState.Position;
         set => CurrentState.Position = value;
     }
 
-    public int Length => CurrentState.Length;
+    private int Length => CurrentState.Length;
 
     private void PushState(ClauseAction context, int length = 1)
     {
-        ClauseState newState = new()
-        {
-            Context = context,
-            Position = 0,
-            Length = length
-        };
+        ClauseState newState = new() { Context = context, Position = 0, Length = length };
         State.Push(newState);
     }
 
@@ -61,6 +56,7 @@ public sealed partial class QueryBuilder
                 StateBuilder.Append(separator);
                 enumerator.Current.Accept(this);
             }
+
             CloseOpenParentheses();
         }
     }

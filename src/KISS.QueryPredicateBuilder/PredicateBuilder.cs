@@ -1,10 +1,28 @@
 namespace KISS.QueryPredicateBuilder;
 
-public sealed record PredicateBuilder<TEntity>
+/// <summary>
+/// A static helper class containing various builders.
+/// </summary>
+/// <typeparam name="TEntity">The type of the entity.</typeparam>
+public static class PredicateBuilder<TEntity>
 {
-    public static WhereBuilder<TEntity> Filter { get; } = new();
-    public static SelectBuilder<TEntity> Select { get; } = new();
-    public static FetchBuilder Fetch { get; } = new();
-    public static OffsetBuilder Offset { get; } = new();
+    /// <summary>
+    /// Defines the where builder type.
+    /// </summary>
+    public static WhereBuilder<TEntity> Filter => new();
+
+    /// <summary>
+    /// Defines the select builder type.
+    /// </summary>
+    public static SelectBuilder<TEntity> Select => new();
+
+    /// <summary>
+    /// Defines the fetch builder type.
+    /// </summary>
+    public static FetchBuilder Fetch => new();
+
+    /// <summary>
+    /// Defines the sort builder type.
+    /// </summary>
     public static OrderByBuilder<TEntity> Sort => new();
 }

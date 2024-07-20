@@ -1,5 +1,9 @@
 namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 
+/// <summary>
+/// Defines the where builder type.
+/// </summary>
+/// <typeparam name="TEntity">The type of the entity.</typeparam>
 public sealed record WhereBuilder<TEntity>
 {
     /// <summary>

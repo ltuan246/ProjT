@@ -5,56 +5,56 @@ public sealed partial class QueryBuilder : IVisitor
     public void Visit(OperatorFilterDefinition element)
     {
         PushState(ClauseAction.Where);
-        AppendFormattable(element.Formattable);
+        AppendFormatString(element.ComparisonOperator);
         PopState();
     }
 
     public void Visit(SingleItemAsArrayOperatorFilterDefinition element)
     {
         PushState(ClauseAction.Where);
-        AppendFormattable(element.Formattable);
+        AppendFormatString(element.ContainsClause);
         PopState();
     }
 
     public void Visit(RangeFilterDefinition element)
     {
         PushState(ClauseAction.Where);
-        AppendFormattable(element.Formattable);
+        AppendFormatString(element.BetweenOperator);
         PopState();
     }
 
     public void Visit(CombinedFilterDefinition element)
     {
-        PushState(element.Clause, element.Components.Length);
-        Join(element.Separator, element.Components);
+        PushState(element.Clause, element.Operators.Length);
+        Join(element.Separator, element.Operators);
         PopState();
     }
 
     public void Visit(ProjectionDefinition element)
     {
         PushState(ClauseAction.Select);
-        AppendFormattable(element.Formattable);
+        AppendFormatString(element.Formattable);
         PopState();
     }
 
     public void Visit(OffsetDefinition element)
     {
         PushState(ClauseAction.Offset);
-        AppendFormattable(element.Formattable);
+        AppendFormatString(element.OffsetClause);
         PopState();
     }
 
     public void Visit(FetchDefinition element)
     {
         PushState(ClauseAction.FetchNext);
-        AppendFormattable(element.Formattable);
+        AppendFormatString(element.FetchClause);
         PopState();
     }
 
     public void Visit(OrderByDefinition element)
     {
         PushState(ClauseAction.OrderBy);
-        AppendFormattable(element.Formattable);
+        AppendFormatString(element.OrderByClause);
         PopState();
     }
 }
