@@ -6,6 +6,19 @@ namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 /// <typeparam name="TEntity">The type of the entity.</typeparam>
 public sealed record WhereBuilder<TEntity>
 {
+    private sealed class ComparisonOperator
+    {
+        public const string AreEqual = "=";
+        public const string NotEqual = "<>";
+        public const string GreaterThan = ">";
+        public const string GreaterThanOrEqualTo = ">=";
+        public const string LessThan = "<";
+        public const string LessThanOrEqualTo = "<=";
+    }
+
+    private static FormattableString BuildClause<TField>(Expression<Func<TEntity, TField>> field, string comparisonOperator, TField value)
+        => $"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] {comparisonOperator:raw} {value}";
+
     /// <summary>
     /// Creates an equality filter.
     /// </summary>
@@ -14,7 +27,7 @@ public sealed record WhereBuilder<TEntity>
     /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>An equality filter.</returns>
     public OperatorFilterDefinition Eq<TField>(Expression<Func<TEntity, TField>> field, TField value)
-        => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] = {value}");
+        => new(BuildClause(field, ComparisonOperator.AreEqual, value));
 
     /// <summary>
     /// Creates a not equal filter.
@@ -26,7 +39,7 @@ public sealed record WhereBuilder<TEntity>
     public OperatorFilterDefinition Ne<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
-        => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] <> {value}");
+        => new(BuildClause(field, ComparisonOperator.NotEqual, value));
 
     /// <summary>
     /// Creates a greater than filter.
@@ -38,7 +51,7 @@ public sealed record WhereBuilder<TEntity>
     public OperatorFilterDefinition Gt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
-        => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] > {value}");
+        => new(BuildClause(field, ComparisonOperator.GreaterThan, value));
 
     /// <summary>
     /// Creates a greater than or equal filter.
@@ -50,7 +63,7 @@ public sealed record WhereBuilder<TEntity>
     public OperatorFilterDefinition Gte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
-        => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] >= {value}");
+        => new(BuildClause(field, ComparisonOperator.GreaterThanOrEqualTo, value));
 
     /// <summary>
     /// Creates a less than filter.
@@ -62,7 +75,7 @@ public sealed record WhereBuilder<TEntity>
     public OperatorFilterDefinition Lt<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
-        => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] < {value}");
+        => new(BuildClause(field, ComparisonOperator.LessThan, value));
 
     /// <summary>
     /// Creates a less than or equal filter.
@@ -74,7 +87,7 @@ public sealed record WhereBuilder<TEntity>
     public OperatorFilterDefinition Lte<TField>(
         Expression<Func<TEntity, TField>> field,
         [DisallowNull] TField value)
-        => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] <= {value}");
+        => new(BuildClause(field, ComparisonOperator.LessThanOrEqualTo, value));
 
     /// <summary>
     /// Creates an in filter for an array field.
@@ -106,7 +119,7 @@ public sealed record WhereBuilder<TEntity>
     /// <param name="field">The field.</param>
     /// <param name="beginValue">The begin values.</param>
     /// <param name="endValue">The end values.</param>
-    /// <typeparam name="TField"></typeparam>
+    /// <typeparam name="TField">The type of the field.</typeparam>
     /// <returns>The between filter.</returns>
     public RangeFilterDefinition Within<TField>(
         Expression<Func<TEntity, TField>> field,
