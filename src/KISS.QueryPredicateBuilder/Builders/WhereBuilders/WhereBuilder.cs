@@ -1,21 +1,21 @@
 namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 
+public sealed class ComparisonOperator
+{
+    public const string AreEqual = "=";
+    public const string NotEqual = "<>";
+    public const string GreaterThan = ">";
+    public const string GreaterThanOrEqualTo = ">=";
+    public const string LessThan = "<";
+    public const string LessThanOrEqualTo = "<=";
+}
+
 /// <summary>
 /// Defines the where builder type.
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity.</typeparam>
 public sealed record WhereBuilder<TEntity>
 {
-    private sealed class ComparisonOperator
-    {
-        public const string AreEqual = "=";
-        public const string NotEqual = "<>";
-        public const string GreaterThan = ">";
-        public const string GreaterThanOrEqualTo = ">=";
-        public const string LessThan = "<";
-        public const string LessThanOrEqualTo = "<=";
-    }
-
     private static FormattableString BuildClause<TField>(Expression<Func<TEntity, TField>> field, string comparisonOperator, TField value)
         => $"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] {comparisonOperator:raw} {value}";
 

@@ -18,12 +18,6 @@ public sealed partial class QueryBuilder
         set => CurrentState.HasOpenParentheses = value;
     }
 
-    private int Position
-    {
-        get => CurrentState.Position;
-        set => CurrentState.Position = value;
-    }
-
     private int Length => CurrentState.Length;
 
     private void PushState(ClauseAction context, int length = 1)
@@ -52,7 +46,6 @@ public sealed partial class QueryBuilder
             enumerator.Current.Accept(this);
             while (enumerator.MoveNext())
             {
-                ++Position;
                 StateBuilder.Append(separator);
                 enumerator.Current.Accept(this);
             }

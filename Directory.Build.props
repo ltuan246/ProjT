@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <!-- <AnalysisMode>All</AnalysisMode> -->
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <IsPackable>false</IsPackable>
