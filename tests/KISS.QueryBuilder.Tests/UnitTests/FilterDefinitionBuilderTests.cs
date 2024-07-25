@@ -12,7 +12,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>();
+        IList<Weather> weathers = Connection.Gets<Weather>();
 
         // Assert
         Assert.Equal(100, weathers.Count);
@@ -45,7 +45,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
             .Build();
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(projection, filter);
+        IList<Weather> weathers = Connection.Gets<Weather>(projection, filter);
 
         // Assert
         Assert.Equal(2, weathers.Count);
@@ -82,7 +82,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var idFilter = query.Eq(t => t.Id, exId);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(idFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(idFilter);
 
         // Assert
         Assert.Single(weathers);
@@ -102,7 +102,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var filter = query.And(idFilter, countryFilter);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filter);
+        IList<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Empty(weathers);
@@ -118,7 +118,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var temperatureFilter = query.Gt(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(9, weathers.Count);
@@ -135,7 +135,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var temperatureFilter = query.Gte(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(10, weathers.Count);
@@ -152,7 +152,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var temperatureFilter = query.Lt(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(27, weathers.Count);
@@ -169,7 +169,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var temperatureFilter = query.Lte(t => t.TemperatureCelsius, exTemperatureCelsius);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(temperatureFilter);
 
         // Assert
         Assert.Equal(32, weathers.Count);
@@ -186,7 +186,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var countryFilter = query.AnyIn(t => t.Country, exCountries);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(countryFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(countryFilter);
 
         // Assert
         Assert.Equal(20, weathers.Count);
@@ -203,7 +203,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var countryFilter = query.NotIn(t => t.Country, exCountries);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(countryFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(countryFilter);
 
         // Assert
         Assert.Equal(63, weathers.Count);
@@ -221,7 +221,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var rangeFilter = query.Within(t => t.LastUpdated, exDtBegin, exDtEnd);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(rangeFilter);
+        IList<Weather> weathers = Connection.Gets<Weather>(rangeFilter);
 
         // Assert
         Assert.Equal(10, weathers.Count);
@@ -241,7 +241,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var filter = query.And(idFilter, countryFilter);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filter);
+        IList<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Single(weathers);
@@ -265,7 +265,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var filter = query.Or(idFilter1, idFilter2);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filter);
+        IList<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Equal(2, weathers.Count);
@@ -291,7 +291,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var filter = query.Or(query.And(idFilter, countryFilter), query.And(temperatureCelsiusFilter, windMphFilter));
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filter);
+        IList<Weather> weathers = Connection.Gets<Weather>(filter);
 
         // Assert
         Assert.Equal(2, weathers.Count);

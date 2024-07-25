@@ -2,56 +2,56 @@ namespace KISS.QueryPredicateBuilder.Core;
 
 public sealed partial class QueryBuilder : IVisitor
 {
-    public void Visit(OperatorFilterDefinition element)
+    public void Visit([NotNull] OperatorFilterDefinition element)
     {
         PushState(ClauseAction.Where);
         AppendFormatString(element.ComparisonOperator);
         PopState();
     }
 
-    public void Visit(SingleItemAsArrayOperatorFilterDefinition element)
+    public void Visit([NotNull] SingleItemAsArrayOperatorFilterDefinition element)
     {
         PushState(ClauseAction.Where);
         AppendFormatString(element.ContainsClause);
         PopState();
     }
 
-    public void Visit(RangeFilterDefinition element)
+    public void Visit([NotNull] RangeFilterDefinition element)
     {
         PushState(ClauseAction.Where);
         AppendFormatString(element.BetweenOperator);
         PopState();
     }
 
-    public void Visit(CombinedFilterDefinition element)
+    public void Visit([NotNull] CombinedFilterDefinition element)
     {
-        PushState(element.Clause, element.Operators.Length);
+        PushState(element.Clause, element.Operators.Count);
         Join(element.Separator, element.Operators);
         PopState();
     }
 
-    public void Visit(ProjectionDefinition element)
+    public void Visit([NotNull] ProjectionDefinition element)
     {
         PushState(ClauseAction.Select);
         AppendFormatString(element.Formattable);
         PopState();
     }
 
-    public void Visit(OffsetDefinition element)
+    public void Visit([NotNull] OffsetDefinition element)
     {
         PushState(ClauseAction.Offset);
         AppendFormatString(element.OffsetClause);
         PopState();
     }
 
-    public void Visit(FetchDefinition element)
+    public void Visit([NotNull] FetchDefinition element)
     {
         PushState(ClauseAction.FetchNext);
         AppendFormatString(element.FetchClause);
         PopState();
     }
 
-    public void Visit(OrderByDefinition element)
+    public void Visit([NotNull] OrderByDefinition element)
     {
         PushState(ClauseAction.OrderBy);
         AppendFormatString(element.OrderByClause);

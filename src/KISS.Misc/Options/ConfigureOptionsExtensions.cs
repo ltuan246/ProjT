@@ -9,7 +9,7 @@ public static class ConfigureOptionsExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configuration"></param>
-    public static void ConfigureOptions(this IServiceCollection services, IConfiguration configuration)
+    public static void ConfigureOptions(this IServiceCollection services, [NotNull] IConfiguration configuration)
     {
         MethodInfo? configOpts =
             typeof(OptionsConfigurationServiceCollectionExtensions).GetMethod(ConfigureOptionsMethodName,

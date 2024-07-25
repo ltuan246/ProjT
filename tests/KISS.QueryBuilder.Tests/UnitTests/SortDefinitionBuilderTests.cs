@@ -12,7 +12,7 @@ public class SortDefinitionBuilderTests(SqliteTestsFixture fixture)
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>();
+        IList<Weather> weathers = Connection.Gets<Weather>();
 
         // Assert
         Assert.Equal(100, weathers.Count);
@@ -36,7 +36,7 @@ public class SortDefinitionBuilderTests(SqliteTestsFixture fixture)
             .Build();
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filters, sort);
+        IList<Weather> weathers = Connection.Gets<Weather>(filters, sort);
 
         // Assert
         Assert.Equal(3, weathers.Count);
@@ -78,7 +78,7 @@ public class SortDefinitionBuilderTests(SqliteTestsFixture fixture)
             .Build();
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filters, sort);
+        IList<Weather> weathers = Connection.Gets<Weather>(filters, sort);
 
         // Assert
         Assert.Equal(3, weathers.Count);
@@ -121,7 +121,7 @@ public class SortDefinitionBuilderTests(SqliteTestsFixture fixture)
             .Build();
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(filters, sort);
+        IList<Weather> weathers = Connection.Gets<Weather>(filters, sort);
 
         // Assert
         Assert.Equal(6, weathers.Count);

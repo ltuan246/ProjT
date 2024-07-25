@@ -1,7 +1,7 @@
 namespace KISS.Misc.Options;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public class OptionsAttribute(string sectionName) : Attribute
+public sealed class OptionsAttribute(string sectionName) : Attribute
 {
     public string SectionName { get; } = sectionName;
 }

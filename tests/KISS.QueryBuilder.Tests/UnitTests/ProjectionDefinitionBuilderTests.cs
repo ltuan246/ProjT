@@ -31,7 +31,7 @@ public class ProjectionDefinitionBuilderTests(SqliteTestsFixture fixture)
         var limit = PredicateBuilder<Weather>.Fetch.Limit(3);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(projection, filters, sort, limit);
+        IList<Weather> weathers = Connection.Gets<Weather>(projection, filters, sort, limit);
 
         // Assert
         Assert.Equal(3, weathers.Count);
@@ -85,7 +85,7 @@ public class ProjectionDefinitionBuilderTests(SqliteTestsFixture fixture)
         var offset = PredicateBuilder<Weather>.Fetch.Offset(3);
 
         // Act
-        List<Weather> weathers = Connection.Gets<Weather>(projection, filters, sort, limit, offset);
+        IList<Weather> weathers = Connection.Gets<Weather>(projection, filters, sort, limit, offset);
 
         // Assert
         Assert.Equal(3, weathers.Count);

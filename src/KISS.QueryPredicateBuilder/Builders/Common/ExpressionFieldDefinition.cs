@@ -14,6 +14,6 @@ public sealed record ExpressionFieldDefinition<TEntity, TField>(Expression<Func<
         return memberInfo.Name;
     }
 
-    public static implicit operator string(ExpressionFieldDefinition<TEntity, TField> expressionFieldDefinition)
+    public static implicit operator string([NotNull] ExpressionFieldDefinition<TEntity, TField> expressionFieldDefinition)
         => new(expressionFieldDefinition.GetMemberNameFromLambda());
 }

@@ -81,5 +81,5 @@ public static class Ensure
         => Enum.IsDefined(typeof(T), value);
 
     public static bool IsContainsKey<TKey, TValue>(IDictionary<TKey, TValue> dic, TKey key)
-        => dic.ContainsKey(key);
+        => dic?.ContainsKey(key) == true;
 }

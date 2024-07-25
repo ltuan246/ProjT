@@ -9,7 +9,7 @@ namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 /// <param name="Clause">The type of clause</param>
 /// <param name="Separator">The separator</param>
 /// <param name="Operators">The operators</param>
-public sealed record CombinedFilterDefinition(ClauseAction Clause, string Separator, IComponent[] Operators) : IComponent
+public sealed record CombinedFilterDefinition(ClauseAction Clause, string Separator, IReadOnlyList<IComponent> Operators) : IComponent
 {
     /// <summary>
     /// Let the visitor know the class of the component it works with.

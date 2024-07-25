@@ -2,7 +2,7 @@ namespace KISS.QueryPredicateBuilder.Core;
 
 public sealed partial class QueryBuilder
 {
-    public (string Sql, DynamicParameters Parameters) Operation<TEntity>(params IComponent[] components)
+    public (string Sql, DynamicParameters Parameters) Operation<TEntity>([NotNull] params IComponent[] components)
     {
         QueryBuilder visitor = new();
 
