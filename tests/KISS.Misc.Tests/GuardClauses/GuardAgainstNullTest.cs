@@ -83,7 +83,7 @@ public class GuardAgainstNullTest
         Assert.Throws<ArgumentNullException>(() => Guard.Against.NullOrEmpty("", "emptyString"));
         Assert.Throws<ArgumentNullException>(() => Guard.Against.NullOrEmpty(Guid.Empty, "emptyGuid"));
         Assert.Throws<ArgumentNullException>(() =>
-            Guard.Against.NullOrEmpty(Enumerable.Empty<string>(), "emptyStringEnumerable"));
+            Guard.Against.NullOrEmpty(Array.Empty<string>(), "emptyStringEnumerable"));
     }
 
     [Fact]
