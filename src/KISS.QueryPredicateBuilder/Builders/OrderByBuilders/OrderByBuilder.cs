@@ -11,9 +11,9 @@ public sealed class OrderByBuilder<TEntity>
     /// <summary>
     /// Appends an ascending sort to the builder.
     /// </summary>
-    /// <param name="field"></param>
-    /// <typeparam name="TField"></typeparam>
-    /// <returns>The sort builder</returns>
+    /// <param name="field">Sorts the results by field.</param>
+    /// <typeparam name="TField">The type of the field.</typeparam>
+    /// <returns>The sort builder.</returns>
     public OrderByBuilder<TEntity> Ascending<TField>(Expression<Func<TEntity, TField>> field)
     {
         Columns.Add($"{(string)new ExpressionFieldDefinition<TEntity, TField>(field)} ASC");
@@ -23,9 +23,9 @@ public sealed class OrderByBuilder<TEntity>
     /// <summary>
     /// Appends a descending sort to the builder.
     /// </summary>
-    /// <param name="field"></param>
-    /// <typeparam name="TField"></typeparam>
-    /// <returns>The sort builder</returns>
+    /// <param name="field">Sorts the results by field.</param>
+    /// <typeparam name="TField">The type of the field.</typeparam>
+    /// <returns>The sort builder.</returns>
     public OrderByBuilder<TEntity> Descending<TField>(Expression<Func<TEntity, TField>> field)
     {
         Columns.Add($"{(string)new ExpressionFieldDefinition<TEntity, TField>(field)} DESC");
@@ -35,7 +35,7 @@ public sealed class OrderByBuilder<TEntity>
     /// <summary>
     /// A builder for specifying which fields of an entity should sort.
     /// </summary>
-    /// <returns>The ORDER BY clause</returns>
+    /// <returns>The ORDER BY clause.</returns>
     public OrderByDefinition Build()
         => new($"ORDER BY {string.Join(", ", Columns):raw}");
 }

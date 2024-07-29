@@ -5,6 +5,11 @@
         <Authors>ltuan</Authors>
         <Product>KeepItSimple</Product>
         <IsPackable>true</IsPackable>
+        <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
+        <AnalysisMode>All</AnalysisMode>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
     </PropertyGroup>
 
     <!-- GlobalPackageReference  -->
@@ -20,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- <PackageReference Include="StyleCop.Analyzers"/> -->
+        <PackageReference Include="StyleCop.Analyzers"/>
     </ItemGroup>
 
 </Project>

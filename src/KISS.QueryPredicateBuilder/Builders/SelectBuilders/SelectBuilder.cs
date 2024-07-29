@@ -15,9 +15,9 @@ public sealed record SelectBuilder<TEntity>
     /// <summary>
     /// Adds one or more field names to be included in the results.
     /// </summary>
-    /// <param name="field">The field name</param>
+    /// <param name="field">The field name.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
-    /// <returns>The select builder</returns>
+    /// <returns>The select builder.</returns>
     public SelectBuilder<TEntity> Include<TField>(Expression<Func<TEntity, TField>> field)
     {
         Columns.Add(new ExpressionFieldDefinition<TEntity, TField>(field));
@@ -27,9 +27,9 @@ public sealed record SelectBuilder<TEntity>
     /// <summary>
     /// Adds one or more field names to be excluded from the results.
     /// </summary>
-    /// <param name="field">The field name</param>
+    /// <param name="field">The field name.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
-    /// <returns>The select builder</returns>
+    /// <returns>The select builder.</returns>
     public SelectBuilder<TEntity> Exclude<TField>(Expression<Func<TEntity, TField>> field)
     {
         ExColumns.Add(new ExpressionFieldDefinition<TEntity, TField>(field));
@@ -39,14 +39,14 @@ public sealed record SelectBuilder<TEntity>
     /// <summary>
     /// A builder for specifying which fields of an entity should return.
     /// </summary>
-    /// <returns>The SELECT clause</returns>
+    /// <returns>The SELECT clause.</returns>
     public ProjectionDefinition Build()
         => new($"SELECT {string.Join(", ", GetFields()):raw} FROM {Entity.Name:raw}s");
 
     /// <summary>
     /// Get fields of a entity should return.
     /// </summary>
-    /// <returns>The field names</returns>
+    /// <returns>The field names.</returns>
     private IEnumerable<string> GetFields()
         => Columns.Count switch
         {

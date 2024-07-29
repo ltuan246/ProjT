@@ -1,9 +1,9 @@
 namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 
 /// <summary>
-/// A builder for a (Does not) Contain element 
+/// A builder for a (Does not) Contain element.
 /// </summary>
-/// <param name="ContainsClause">The (NOT) IN Operator</param>
+/// <param name="ContainsClause">The (NOT) IN Operator.</param>
 public sealed record SingleItemAsArrayOperatorFilterDefinition(FormattableString ContainsClause) : IComponent
 {
     /// <summary>

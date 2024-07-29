@@ -1,10 +1,10 @@
 namespace KISS.QueryPredicateBuilder.Builders.SelectBuilders;
 
 /// <summary>
-/// 
+/// A builder for a Projection clause.
 /// </summary>
-/// <param name="Formattable"></param>
-public sealed record ProjectionDefinition(FormattableString Formattable) : IComponent
+/// <param name="ProjectionClause">The Projection Clause.</param>
+public sealed record ProjectionDefinition(FormattableString ProjectionClause) : IComponent
 {
     /// <summary>
     /// Let the visitor know the class of the component it works with.

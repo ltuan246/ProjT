@@ -1,5 +1,8 @@
 namespace KISS.QueryPredicateBuilder.Core;
 
+/// <summary>
+/// A class that defines the SQL builder type. The core QueryBuilder partial class.
+/// </summary>
 public sealed partial class QueryBuilder
 {
     private ConcurrentDictionary<ClauseAction, StringBuilder> Builder { get; } = new();
@@ -32,8 +35,7 @@ public sealed partial class QueryBuilder
         _ = State.TryPeek(out _) switch
         {
             true => StateBuilder.Append(recentState.Builder),
-            false => Builder.AddOrUpdate(recentState.Context, recentState.Builder,
-                (_, built) => built.Append(recentState.Builder))
+            false => Builder.AddOrUpdate(recentState.Context, recentState.Builder, (_, built) => built.Append(recentState.Builder))
         };
     }
 

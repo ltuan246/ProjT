@@ -33,7 +33,7 @@ public sealed partial class QueryBuilder : IVisitor
     public void Visit([NotNull] ProjectionDefinition element)
     {
         PushState(ClauseAction.Select);
-        AppendFormatString(element.Formattable);
+        AppendFormatString(element.ProjectionClause);
         PopState();
     }
 

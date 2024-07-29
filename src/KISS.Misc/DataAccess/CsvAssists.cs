@@ -1,7 +1,18 @@
 namespace KISS.Misc.DataAccess;
 
-public sealed record CsvAssists
+/// <summary>
+/// The common helper containing frequently reused functions.
+/// </summary>
+public static class CsvAssists
 {
+    /// <summary>
+    /// Reading a CSV File into a List.
+    /// </summary>
+    /// <param name="path">The fully qualified location of path.</param>
+    /// <param name="config">The configuration.</param>
+    /// <typeparam name="TEntity">The type of the record.</typeparam>
+    /// <returns>Data From a CSV File.</returns>
+    /// <exception cref="FileNotFoundException">The exception that is throw if invalid path.</exception>
     public static IEnumerable<TEntity> FromCsv<TEntity>(string path, CsvConfiguration? config = null)
     {
         string filePath = PathHelper.GetFullPath(path);

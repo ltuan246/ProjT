@@ -12,7 +12,7 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
     private string GetNextParameterName()
         => $"{DefaultDatabaseParameterNameTemplate}{ParamCount++}";
 
-    private static string AppendParameterPrefix(string parameterName)
+    private string AppendParameterPrefix(string parameterName)
         => $"{DefaultDatabaseParameterPrefix}{parameterName}";
 
     private string AddValueToParameters<T>(T value)

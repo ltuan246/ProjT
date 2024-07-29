@@ -1,22 +1,15 @@
 namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 
-public sealed class ComparisonOperator
-{
-    public const string AreEqual = "=";
-    public const string NotEqual = "<>";
-    public const string GreaterThan = ">";
-    public const string GreaterThanOrEqualTo = ">=";
-    public const string LessThan = "<";
-    public const string LessThanOrEqualTo = "<=";
-}
-
 /// <summary>
 /// Defines the where builder type.
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity.</typeparam>
 public sealed record WhereBuilder<TEntity>
 {
-    private static FormattableString BuildClause<TField>(Expression<Func<TEntity, TField>> field, string comparisonOperator, TField value)
+    private static FormattableString BuildClause<TField>(
+        Expression<Func<TEntity, TField>> field,
+        string comparisonOperator,
+        TField value)
         => $"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] {comparisonOperator:raw} {value}";
 
     /// <summary>
@@ -143,4 +136,40 @@ public sealed record WhereBuilder<TEntity>
     /// <returns>An or filter.</returns>
     public CombinedFilterDefinition Or(params IComponent[] filterDefinitions)
         => new(ClauseAction.Where, ClauseConstants.Where.OrSeparator, filterDefinitions);
+}
+
+/// <summary>
+/// Used in conditions that compares one expression with another.
+/// </summary>
+public sealed class ComparisonOperator
+{
+    /// <summary>
+    /// Equal.
+    /// </summary>
+    public const string AreEqual = "=";
+
+    /// <summary>
+    /// Not Equal.
+    /// </summary>
+    public const string NotEqual = "<>";
+
+    /// <summary>
+    /// Greater Than.
+    /// </summary>
+    public const string GreaterThan = ">";
+
+    /// <summary>
+    /// Greater Than Or Equal To.
+    /// </summary>
+    public const string GreaterThanOrEqualTo = ">=";
+
+    /// <summary>
+    /// Less Than.
+    /// </summary>
+    public const string LessThan = "<";
+
+    /// <summary>
+    /// Less Than Or Equal To.
+    /// </summary>
+    public const string LessThanOrEqualTo = "<=";
 }

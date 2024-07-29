@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Builders.OffsetBuilders;
 
 /// <summary>
-/// A builder for a OFFSET Clause
+/// A builder for a OFFSET Clause.
 /// </summary>
 /// <param name="OffsetClause">The OFFSET clause.</param>
 public sealed record OffsetDefinition(FormattableString OffsetClause) : IComponent

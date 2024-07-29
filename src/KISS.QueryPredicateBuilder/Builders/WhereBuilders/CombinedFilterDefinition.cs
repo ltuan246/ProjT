@@ -6,9 +6,9 @@ namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 /// OR – Returns true if either of the conditions is True.
 /// NOT – Returns true if the condition is false.
 /// </summary>
-/// <param name="Clause">The type of clause</param>
-/// <param name="Separator">The separator</param>
-/// <param name="Operators">The operators</param>
+/// <param name="Clause">The type of clause.</param>
+/// <param name="Separator">The separator.</param>
+/// <param name="Operators">The operators.</param>
 public sealed record CombinedFilterDefinition(ClauseAction Clause, string Separator, IReadOnlyList<IComponent> Operators) : IComponent
 {
     /// <summary>

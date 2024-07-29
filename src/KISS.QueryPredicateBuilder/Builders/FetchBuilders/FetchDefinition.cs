@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Builders.FetchBuilders;
 
 /// <summary>
-/// A builder for a FETCH Clause
+/// A builder for a FETCH Clause.
 /// </summary>
 /// <param name="FetchClause">The FETCH clause.</param>
 public sealed record FetchDefinition(FormattableString FetchClause) : IComponent

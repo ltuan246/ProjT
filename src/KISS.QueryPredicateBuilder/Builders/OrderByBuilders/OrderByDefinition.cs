@@ -1,9 +1,9 @@
 namespace KISS.QueryPredicateBuilder.Builders.OrderByBuilders;
 
 /// <summary>
-/// A builder for an ORDER BY clause
+/// A builder for an ORDER BY clause.
 /// </summary>
-/// <param name="OrderByClause"></param>
+/// <param name="OrderByClause">The ORDER BY Clause.</param>
 public sealed record OrderByDefinition(FormattableString OrderByClause) : IComponent
 {
     /// <summary>

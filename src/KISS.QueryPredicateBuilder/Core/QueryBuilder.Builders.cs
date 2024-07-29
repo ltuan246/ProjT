@@ -1,5 +1,5 @@
-namespace KISS.QueryPredicateBuilder.Core;
+// namespace KISS.QueryPredicateBuilder.Core;
 
-public sealed partial class QueryBuilder
-{
-}
+// public sealed partial class QueryBuilder
+// {
+// }

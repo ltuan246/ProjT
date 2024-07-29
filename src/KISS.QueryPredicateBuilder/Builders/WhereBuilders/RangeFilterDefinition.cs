@@ -4,7 +4,7 @@ namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 /// A builder for a BETWEEN Operator
 /// Create a query specifying a range of values to be return.
 /// </summary>
-/// <param name="BetweenOperator">The BETWEEN Operator</param>
+/// <param name="BetweenOperator">The BETWEEN Operator.</param>
 public sealed record RangeFilterDefinition(FormattableString BetweenOperator) : IComponent
 {
     /// <summary>

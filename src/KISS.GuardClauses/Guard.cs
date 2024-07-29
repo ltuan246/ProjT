@@ -1,10 +1,14 @@
 namespace KISS.GuardClauses;
 
-public interface IGuardClause;
-
+/// <summary>
+/// An entry point to a set of Guard Clauses defined as extension methods on IGuardClause.
+/// </summary>
 public sealed record Guard : IGuardClause
 {
-    public static IGuardClause Against { get; } = new Guard();
-
     private Guard() { }
+
+    /// <summary>
+    /// An entry point to a set of Guard Clauses.
+    /// </summary>
+    public static IGuardClause Against { get; } = new Guard();
 }
