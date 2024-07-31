@@ -1,7 +1,11 @@
 namespace KISS.QueryPredicateBuilder.Core;
 
+/// <summary>
+/// The Visitor implements several versions of the same behaviors, tailored for different concrete element classes.
+/// </summary>
 public sealed partial class QueryBuilder : IVisitor
 {
+    /// <inheritdoc />
     public void Visit([NotNull] OperatorFilterDefinition element)
     {
         PushState(ClauseAction.Where);
@@ -9,6 +13,7 @@ public sealed partial class QueryBuilder : IVisitor
         PopState();
     }
 
+    /// <inheritdoc />
     public void Visit([NotNull] SingleItemAsArrayOperatorFilterDefinition element)
     {
         PushState(ClauseAction.Where);
@@ -16,6 +21,7 @@ public sealed partial class QueryBuilder : IVisitor
         PopState();
     }
 
+    /// <inheritdoc />
     public void Visit([NotNull] RangeFilterDefinition element)
     {
         PushState(ClauseAction.Where);
@@ -23,6 +29,7 @@ public sealed partial class QueryBuilder : IVisitor
         PopState();
     }
 
+    /// <inheritdoc />
     public void Visit([NotNull] CombinedFilterDefinition element)
     {
         PushState(element.Clause, element.Operators.Count);
@@ -30,6 +37,7 @@ public sealed partial class QueryBuilder : IVisitor
         PopState();
     }
 
+    /// <inheritdoc />
     public void Visit([NotNull] ProjectionDefinition element)
     {
         PushState(ClauseAction.Select);
@@ -37,6 +45,7 @@ public sealed partial class QueryBuilder : IVisitor
         PopState();
     }
 
+    /// <inheritdoc />
     public void Visit([NotNull] OffsetDefinition element)
     {
         PushState(ClauseAction.Offset);
@@ -44,6 +53,7 @@ public sealed partial class QueryBuilder : IVisitor
         PopState();
     }
 
+    /// <inheritdoc />
     public void Visit([NotNull] FetchDefinition element)
     {
         PushState(ClauseAction.FetchNext);
@@ -51,6 +61,7 @@ public sealed partial class QueryBuilder : IVisitor
         PopState();
     }
 
+    /// <inheritdoc />
     public void Visit([NotNull] OrderByDefinition element)
     {
         PushState(ClauseAction.OrderBy);

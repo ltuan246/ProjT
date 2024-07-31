@@ -1,11 +1,17 @@
 namespace KISS.QueryPredicateBuilder.Core;
 
+/// <summary>
+/// Implements IFormatProvider and ICustomFormatter, which returns string information for supplied objects based on custom criteria.
+/// </summary>
 internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
 {
     private const string DefaultDatabaseParameterNameTemplate = "p";
     private const string DefaultDatabaseParameterPrefix = "@";
 
-    public DynamicParameters Parameters { get; private set; } = new();
+    /// <summary>
+    /// A dynamic object that can be passed to the Query method instead of normal parameters.
+    /// </summary>
+    public DynamicParameters Parameters { get; } = new();
 
     private int ParamCount { get; set; }
 
@@ -22,6 +28,7 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
         return AppendParameterPrefix(parameterName);
     }
 
+    /// <inheritdoc />
     public string Format(string? format, object? arg, IFormatProvider? formatProvider)
         => Format(arg, format);
 
@@ -44,6 +51,7 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
         return AddValueToParameters(value);
     }
 
+    /// <inheritdoc />
     public object? GetFormat(Type? formatType)
         => typeof(ICustomFormatter).IsAssignableFrom(formatType) switch
         {
