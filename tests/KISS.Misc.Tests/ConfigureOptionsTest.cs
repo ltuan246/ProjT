@@ -22,8 +22,11 @@ public class ConfigureOptionsTest : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// [MethodUnderTest]_[Scenario]_[ExpectedResult]
+    /// </summary>
     [Fact]
-    public void Test1()
+    public void GetService_BuildServiceProvider_ReturnsService()
     {
         IOptions<AppSettings>? options = ServiceProvider.GetService<IOptions<AppSettings>>();
         Assert.NotNull(options);

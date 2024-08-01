@@ -20,7 +20,7 @@ public class SortDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Ascending()
+    public void AscendingOrder_QueryBuilder_ReturnsSortDataInAscendingOrder()
     {
         // Arrange
         const string exCountry = "Argentina";
@@ -62,7 +62,7 @@ public class SortDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Descending()
+    public void DescendingOrder_QueryBuilder_ReturnsSortDataInDescendingOrder()
     {
         // Arrange
         const string exCountry = "Argentina";
@@ -104,7 +104,7 @@ public class SortDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void MultipleColumnOrdering()
+    public void MultipleColumnOrdering_QueryBuilder_ReturnsSortData()
     {
         // Arrange
         const int exTemperatureCelsius = 8;

@@ -18,7 +18,7 @@ public class ServiceRegistrationTest : IDisposable
     }
 
     [Fact]
-    public void Test1()
+    public void GetService_BuildServiceProvider_ReturnsService()
     {
         var scopedService = ServiceProvider.GetService<IScopedService>();
         var singletonService = ServiceProvider.GetService<ISingletonService>();

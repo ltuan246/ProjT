@@ -63,7 +63,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Count()
+    public void Count_QueryBuilder_ReturnsTheNumberOfRecordsInTable()
     {
         // Act
         int count = Connection.Count<Weather>();
@@ -73,7 +73,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Eq()
+    public void EqualTo_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
@@ -90,7 +90,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Ne()
+    public void NotEqualTo_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
@@ -109,7 +109,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Gt()
+    public void GreaterThan_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
         const float exTemperatureCelsius = 29;
@@ -126,7 +126,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Gte()
+    public void GreaterThanOrEqualTo_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
         const float exTemperatureCelsius = 29;
@@ -143,7 +143,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Lt()
+    public void LessThan_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
         const float exTemperatureCelsius = 10;
@@ -160,7 +160,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Lte()
+    public void LessThanOrEqualTo_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
         const float exTemperatureCelsius = 10;
@@ -177,7 +177,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void AnyIn()
+    public void InOperator_QueryBuilder_ReturnsDataWhereValueExistsInList()
     {
         // Arrange
         string[] exCountries = ["Vietnam", "Canada"];
@@ -194,7 +194,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void NotIn()
+    public void NotInOperator_QueryBuilder_ReturnsAllDataExceptTheExcludedValuesInList()
     {
         // Arrange
         string[] exCountries = ["Argentina", "Iceland", "Australia"];
@@ -211,7 +211,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Within()
+    public void BetweenOperator_QueryBuilder_ReturnsDataThatMatchValuesInRange()
     {
         // Arrange
         DateTime exDtBegin = new(2024, 5, 19);
@@ -229,7 +229,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void And()
+    public void AndOperator_QueryBuilder_ReturnsDataIfAllConditionsAreTrue()
     {
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
@@ -254,7 +254,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Or()
+    public void OrOperator_QueryBuilder_ReturnsDataIfAnyOneConditionIsTrue()
     {
         // Arrange
         Guid[] exIds = [new("2DFA8730-2541-11EF-83FE-B1C709C359B7"), new("2DFA8731-2541-11EF-83FE-B1C709C359B7")];
@@ -273,7 +273,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void AndWithOr()
+    public void AndOrOperator_QueryBuilder_ReturnsDataIfAnyOneOperatorIsTrue()
     {
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
@@ -309,7 +309,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void GivenInvalidInput_WhenBuildQuery_ThenNotSupportedReturns()
+    public void QueryBuilder_InvalidInput_ThrowsNotSupportedException()
     {
         // Arrange
         var builder = PredicateBuilder<Weather>.Filter;

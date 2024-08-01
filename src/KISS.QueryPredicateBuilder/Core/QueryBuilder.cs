@@ -35,7 +35,8 @@ public sealed partial class QueryBuilder
         _ = State.TryPeek(out _) switch
         {
             true => StateBuilder.Append(recentState.Builder),
-            false => Builder.AddOrUpdate(recentState.Context, recentState.Builder, (_, built) => built.Append(recentState.Builder))
+            false => Builder.GetOrAdd(recentState.Context, recentState.Builder)
+            // false => Builder.AddOrUpdate(recentState.Context, recentState.Builder, (_, built) => built.Append(recentState.Builder))
         };
     }
 
@@ -48,6 +49,7 @@ public sealed partial class QueryBuilder
             enumerator.Current.Accept(this);
             while (enumerator.MoveNext())
             {
+                ++CurrentState.Position;
                 StateBuilder.Append(separator);
                 enumerator.Current.Accept(this);
             }
@@ -67,12 +69,10 @@ public sealed partial class QueryBuilder
 
     private void CloseOpenParentheses()
     {
-        if (!HasOpenParentheses)
+        if (HasOpenParentheses)
         {
-            return;
+            StateBuilder.Append(ClauseConstants.CloseParentheses);
+            HasOpenParentheses = false;
         }
-
-        StateBuilder.Append(ClauseConstants.CloseParentheses);
-        HasOpenParentheses = false;
     }
 }

@@ -6,7 +6,7 @@ public class ProjectionDefinitionBuilderTests(SqliteTestsFixture fixture)
     private SqliteConnection Connection { get; init; } = fixture.Connection;
 
     [Fact]
-    public void ProjectionInclude()
+    public void LimitClause_QueryBuilder_ReturnsSpecifyTheNumberOfRecordsInTheResultSet()
     {
         // Arrange
         const int exTemperatureCelsius = 8;
@@ -60,7 +60,7 @@ public class ProjectionDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void ProjectionExclude()
+    public void LimitWithOffsetClause_QueryBuilder_ReturnsSpecifyTheStartingRowsFromWhereToSelectData()
     {
         // Arrange
         const int exTemperatureCelsius = 8;

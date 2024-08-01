@@ -34,14 +34,14 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
 
     private string Format<T>(T value, string? format = null)
     {
-        if (value is FormattableString formatString)
-        {
-            return formatString.ArgumentCount switch
-            {
-                0 => formatString.Format,
-                _ => string.Format(this, formatString.Format, formatString.GetArguments())
-            };
-        }
+        // if (value is FormattableString formatString)
+        // {
+        //     return formatString.ArgumentCount switch
+        //     {
+        //         0 => formatString.Format,
+        //         _ => string.Format(this, formatString.Format, formatString.GetArguments())
+        //     };
+        // }
 
         if (Constants.RawFormat.Equals(format, StringComparison.OrdinalIgnoreCase))
         {
@@ -52,10 +52,10 @@ internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
     }
 
     /// <inheritdoc />
-    public object? GetFormat(Type? formatType)
-        => typeof(ICustomFormatter).IsAssignableFrom(formatType) switch
-        {
-            true => this,
-            false => default
-        };
+    public object? GetFormat(Type? formatType) => this;
+    // => typeof(ICustomFormatter).IsAssignableFrom(formatType) switch
+    // {
+    //     true => this,
+    //     false => default
+    // };
 }
