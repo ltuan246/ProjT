@@ -1,23 +1,29 @@
 namespace KISS.Misc.Options;
 
+/// <summary>
+/// Dynamically invoking a generic method.
+/// </summary>
 public static class ConfigureOptionsExtensions
 {
     private const string ConfigureOptionsMethodName = nameof(OptionsConfigurationServiceCollectionExtensions.Configure);
 
     /// <summary>
-    /// https://learn.microsoft.com/en-us/dotnet/fundamentals/reflection/how-to-define-a-generic-method-with-reflection-emit
+    /// Define a generic method with reflection emit.
+    /// https://learn.microsoft.com/en-us/dotnet/fundamentals/reflection/how-to-define-a-generic-method-with-reflection-emit .
     /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
+    /// <param name="services">The service container.</param>
+    /// <param name="configuration">The configuration.</param>
     public static void ConfigureOptions(this IServiceCollection services, IConfiguration configuration)
     {
+        Guard.Against.Null(configuration);
+
         MethodInfo? configOpts =
-            typeof(OptionsConfigurationServiceCollectionExtensions).GetMethod(ConfigureOptionsMethodName,
-                [typeof(IServiceCollection), typeof(IConfiguration)]);
+            typeof(OptionsConfigurationServiceCollectionExtensions)
+                .GetMethod(ConfigureOptionsMethodName, [typeof(IServiceCollection), typeof(IConfiguration)]);
 
         Guard.Against.Null(configOpts);
 
-        IEnumerable<(Type service, string sectionName)> targetServices = GetOptions();
+        IEnumerable<(Type Service, string SectionName)> targetServices = GetOptions();
 
         foreach ((Type service, string sectionName) in targetServices)
         {
@@ -26,7 +32,7 @@ public static class ConfigureOptionsExtensions
         }
     }
 
-    private static IEnumerable<(Type service, string sectionName)> GetOptions()
+    private static IEnumerable<(Type Service, string SectionName)> GetOptions()
     {
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
         foreach (Assembly assembly in assemblies)

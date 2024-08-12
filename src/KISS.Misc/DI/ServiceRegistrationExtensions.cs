@@ -1,10 +1,17 @@
 namespace KISS.Misc.DI;
 
+/// <summary>
+/// Simplifying Dynamic and Consistent Service Registration.
+/// </summary>
 public static class ServiceRegistrationExtensions
 {
+    /// <summary>
+    /// Dynamic Registration with Custom Attributes.
+    /// </summary>
+    /// <param name="services">The service container.</param>
     public static void LifetimeServiceRegistration(this IServiceCollection services)
     {
-        IEnumerable<(Type serviceInterface, Type implementationType, ServiceLifetime serviceLifetime)> targetServices =
+        IEnumerable<(Type ServiceInterface, Type ImplementationType, ServiceLifetime ServiceLifetime)> targetServices =
             GetServices();
 
         foreach ((Type serviceInterface, Type implementationType, ServiceLifetime serviceLifetime) in targetServices)
@@ -24,7 +31,7 @@ public static class ServiceRegistrationExtensions
         }
     }
 
-    private static IEnumerable<(Type serviceInterface, Type implementationType, ServiceLifetime serviceLifetime)>
+    private static IEnumerable<(Type ServiceInterface, Type ImplementationType, ServiceLifetime ServiceLifetime)>
         GetServices()
     {
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();

@@ -1,14 +1,14 @@
 <Project>
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <!-- <ImplicitUsings>enable</ImplicitUsings> -->
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <!-- <AnalysisMode>All</AnalysisMode> -->
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <!-- <ImplicitUsings>enable</ImplicitUsings> -->
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+        <!-- <AnalysisMode>All</AnalysisMode> -->
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
 </Project>

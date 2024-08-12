@@ -1,3 +1,0 @@
-## Acknowledgements
-- [Visitor](https://refactoring.guru/design-patterns/visitor) - is a behavioral design pattern that lets you separate algorithms from the objects on which they operate.
-- [Composite](https://refactoring.guru/design-patterns/composite) - is a structural design pattern that lets you compose objects into tree structures and then work with these structures as if they were individual objects.
