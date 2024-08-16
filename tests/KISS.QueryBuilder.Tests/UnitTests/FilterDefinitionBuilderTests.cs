@@ -20,7 +20,20 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void QueryPredicateBuilder()
+    public void Integration_FluentBuilder_ReturnsDataIfTrue()
+    {
+        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+        const string exCountry = "Argentina";
+        const double exTemperatureCelsius = 10;
+        const double exWindMph = 19.2;
+
+        FluentBuilder fb = new();
+        fb.Select((Weather w) => w.Id == exId || w.Country == exCountry &&
+            (w.TemperatureCelsius == exTemperatureCelsius && w.WindMph == exWindMph));
+    }
+
+    [Fact]
+    public void Integration_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
