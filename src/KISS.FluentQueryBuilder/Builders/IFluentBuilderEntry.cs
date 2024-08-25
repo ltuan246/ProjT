@@ -1,3 +1,8 @@
 ﻿namespace KISS.FluentQueryBuilder.Builders;
 
-public interface IFluentBuilderEntry : ISelectBuilderEntry, ISelectDistinctBuilderEntry, IWhereBuilderEntry;
+/// <summary>
+///     An interface that defines the fluent builder entry type.
+/// </summary>
+/// <typeparam name="TEntity">The type of the record.</typeparam>
+public interface IFluentBuilderEntry<TEntity> : ISelectBuilderEntry<TEntity>, ISelectDistinctBuilderEntry,
+    IWhereBuilderEntry<TEntity>;

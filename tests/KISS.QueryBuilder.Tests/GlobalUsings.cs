@@ -1,6 +1,5 @@
 global using System;
 global using System.Data;
-global using System.Data.Common;
 global using System.Collections.Generic;
 global using System.Linq;
 global using System.ComponentModel.DataAnnotations;
@@ -14,4 +13,4 @@ global using KISS.QueryBuilder.Tests.Model;
 global using KISS.QueryBuilder.Tests.DataSeeding;
 global using KISS.QueryBuilder.Tests.Sqlite;
 global using KISS.QueryPredicateBuilder;
-global using KISS.FluentQueryBuilder.Builders;
+global using KISS.FluentQueryBuilder;
