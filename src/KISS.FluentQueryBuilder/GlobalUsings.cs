@@ -12,3 +12,4 @@ global using KISS.FluentQueryBuilder.Core;
 global using KISS.FluentQueryBuilder.Builders;
 global using KISS.FluentQueryBuilder.Builders.SelectBuilders;
 global using KISS.FluentQueryBuilder.Builders.WhereBuilders;
+global using KISS.FluentQueryBuilder.Builders.EnumerableBuilders;

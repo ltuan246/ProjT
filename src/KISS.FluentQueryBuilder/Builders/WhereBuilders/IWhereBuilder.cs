@@ -1,6 +1,4 @@
-﻿using KISS.FluentQueryBuilder.Builders.EnumerableBuilders;
-
-namespace KISS.FluentQueryBuilder.Builders.WhereBuilders;
+﻿namespace KISS.FluentQueryBuilder.Builders.WhereBuilders;
 
 /// <summary>
 ///     An interface that defines the where builder type.

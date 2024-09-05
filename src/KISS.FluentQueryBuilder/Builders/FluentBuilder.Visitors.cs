@@ -1,231 +1,71 @@
 ﻿namespace KISS.FluentQueryBuilder.Builders;
 
+/// <summary>
+///     Implements <see cref="IQueryExpressionVisitor" /> interfaces for the <see cref="FluentBuilder{TEntity}" /> type.
+/// </summary>
+/// <typeparam name="TEntity">The type of the record.</typeparam>
 public sealed partial record FluentBuilder<TEntity> : IQueryExpressionVisitor
 {
-    private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
-    {
-        { ExpressionType.Assign, " = " },
-        { ExpressionType.Equal, " == " },
-        { ExpressionType.NotEqual, " != " },
-        { ExpressionType.GreaterThan, " > " },
-        { ExpressionType.GreaterThanOrEqual, " >= " },
-        { ExpressionType.LessThan, " < " },
-        { ExpressionType.LessThanOrEqual, " <= " },
-        { ExpressionType.OrElse, " OR " },
-        { ExpressionType.AndAlso, " AND " },
-        { ExpressionType.Coalesce, " ?? " },
-        { ExpressionType.Add, " + " },
-        { ExpressionType.Subtract, " - " },
-        { ExpressionType.Multiply, " * " },
-        { ExpressionType.Divide, " / " },
-        { ExpressionType.Modulo, " % " },
-        { ExpressionType.And, " & " },
-        { ExpressionType.Or, " | " },
-        { ExpressionType.ExclusiveOr, " ^ " },
-        { ExpressionType.LeftShift, " << " },
-        { ExpressionType.RightShift, " >> " }
-    };
-
     /// <inheritdoc />
-    public void Visit(Expression expression)
-    {
-        switch (expression)
+    public Expression Visit(Expression expression)
+        => expression switch
         {
-            case BinaryExpression binaryExpression:
-                VisitBinary(binaryExpression);
-                break;
+            BinaryExpression binaryExpression => Visit(binaryExpression),
+            MemberExpression memberExpression => Visit(memberExpression),
+            ConstantExpression constantExpression => Visit(constantExpression),
+            NewExpression newExpression => Visit(newExpression),
+            MethodCallExpression methodCallExpression => Visit(methodCallExpression),
+            ParameterExpression parameterExpression => Visit(parameterExpression),
+            _ => expression
+        };
 
-            case MemberExpression memberExpression:
-                Visit(memberExpression);
-                break;
+    /// <inheritdoc />
+    public Expression Visit(BinaryExpression binaryExpression)
+    {
+        var left = Visit(binaryExpression.Left);
+        var right = Visit(binaryExpression.Right);
 
-            case ConstantExpression constantExpression:
-                Visit(constantExpression);
-                break;
-
-            case NewExpression newExpression:
-                Visit(newExpression);
-                break;
-
-            case MethodCallExpression methodCallExpression:
-                Visit(methodCallExpression);
-                break;
-        }
+        return binaryExpression.Update(left, binaryExpression.Conversion, right);
     }
 
     /// <inheritdoc />
-    public void Visit([NotNull] BinaryExpression binaryExpression)
+    public Expression Visit(MemberExpression memberExpression)
     {
-        Visit(binaryExpression.Left);
-        Append(BinaryOperandMap[binaryExpression.NodeType]);
-        Visit(binaryExpression.Right);
-    }
-
-    /// <inheritdoc />
-    public void Visit([NotNull] MemberExpression memberExpression)
-    {
-        PushState(memberExpression);
-
         if (memberExpression.Expression is not null)
         {
-            if (memberExpression.Expression is ParameterExpression)
-            {
-                Append($"{memberExpression.Member.Name}");
-            }
-
-            Visit(memberExpression.Expression);
-        }
-        else
-        {
-            if (memberExpression.Member is PropertyInfo propertyInfo)
-            {
-                var propType = propertyInfo.GetType();
-                AppendFormat($"{propertyInfo.GetValue(propType)}");
-            }
+            var expression = Visit(memberExpression.Expression);
+            return memberExpression.Update(expression);
         }
 
-        PopState();
+        return memberExpression;
     }
 
     /// <inheritdoc />
-    public void Visit([NotNull] ConstantExpression constantExpression)
+    public Expression Visit(ConstantExpression constantExpression)
+        => constantExpression;
+
+    /// <inheritdoc />
+    public Expression Visit(NewExpression newExpression)
     {
-        if (State.TryPeek(out var currentState))
+        if (newExpression.Arguments.Count == 0)
         {
-            if (currentState.Expression is MemberExpression memberExpression)
-            {
-                var declaringType = constantExpression.Type;
-                var declaringObject = constantExpression.Value;
-
-                const MemberTypes memberTypes = MemberTypes.Field
-                                                | MemberTypes.Property;
-                const BindingFlags bindingFlags = BindingFlags.Public
-                                                  | BindingFlags.NonPublic
-                                                  | BindingFlags.Instance
-                                                  | BindingFlags.Static;
-
-                var member = declaringType
-                    .GetMember(memberExpression.Member.Name, memberTypes, bindingFlags)
-                    .Single();
-
-                AppendFormat($"{((FieldInfo)member).GetValue(declaringObject)}");
-                return;
-            }
+            return newExpression;
         }
 
-        AppendFormat($"{constantExpression.Value}");
+        var arguments = new Expression[newExpression.Arguments.Count];
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            arguments[i] = Visit(newExpression.Arguments[i]);
+        }
+
+        return newExpression.Update(arguments);
     }
 
     /// <inheritdoc />
-    public void Visit([NotNull] NewExpression newExpression)
-    {
-        const string comma = ", ";
-        using var enumerator = newExpression.Arguments.GetEnumerator();
-        if (enumerator.MoveNext())
-        {
-            Visit(enumerator.Current);
-            while (enumerator.MoveNext())
-            {
-                Append(comma);
-                Visit(enumerator.Current);
-            }
-        }
-    }
+    public Expression Visit(MethodCallExpression methodCallExpression)
+        => methodCallExpression;
 
     /// <inheritdoc />
-    public void Visit([NotNull] MethodCallExpression methodCallExpression)
-    {
-        const string inRange = nameof(SqlExpression.InRange);
-        const string anyIn = nameof(SqlExpression.AnyIn);
-        const string notIn = nameof(SqlExpression.NotIn);
-
-        var mi = typeof(SqlExpression)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .Single(mt => mt.IsGenericMethod && mt.Name == methodCallExpression.Method.Name);
-
-        switch (mi.Name)
-        {
-            case inRange:
-                {
-                    const string betweenOpr = " BETWEEN ";
-                    const string andOpr = " AND ";
-
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var beginAsExpression, var endAsExpression])
-                    {
-                        OpenParentheses();
-                        Visit(fieldAsExpression);
-
-                        Append(betweenOpr);
-                        Visit(beginAsExpression);
-
-                        Append(andOpr);
-                        Visit(endAsExpression);
-                        CloseParentheses();
-                    }
-
-                    break;
-                }
-
-            case anyIn:
-                {
-                    const string inOpr = " IN ";
-
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var valuesAsExpression])
-                    {
-                        OpenParentheses();
-                        Visit(fieldAsExpression);
-
-                        Append(inOpr);
-                        Visit(valuesAsExpression);
-                        CloseParentheses();
-                    }
-
-                    break;
-                }
-
-            case notIn:
-                {
-                    const string notInOpr = " NOT IN ";
-
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var valuesAsExpression])
-                    {
-                        OpenParentheses();
-                        Visit(fieldAsExpression);
-
-                        Append(notInOpr);
-                        Visit(valuesAsExpression);
-                        CloseParentheses();
-                    }
-
-                    break;
-                }
-
-            default:
-                break;
-        }
-    }
-
-    /// <summary>
-    ///     Visits the children of the BinaryExpression.
-    /// </summary>
-    /// <param name="binaryExpression">The nodes to visit.</param>
-    private void VisitBinary([NotNull] BinaryExpression binaryExpression)
-    {
-        switch (binaryExpression.NodeType)
-        {
-            case ExpressionType.AndAlso:
-            case ExpressionType.OrElse:
-                OpenParentheses();
-                Visit(binaryExpression);
-                CloseParentheses();
-                break;
-
-            default:
-                Visit(binaryExpression);
-                break;
-        }
-    }
+    public Expression Visit(ParameterExpression parameterExpression)
+        => parameterExpression;
 }

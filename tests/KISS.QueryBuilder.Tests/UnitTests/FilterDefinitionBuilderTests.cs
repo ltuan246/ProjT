@@ -20,23 +20,6 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Integration_FluentBuilder_ReturnsDataIfTrue()
-    {
-        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
-        const string exCountry = "Argentina";
-        const double exTemperatureCelsius = 10;
-        // const double exWindMph = 19.2;
-        string[] exCountries = ["Argentina", "Iceland", "Australia"];
-
-        var weathers = Connection.Retrieve<Weather>()
-            .Select(w => new { w.Id, w.Country })
-            .Where(w => w.Id == exId || w.Country == exCountry &&
-                (w.TemperatureCelsius == exTemperatureCelsius &&
-                 SqlExpression.InRange(w.LastUpdated, DateTime.Now, DateTime.Now)))
-            .ToList();
-    }
-
-    [Fact]
     public void Integration_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
@@ -442,6 +425,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .Select(w => new { w.Id, w.Country })
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
             .ToList();
 

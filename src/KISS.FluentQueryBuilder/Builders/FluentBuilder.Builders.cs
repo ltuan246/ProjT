@@ -1,5 +1,9 @@
 ﻿namespace KISS.FluentQueryBuilder.Builders;
 
+/// <summary>
+///     Declares specifies methods for creating the different parts of the <see cref="FluentBuilder{TEntity}" /> type.
+/// </summary>
+/// <typeparam name="TEntity">The type of the record.</typeparam>
 public sealed partial record FluentBuilder<TEntity>
 {
     /// <summary>
@@ -38,7 +42,7 @@ public sealed partial record FluentBuilder<TEntity>
 
     private Stack<BuildState> State { get; } = new();
 
-    private Dictionary<ClauseAction, Expression> EntryClause { get; } = new();
+    private Dictionary<ClauseAction, Expression> EntryClause { get; } = [];
 
     /// <summary>
     ///     The SQL to execute for the query.
@@ -53,27 +57,22 @@ public sealed partial record FluentBuilder<TEntity>
         => SqlFormatter.Parameters;
 
     private void PushState(Expression expression)
-    {
-        BuildState newState = new() { Expression = expression };
-        State.Push(newState);
-    }
+        => State.Push(new() { Expression = expression });
 
-    private void PopState() => _ = State.Pop();
+    private void PopState()
+        => State.Pop();
 
     private void OpenParentheses()
-    {
-        const char openParentheses = '(';
-        StringBuilder.Append(openParentheses);
-    }
+        => StringBuilder.Append(BuilderConstants.OpenParentheses);
 
     private void CloseParentheses()
-    {
-        const char closeParentheses = ')';
-        StringBuilder.Append(closeParentheses);
-    }
+        => StringBuilder.Append(BuilderConstants.CloseParentheses);
 
-    private void SetEntryClause(ClauseAction clauseAction, Expression expression) =>
-        EntryClause.Add(clauseAction, expression);
+    private void SetEntryClause(ClauseAction clauseAction, Expression expression)
+        => EntryClause.Add(clauseAction, expression);
+
+    private void AddCommaSeparated()
+        => StringBuilder.Append(BuilderConstants.Comma);
 
     private sealed class BuildState
     {
