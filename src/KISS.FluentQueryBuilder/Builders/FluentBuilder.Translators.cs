@@ -1,6 +1,10 @@
 ﻿namespace KISS.FluentQueryBuilder.Builders;
 
-public sealed partial record FluentBuilder<TEntity>
+/// <summary>
+///     Declares operations for the <see cref="FluentBuilder{TEntity}" /> type.
+/// </summary>
+/// <typeparam name="TEntity">The type of the record.</typeparam>
+public sealed partial class FluentBuilder<TEntity>
 {
     private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
     {
@@ -53,10 +57,6 @@ public sealed partial record FluentBuilder<TEntity>
             case MethodCallExpression methodCallExpression:
                 Translate(methodCallExpression);
                 break;
-
-            case ParameterExpression parameterExpression:
-                Translate(parameterExpression);
-                break;
         }
     }
 
@@ -72,43 +72,55 @@ public sealed partial record FluentBuilder<TEntity>
             case ExpressionType.OrElse:
             case ExpressionType.And:
             case ExpressionType.AndAlso:
-                OpenParentheses();
-                Translate(binaryExpression.Left);
-                Append(BinaryOperandMap[binaryExpression.NodeType]);
-                Translate(binaryExpression.Right);
-                CloseParentheses();
-                break;
+                {
+                    OpenParentheses();
+                    Translate(binaryExpression.Left);
+                    Append(BinaryOperandMap[binaryExpression.NodeType]);
+                    Translate(binaryExpression.Right);
+                    CloseParentheses();
+                    break;
+                }
+
+            case ExpressionType.Equal:
+            case ExpressionType.NotEqual:
+            case ExpressionType.GreaterThan:
+            case ExpressionType.GreaterThanOrEqual:
+            case ExpressionType.LessThan:
+            case ExpressionType.LessThanOrEqual:
+                {
+                    if (binaryExpression.Left is MemberExpression { Expression: ParameterExpression } memberExpression)
+                    {
+                        Append(memberExpression.Member.Name);
+                    }
+
+                    Append(BinaryOperandMap[binaryExpression.NodeType]);
+                    var (evaluated, value) = GetValue(binaryExpression.Right);
+                    if (evaluated)
+                    {
+                        AppendFormat(value);
+                    }
+
+                    break;
+                }
 
             case ExpressionType.ArrayIndex:
-                var leftExpression = (MemberExpression)Visit(binaryExpression.Left);
-                var constantExpression = (ConstantExpression)leftExpression.Expression!;
-                var declaringType = constantExpression.Type;
-                var declaringObject = constantExpression.Value;
+                {
+                    var (evaluated, value) = GetValue(binaryExpression.Right);
+                    if (evaluated)
+                    {
+                        AppendFormat(value);
+                    }
 
-                const MemberTypes memberTypes = MemberTypes.Field
-                                                | MemberTypes.Property;
-                const BindingFlags bindingFlags = BindingFlags.Public
-                                                  | BindingFlags.NonPublic
-                                                  | BindingFlags.Instance
-                                                  | BindingFlags.Static;
-
-                var member = declaringType
-                    .GetMember(leftExpression.Member.Name, memberTypes, bindingFlags)
-                    .Single();
-
-                var arr = (Array)((FieldInfo)member).GetValue(declaringObject)!;
-
-                var rightExpression = (ConstantExpression)Visit(binaryExpression.Right);
-                var idx = (int)rightExpression.Value!;
-
-                AppendFormat($"{arr.GetValue(idx)}");
-                break;
+                    break;
+                }
 
             default:
-                Translate(binaryExpression.Left);
-                Append(BinaryOperandMap[binaryExpression.NodeType]);
-                Translate(binaryExpression.Right);
-                break;
+                {
+                    Translate(binaryExpression.Left);
+                    Append(BinaryOperandMap[binaryExpression.NodeType]);
+                    Translate(binaryExpression.Right);
+                    break;
+                }
         }
     }
 
@@ -118,8 +130,6 @@ public sealed partial record FluentBuilder<TEntity>
     /// <param name="memberExpression">The nodes to visit.</param>
     private void Translate(MemberExpression memberExpression)
     {
-        PushState(memberExpression);
-
         if (memberExpression.Expression is not null)
         {
             Translate(memberExpression.Expression);
@@ -138,8 +148,6 @@ public sealed partial record FluentBuilder<TEntity>
                     break;
             }
         }
-
-        PopState();
     }
 
     /// <summary>
@@ -148,33 +156,7 @@ public sealed partial record FluentBuilder<TEntity>
     /// <param name="constantExpression">The nodes to visit.</param>
     private void Translate(ConstantExpression constantExpression)
     {
-        if (State.TryPeek(out var currentState))
-        {
-            switch (currentState.Expression)
-            {
-                case MemberExpression memberExpression:
-                    var declaringType = constantExpression.Type;
-                    var declaringObject = constantExpression.Value;
-
-                    const MemberTypes memberTypes = MemberTypes.Field
-                                                    | MemberTypes.Property;
-                    const BindingFlags bindingFlags = BindingFlags.Public
-                                                      | BindingFlags.NonPublic
-                                                      | BindingFlags.Instance
-                                                      | BindingFlags.Static;
-
-                    var member = declaringType
-                        .GetMember(memberExpression.Member.Name, memberTypes, bindingFlags)
-                        .Single();
-
-                    AppendFormat($"{((FieldInfo)member).GetValue(declaringObject)}");
-                    break;
-            }
-        }
-        else
-        {
-            AppendFormat($"{constantExpression.Value}");
-        }
+        AppendFormat($"{constantExpression.Value}");
     }
 
     /// <summary>
@@ -213,8 +195,8 @@ public sealed partial record FluentBuilder<TEntity>
         {
             case inRange:
                 {
-                    const string betweenOpr = " BETWEEN ";
-                    const string andOpr = " AND ";
+                    const string betweenOp = " BETWEEN ";
+                    const string andOp = " AND ";
 
                     if (methodCallExpression.Arguments is
                         [var fieldAsExpression, var beginAsExpression, var endAsExpression])
@@ -222,10 +204,10 @@ public sealed partial record FluentBuilder<TEntity>
                         OpenParentheses();
                         Translate(fieldAsExpression);
 
-                        Append(betweenOpr);
+                        Append(betweenOp);
                         Translate(beginAsExpression);
 
-                        Append(andOpr);
+                        Append(andOp);
                         Translate(endAsExpression);
                         CloseParentheses();
                     }
@@ -235,7 +217,7 @@ public sealed partial record FluentBuilder<TEntity>
 
             case anyIn:
                 {
-                    const string inOpr = " IN ";
+                    const string inOp = " IN ";
 
                     if (methodCallExpression.Arguments is
                         [var fieldAsExpression, var valuesAsExpression])
@@ -243,7 +225,7 @@ public sealed partial record FluentBuilder<TEntity>
                         OpenParentheses();
                         Translate(fieldAsExpression);
 
-                        Append(inOpr);
+                        Append(inOp);
                         Translate(valuesAsExpression);
                         CloseParentheses();
                     }
@@ -253,7 +235,7 @@ public sealed partial record FluentBuilder<TEntity>
 
             case notIn:
                 {
-                    const string notInOpr = " NOT IN ";
+                    const string notInOp = " NOT IN ";
 
                     if (methodCallExpression.Arguments is
                         [var fieldAsExpression, var valuesAsExpression])
@@ -261,31 +243,13 @@ public sealed partial record FluentBuilder<TEntity>
                         OpenParentheses();
                         Translate(fieldAsExpression);
 
-                        Append(notInOpr);
+                        Append(notInOp);
                         Translate(valuesAsExpression);
                         CloseParentheses();
                     }
 
                     break;
                 }
-        }
-    }
-
-    /// <summary>
-    ///     Visits the children of the ParameterExpression.
-    /// </summary>
-    /// <param name="parameterExpression">The nodes to visit.</param>
-    private void Translate(ParameterExpression parameterExpression)
-    {
-        _ = parameterExpression;
-        if (State.TryPeek(out var currentState))
-        {
-            switch (currentState.Expression)
-            {
-                case MemberExpression memberExpression:
-                    Append($"{memberExpression.Member.Name}");
-                    break;
-            }
         }
     }
 }

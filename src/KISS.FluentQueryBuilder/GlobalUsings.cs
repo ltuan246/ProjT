@@ -8,7 +8,6 @@ global using System.Data;
 global using System.Data.Common;
 global using System.Diagnostics.CodeAnalysis;
 global using Dapper;
-global using KISS.FluentQueryBuilder.Core;
 global using KISS.FluentQueryBuilder.Builders;
 global using KISS.FluentQueryBuilder.Builders.SelectBuilders;
 global using KISS.FluentQueryBuilder.Builders.WhereBuilders;
