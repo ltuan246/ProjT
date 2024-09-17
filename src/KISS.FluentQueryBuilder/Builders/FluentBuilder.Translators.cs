@@ -8,27 +8,121 @@ public sealed partial class FluentBuilder<TEntity>
 {
     private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
     {
-        { ExpressionType.Assign, " = " },
-        { ExpressionType.Equal, " == " },
-        { ExpressionType.NotEqual, " != " },
-        { ExpressionType.GreaterThan, " > " },
-        { ExpressionType.GreaterThanOrEqual, " >= " },
-        { ExpressionType.LessThan, " < " },
-        { ExpressionType.LessThanOrEqual, " <= " },
-        { ExpressionType.OrElse, " OR " },
-        { ExpressionType.AndAlso, " AND " },
-        { ExpressionType.Coalesce, " ?? " },
-        { ExpressionType.Add, " + " },
-        { ExpressionType.Subtract, " - " },
-        { ExpressionType.Multiply, " * " },
-        { ExpressionType.Divide, " / " },
-        { ExpressionType.Modulo, " % " },
-        { ExpressionType.And, " & " },
-        { ExpressionType.Or, " | " },
-        { ExpressionType.ExclusiveOr, " ^ " },
-        { ExpressionType.LeftShift, " << " },
-        { ExpressionType.RightShift, " >> " }
+        { Assign, " = " },
+        { Equal, " == " },
+        { NotEqual, " != " },
+        { GreaterThan, " > " },
+        { GreaterThanOrEqual, " >= " },
+        { LessThan, " < " },
+        { LessThanOrEqual, " <= " },
+        { OrElse, " OR " },
+        { AndAlso, " AND " },
+        { Coalesce, " ?? " },
+        { Add, " + " },
+        { Subtract, " - " },
+        { Multiply, " * " },
+        { Divide, " / " },
+        { Modulo, " % " },
+        { And, " & " },
+        { Or, " | " },
+        { ExclusiveOr, " ^ " },
+        { LeftShift, " << " },
+        { RightShift, " >> " }
     };
+
+    // private List<(Type, string[] PropertyNames)> PreferredPropertyOrders { get; } =
+    // [
+    //     (typeof(LambdaExpression), ["Parameters", "Body"]),
+    //     (typeof(BinaryExpression), ["Left", "Right", "Conversion"]),
+    //     (typeof(BlockExpression), ["Variables", "Expressions"]),
+    //     (typeof(CatchBlock), ["Variable", "Filter", "Body"]),
+    //     (typeof(ConditionalExpression), ["Test", "IfTrue", "IfFalse"]),
+    //     (typeof(IndexExpression), ["Object", "Arguments"]),
+    //     (typeof(InvocationExpression), ["Arguments", "Expression"]),
+    //     (typeof(ListInitExpression), ["NewExpression", "Initializers"]),
+    //     (typeof(MemberInitExpression), ["NewExpression", "Bindings"]),
+    //     (typeof(MethodCallExpression), ["Object", "Arguments"]),
+    //     (typeof(SwitchCase), ["TestValues", "Body"]),
+    //     (typeof(SwitchExpression), ["SwitchValue", "Cases", "DefaultBody"]),
+    //     (typeof(TryExpression), ["Body", "Handlers", "Finally", "Fault"]),
+    //     (typeof(DynamicExpression), ["Binder", "Arguments"])
+    // ];
+
+    // private HashSet<ExpressionType> RelationalOperators { get; } =
+    // [
+    //     Equal,
+    //     GreaterThan,
+    //     GreaterThanOrEqual,
+    //     LessThan,
+    //     LessThanOrEqual,
+    //     NotEqual
+    // ];
+
+    // private HashSet<ExpressionType> BinaryExpressionTypes { get; } =
+    // [
+    //     Add,
+    //     AddChecked,
+    //     Divide,
+    //     Modulo,
+    //     Multiply,
+    //     MultiplyChecked,
+    //     Power,
+    //     Subtract,
+    //     SubtractChecked, // mathematical operators
+    //     And,
+    //     Or,
+    //     ExclusiveOr, // bitwise / logical operations
+    //     LeftShift,
+    //     RightShift, // shift operators
+    //     AndAlso,
+    //     OrElse, // short-circuit boolean operators
+    //     Equal,
+    //     NotEqual,
+    //     GreaterThanOrEqual,
+    //     GreaterThan,
+    //     LessThan,
+    //     LessThanOrEqual, // comparison operators
+    //     Coalesce,
+    //     ArrayIndex,
+    //     Assign,
+    //     AddAssign,
+    //     AddAssignChecked,
+    //     DivideAssign,
+    //     ModuloAssign,
+    //     MultiplyAssign,
+    //     MultiplyAssignChecked,
+    //     PowerAssign,
+    //     SubtractAssign,
+    //     SubtractAssignChecked,
+    //     AndAssign,
+    //     OrAssign,
+    //     ExclusiveOrAssign,
+    //     LeftShiftAssign,
+    //     RightShiftAssign
+    // ];
+
+    // private HashSet<ExpressionType> UnaryExpressionTypes { get; } =
+    // [
+    //     ArrayLength,
+    //     ExpressionType.Convert,
+    //     ConvertChecked,
+    //     Unbox,
+    //     Negate,
+    //     NegateChecked,
+    //     Not,
+    //     Quote,
+    //     TypeAs,
+    //     UnaryPlus,
+    //     IsTrue,
+    //     IsFalse,
+    //     PreIncrementAssign,
+    //     PreDecrementAssign,
+    //     PostIncrementAssign,
+    //     PostDecrementAssign,
+    //     Increment,
+    //     Decrement,
+    //     Throw
+    // ];
 
     /// <summary>
     ///     Dispatches the expression to one of the more specialized visit methods in this class.
@@ -68,60 +162,31 @@ public sealed partial class FluentBuilder<TEntity>
     {
         switch (binaryExpression.NodeType)
         {
-            case ExpressionType.Or:
-            case ExpressionType.OrElse:
-            case ExpressionType.And:
-            case ExpressionType.AndAlso:
+            case ArrayIndex:
+                {
+                    var (evaluated, value) = GetValue(binaryExpression);
+                    if (evaluated)
+                    {
+                        AppendFormat(value);
+                    }
+
+                    return;
+                }
+
+            case Or:
+            case OrElse:
+            case And:
+            case AndAlso:
                 {
                     OpenParentheses();
-                    Translate(binaryExpression.Left);
-                    Append(BinaryOperandMap[binaryExpression.NodeType]);
-                    Translate(binaryExpression.Right);
-                    CloseParentheses();
-                    break;
-                }
-
-            case ExpressionType.Equal:
-            case ExpressionType.NotEqual:
-            case ExpressionType.GreaterThan:
-            case ExpressionType.GreaterThanOrEqual:
-            case ExpressionType.LessThan:
-            case ExpressionType.LessThanOrEqual:
-                {
-                    if (binaryExpression.Left is MemberExpression { Expression: ParameterExpression } memberExpression)
-                    {
-                        Append(memberExpression.Member.Name);
-                    }
-
-                    Append(BinaryOperandMap[binaryExpression.NodeType]);
-                    var (evaluated, value) = GetValue(binaryExpression.Right);
-                    if (evaluated)
-                    {
-                        AppendFormat(value);
-                    }
-
-                    break;
-                }
-
-            case ExpressionType.ArrayIndex:
-                {
-                    var (evaluated, value) = GetValue(binaryExpression.Right);
-                    if (evaluated)
-                    {
-                        AppendFormat(value);
-                    }
-
-                    break;
-                }
-
-            default:
-                {
-                    Translate(binaryExpression.Left);
-                    Append(BinaryOperandMap[binaryExpression.NodeType]);
-                    Translate(binaryExpression.Right);
                     break;
                 }
         }
+
+        Translate(binaryExpression.Left);
+        Append(BinaryOperandMap[binaryExpression.NodeType]);
+        Translate(binaryExpression.Right);
+        CloseParentheses();
     }
 
     /// <summary>
@@ -130,23 +195,43 @@ public sealed partial class FluentBuilder<TEntity>
     /// <param name="memberExpression">The nodes to visit.</param>
     private void Translate(MemberExpression memberExpression)
     {
-        if (memberExpression.Expression is not null)
+        switch (memberExpression.Expression)
         {
-            Translate(memberExpression.Expression);
-        }
-        else
-        {
-            switch (memberExpression.Member)
-            {
-                case FieldInfo fieldInfo:
-                    var fieldType = fieldInfo.GetType();
-                    AppendFormat($"{fieldInfo.GetValue(fieldType)}");
-                    break;
-                case PropertyInfo propertyInfo:
-                    var propType = propertyInfo.GetType();
-                    AppendFormat($"{propertyInfo.GetValue(propType)}");
-                    break;
-            }
+            case null:
+                switch (memberExpression.Member)
+                {
+                    case FieldInfo fieldInfo:
+                        var fieldType = fieldInfo.GetType();
+                        AppendFormat($"{fieldInfo.GetValue(fieldType)}");
+                        break;
+                    case PropertyInfo propertyInfo:
+                        var propType = propertyInfo.GetType();
+                        AppendFormat($"{propertyInfo.GetValue(propType)}");
+                        break;
+                }
+
+                break;
+
+            case ParameterExpression:
+                Append(memberExpression.Member.Name);
+                break;
+
+            case ConstantExpression constantExpression:
+                var (evaluated, value) = GetValue(memberExpression);
+                if (evaluated)
+                {
+                    AppendFormat(value);
+                }
+                else
+                {
+                    Translate(constantExpression);
+                }
+
+                break;
+
+            default:
+                Translate(memberExpression.Expression);
+                break;
         }
     }
 
@@ -155,9 +240,7 @@ public sealed partial class FluentBuilder<TEntity>
     /// </summary>
     /// <param name="constantExpression">The nodes to visit.</param>
     private void Translate(ConstantExpression constantExpression)
-    {
-        AppendFormat($"{constantExpression.Value}");
-    }
+        => AppendFormat($"{constantExpression.Value}");
 
     /// <summary>
     ///     Visits the children of the NewExpression.

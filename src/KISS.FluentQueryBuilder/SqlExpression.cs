@@ -3,6 +3,7 @@
 /// <summary>
 ///     An expression that represents a function in a SQL.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class SqlExpression
 {
     /// <summary>

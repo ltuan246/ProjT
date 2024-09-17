@@ -435,6 +435,23 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
+    public void SelectDistinct_FluentBuilder_ReturnsDataIfAnyOneConditionIsTrue()
+    {
+        // Arrange
+        Guid[] exIds = [new("2DFA8730-2541-11EF-83FE-B1C709C359B7"), new("2DFA8731-2541-11EF-83FE-B1C709C359B7")];
+
+        // Act
+        IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .SelectDistinct(w => new { w.Id, w.Country })
+            .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
+            .ToList();
+
+        // Assert
+        Assert.Equal(2, weathers.Count);
+        Assert.All(weathers, weather => Assert.Contains(weather.Id, exIds));
+    }
+
+    [Fact]
     public void AndOrOperator_QueryBuilder_ReturnsDataIfAnyOneOperatorIsTrue()
     {
         // Arrange

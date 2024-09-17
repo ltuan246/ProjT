@@ -63,11 +63,27 @@ public sealed partial class FluentBuilder<TEntity>
     /// </summary>
     public required DbConnection Connection { get; init; }
 
+    /// <summary>
+    /// Use checks to know when to use Close Parenthesis.
+    /// </summary>
+    private bool HasOpenParentheses { get; set; }
+
     private void OpenParentheses()
-        => StringBuilder.Append(BuilderConstants.OpenParentheses);
+    {
+        HasOpenParentheses = true;
+        StringBuilder.Append(BuilderConstants.OpenParentheses);
+    }
 
     private void CloseParentheses()
-        => StringBuilder.Append(BuilderConstants.CloseParentheses);
+    {
+        if (!HasOpenParentheses)
+        {
+            return;
+        }
+
+        HasOpenParentheses = false;
+        StringBuilder.Append(BuilderConstants.CloseParentheses);
+    }
 
     private void SetEntryClause(ClauseAction clauseAction, Expression expression)
         => EntryClause.Add(clauseAction, expression);

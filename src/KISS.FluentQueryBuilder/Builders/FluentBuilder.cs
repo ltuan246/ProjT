@@ -19,7 +19,8 @@ public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IF
     }
 
     /// <inheritdoc />
-    public ISelectDistinctBuilder SelectDistinct([NotNull] LambdaExpression expression)
+    public ISelectDistinctBuilder<TEntity> SelectDistinct<TResult>(
+        [NotNull] Expression<Func<TEntity, TResult>> expression)
     {
         SetEntryClause(ClauseAction.SelectDistinct, expression.Body);
 
