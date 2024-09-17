@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\KISS.QueryPredicateBuilder\KISS.QueryPredicateBuilder.csproj" />
+    <ProjectReference Include="..\..\src\KISS.FluentQueryBuilder\KISS.FluentQueryBuilder.csproj" />
     <ProjectReference Include="..\..\src\KISS.Misc\KISS.Misc.csproj" />
   </ItemGroup>
 

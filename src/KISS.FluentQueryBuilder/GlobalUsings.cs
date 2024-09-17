@@ -1,0 +1,15 @@
+﻿global using System;
+global using System.Text;
+global using System.Reflection;
+global using System.Linq;
+global using System.Linq.Expressions;
+global using System.Collections.Generic;
+global using System.Data;
+global using System.Data.Common;
+global using System.Diagnostics.CodeAnalysis;
+global using Dapper;
+global using KISS.FluentQueryBuilder.Builders;
+global using KISS.FluentQueryBuilder.Builders.SelectBuilders;
+global using KISS.FluentQueryBuilder.Builders.WhereBuilders;
+global using KISS.FluentQueryBuilder.Builders.EnumerableBuilders;
+global using static System.Linq.Expressions.ExpressionType;
