@@ -1,10 +1,6 @@
 namespace KISS.Misc.Tests.Model.DI;
 
-public interface ISingletonService
-{
-}
+public interface ISingletonService;
 
 [SingletonService(serviceType: typeof(ISingletonService))]
-public class SingletonServiceA : ISingletonService
-{
-}
+public class SingletonServiceA : ISingletonService;
