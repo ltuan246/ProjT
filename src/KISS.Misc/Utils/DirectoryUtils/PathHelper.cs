@@ -1,12 +1,12 @@
 namespace KISS.Misc.Utils.DirectoryUtils;
 
 /// <summary>
-/// The common helper containing frequently reused functions.
+///     The common helper containing frequently reused functions.
 /// </summary>
 public static class PathHelper
 {
     /// <summary>
-    /// Returns the absolute path for the specified path string.
+    ///     Returns the absolute path for the specified path string.
     /// </summary>
     /// <param name="path">The file or directory for which to obtain absolute path information.</param>
     /// <returns>The fully qualified location of path.</returns>
@@ -20,7 +20,7 @@ public static class PathHelper
 
         Guard.Against.NullOrEmptyOrWhiteSpace(path);
 
-        if (!Uri.TryCreate(path, UriKind.RelativeOrAbsolute, out Uri? pathUri))
+        if (!Uri.TryCreate(path, UriKind.RelativeOrAbsolute, out var pathUri))
         {
             throw new ArgumentException($"Invalid path: {path}");
         }

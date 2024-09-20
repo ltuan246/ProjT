@@ -1,6 +1,8 @@
 global using System;
-global using System.Net;
-global using System.Net.Mail;
+global using System.IO;
+global using System.Diagnostics.CodeAnalysis;
+global using System.Collections.Generic;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
+global using KISS.FluentEmail.Models;

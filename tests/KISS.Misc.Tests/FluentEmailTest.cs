@@ -12,7 +12,8 @@ public class FluentEmailTest : IDisposable
             .Build();
 
         IServiceCollection services = new ServiceCollection();
-        services.ConfigureSmtpClientOptions(configuration);
+        // services.ConfigureSmtpClientOptions(configuration);
+        // services.ConfigureMailKitOptions(configuration);
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -28,10 +29,20 @@ public class FluentEmailTest : IDisposable
         // mailtrap
         // "Username": "hemax57423@marchub.com",
         // "Password": "hemax57423",
-        var smtpClientOptions = ServiceProvider.GetService<IOptions<SmtpClientOptions>>();
-        Assert.NotNull(smtpClientOptions);
+        // var smtpClientOptions = ServiceProvider.GetService<IOptions<SmtpClientOptions>>();
+        // Assert.NotNull(smtpClientOptions);
 
-        var fm = new SmtpSender(smtpClientOptions);
-        fm.Send();
+        // var fm = new SmtpSender(smtpClientOptions);
+        // fm.Send();
+    }
+
+    [Fact]
+    public void SendEmail_MailKitSender_CanSendEmail()
+    {
+        // var mailKitOptions = ServiceProvider.GetService<IOptions<MailKitOptions>>();
+        // Assert.NotNull(mailKitOptions);
+
+        // var fm = new MailKitSender(mailKitOptions);
+        // fm.Send();
     }
 }

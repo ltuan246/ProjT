@@ -1,10 +1,17 @@
+using System.Net;
+using System.Net.Mail;
+
 namespace KISS.FluentEmail.Senders.Smtp;
 
 /// <summary>
-///     SmtpSender.
+///     Send email via SMTP server.
 /// </summary>
 public class SmtpSender
 {
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="SmtpSender" /> class.
+    /// </summary>
+    /// <param name="options">An SMTP client options that can be used to send email messages.</param>
     public SmtpSender(IOptions<SmtpClientOptions> options)
     {
         ArgumentNullException.ThrowIfNull(options, nameof(options));
@@ -30,19 +37,50 @@ public class SmtpSender
 
     private SmtpClient Sender { get; }
 
-    public void Send()
+    /// <summary>
+    ///     Send the specified message.
+    /// </summary>
+    /// <param name="sendingMessage">Specified message.</param>
+    public void Send([NotNull] SendingMessage sendingMessage)
     {
-        using var mailMessage = CreateMailMessage();
+        using var mailMessage = CreateMailMessage(sendingMessage);
         Sender.Send(mailMessage);
     }
 
-    private MailMessage CreateMailMessage()
+    private static MailMessage CreateMailMessage(SendingMessage sendingMessage)
     {
-        MailMessage mailMessage = new();
-        mailMessage.From = new MailAddress("from@example.com");
-        mailMessage.To.Add("yenilay182@nastyx.com");
-        mailMessage.Subject = "Hello world";
-        mailMessage.Body = "This is a test email sent using C#.Net";
-        return mailMessage;
+        MailMessage message = new()
+        {
+            From = new MailAddress(sendingMessage.FromAddress.MailAddress, sendingMessage.FromAddress.DisplayName),
+            Subject = sendingMessage.MailSubject,
+            Body = sendingMessage.MailBody
+        };
+
+        foreach (var (address, displayName) in sendingMessage.ToAddresses)
+        {
+            message.To.Add(new MailAddress(address, displayName));
+        }
+
+        foreach (var (address, displayName) in sendingMessage.CcAddresses)
+        {
+            message.CC.Add(new MailAddress(address, displayName));
+        }
+
+        foreach (var (address, displayName) in sendingMessage.BccAddresses)
+        {
+            message.Bcc.Add(new MailAddress(address, displayName));
+        }
+
+        foreach (var (address, displayName) in sendingMessage.ReplyToAddresses)
+        {
+            message.ReplyToList.Add(new MailAddress(address, displayName));
+        }
+
+        foreach ((var filename, var data, var contentType) in sendingMessage.Attachments)
+        {
+            message.Attachments.Add(new Attachment(data, filename, contentType));
+        }
+
+        return message;
     }
 }

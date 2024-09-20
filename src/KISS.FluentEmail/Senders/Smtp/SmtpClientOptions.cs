@@ -1,7 +1,7 @@
 namespace KISS.FluentEmail.Senders.Smtp;
 
 /// <summary>
-///     Initializes a new instance of the SmtpClient class by using configuration file settings.
+///     Initializes a new instance of the SmtpClientOptions by using configuration file settings.
 /// </summary>
 /// <param name="Host">The name or IP address of the host used for SMTP transactions.</param>
 /// <param name="Port">The port used for SMTP transactions.</param>
@@ -18,7 +18,7 @@ public record SmtpClientOptions(
     bool UseSsl)
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SmtpClientOptions"/> class.
+    ///     Initializes a new instance of the <see cref="SmtpClientOptions" /> class.
     /// </summary>
     public SmtpClientOptions()
         : this(string.Empty, default, default, default, default, default)
