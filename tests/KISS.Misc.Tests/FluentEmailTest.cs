@@ -12,8 +12,8 @@ public class FluentEmailTest : IDisposable
             .Build();
 
         IServiceCollection services = new ServiceCollection();
-        // services.ConfigureSmtpClientOptions(configuration);
-        // services.ConfigureMailKitOptions(configuration);
+        services.ConfigureSmtpClientOptions(configuration);
+        services.ConfigureMailKitOptions(configuration);
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -26,23 +26,30 @@ public class FluentEmailTest : IDisposable
     [Fact]
     public void SendEmail_SmtpSender_CanSendEmail()
     {
-        // mailtrap
-        // "Username": "hemax57423@marchub.com",
-        // "Password": "hemax57423",
-        // var smtpClientOptions = ServiceProvider.GetService<IOptions<SmtpClientOptions>>();
-        // Assert.NotNull(smtpClientOptions);
+        var smtpClientOptions = ServiceProvider.GetService<IOptions<SmtpClientOptions>>();
 
-        // var fm = new SmtpSender(smtpClientOptions);
-        // fm.Send();
+        Assert.NotNull(smtpClientOptions);
+
+        SendingMessage mailMessage =
+            new(new("from@example.com"), "Hello world", "This is a test email sent using C#.Net");
+        mailMessage.ToAddresses.Add(new("yenilay182@nastyx.com"));
+
+        var sender = new SmtpSender(smtpClientOptions);
+        sender.Send(mailMessage);
     }
 
     [Fact]
     public void SendEmail_MailKitSender_CanSendEmail()
     {
-        // var mailKitOptions = ServiceProvider.GetService<IOptions<MailKitOptions>>();
-        // Assert.NotNull(mailKitOptions);
+        var mailKitOptions = ServiceProvider.GetService<IOptions<MailKitOptions>>();
 
-        // var fm = new MailKitSender(mailKitOptions);
-        // fm.Send();
+        Assert.NotNull(mailKitOptions);
+
+        SendingMessage mailMessage =
+            new(new("from@example.com"), "Hello world", "This is a test email sent using C#.Net");
+        mailMessage.ToAddresses.Add(new("yenilay182@nastyx.com"));
+
+        var sender = new MailKitSender(mailKitOptions);
+        sender.Send(mailMessage);
     }
 }

@@ -5,7 +5,7 @@
 /// </summary>
 /// <param name="MailAddress">An email address.</param>
 /// <param name="DisplayName">The display name associated with address.</param>
-public record MailingAddress(string MailAddress, string? DisplayName)
+public record MailingAddress(string MailAddress, string? DisplayName = null)
 {
     /// <summary>
     ///     Return the address and display name.

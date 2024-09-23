@@ -16,4 +16,5 @@ global using KISS.Misc.Tests.Model.DI;
 global using KISS.Misc.Tests.Model.Options;
 global using KISS.Misc.Utils.DirectoryUtils;
 global using KISS.FluentEmail.Senders.Smtp;
-// global using KISS.FluentEmail.Senders.MailKit;
+global using KISS.FluentEmail.Senders.MailKit;
+global using KISS.FluentEmail.Models;

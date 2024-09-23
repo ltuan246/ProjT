@@ -41,10 +41,21 @@ public class SmtpSender
     ///     Send the specified message.
     /// </summary>
     /// <param name="sendingMessage">Specified message.</param>
-    public void Send([NotNull] SendingMessage sendingMessage)
+    /// <returns>SendResponse.</returns>
+    public SendResponse Send([NotNull] SendingMessage sendingMessage)
     {
-        using var mailMessage = CreateMailMessage(sendingMessage);
-        Sender.Send(mailMessage);
+        try
+        {
+            using var mailMessage = CreateMailMessage(sendingMessage);
+            Sender.Send(mailMessage);
+            return new();
+        }
+        catch (Exception e)
+        {
+            SendResponse response = new();
+            response.ErrorMessages.Add(e.Message);
+            return response;
+        }
     }
 
     private static MailMessage CreateMailMessage(SendingMessage sendingMessage)

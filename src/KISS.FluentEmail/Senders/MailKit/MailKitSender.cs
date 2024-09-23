@@ -12,15 +12,27 @@ public class MailKitSender(IOptions<MailKitOptions> options)
     ///     Send the specified message.
     /// </summary>
     /// <param name="sendingMessage">Specified message.</param>
-    public void Send([NotNull] SendingMessage sendingMessage)
+    /// <returns>SendResponse.</returns>
+    public SendResponse Send([NotNull] SendingMessage sendingMessage)
     {
-        using MimeMessage mailMessage = CreateMailMessage(sendingMessage);
+        try
+        {
+            using MimeMessage mailMessage = CreateMailMessage(sendingMessage);
 
-        using SmtpClient smtpClient = new();
-        smtpClient.Connect(options.Value.Host, options.Value.Port, options.Value.UseSsl);
-        smtpClient.Authenticate(options.Value.UserName, options.Value.Password);
-        smtpClient.Send(mailMessage);
-        smtpClient.Disconnect(true);
+            using SmtpClient smtpClient = new();
+            smtpClient.Connect(options.Value.Host, options.Value.Port, options.Value.UseSsl);
+            smtpClient.Authenticate(options.Value.UserName, options.Value.Password);
+            smtpClient.Send(mailMessage);
+            smtpClient.Disconnect(true);
+
+            return new();
+        }
+        catch (Exception e)
+        {
+            SendResponse response = new();
+            response.ErrorMessages.Add(e.Message);
+            return response;
+        }
     }
 
     private static MimeMessage CreateMailMessage(SendingMessage sendingMessage)

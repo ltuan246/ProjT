@@ -12,25 +12,25 @@ public record SendingMessage(MailingAddress FromAddress, string MailSubject, str
     /// <summary>
     ///     An array of email addresses for the primary recipients of the message.
     /// </summary>
-    public IEnumerable<MailingAddress> ToAddresses { get; } = [];
+    public ICollection<MailingAddress> ToAddresses { get; } = [];
 
     /// <summary>
     ///     An array of email addresses for the secondary recipients of the message.
     /// </summary>
-    public IEnumerable<MailingAddress> CcAddresses { get; } = [];
+    public ICollection<MailingAddress> CcAddresses { get; } = [];
 
     /// <summary>
     ///     An array of email addresses for the concealed tertiary recipients of the message.
     /// </summary>
-    public IEnumerable<MailingAddress> BccAddresses { get; } = [];
+    public ICollection<MailingAddress> BccAddresses { get; } = [];
 
     /// <summary>
     ///     An array of email addresses to use when replying to the message.
     /// </summary>
-    public IEnumerable<MailingAddress> ReplyToAddresses { get; } = [];
+    public ICollection<MailingAddress> ReplyToAddresses { get; } = [];
 
     /// <summary>
     ///     An array of attach files to the message.
     /// </summary>
-    public IEnumerable<FileAttachment> Attachments { get; } = [];
+    public ICollection<FileAttachment> Attachments { get; } = [];
 }
