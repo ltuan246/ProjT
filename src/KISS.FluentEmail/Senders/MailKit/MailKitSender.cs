@@ -17,7 +17,7 @@ public class MailKitSender(IOptions<MailKitOptions> options)
     {
         try
         {
-            using MimeMessage mailMessage = CreateMailMessage(sendingMessage);
+            using var mailMessage = CreateMailMessage(sendingMessage);
 
             using SmtpClient smtpClient = new();
             smtpClient.Connect(options.Value.Host, options.Value.Port, options.Value.UseSsl);
@@ -25,7 +25,7 @@ public class MailKitSender(IOptions<MailKitOptions> options)
             smtpClient.Send(mailMessage);
             smtpClient.Disconnect(true);
 
-            return new();
+            return new SendResponse();
         }
         catch (Exception e)
         {

@@ -1,7 +1,7 @@
 ﻿namespace KISS.FluentEmail.Models;
 
 /// <summary>
-/// SendResponse.
+///     Send messages response.
 /// </summary>
 public class SendResponse
 {
@@ -11,7 +11,7 @@ public class SendResponse
     public ICollection<string> ErrorMessages { get; } = [];
 
     /// <summary>
-    /// Successful.
+    ///     A successful send returns an empty ErrorMessages.
     /// </summary>
     public bool IsSuccessful => ErrorMessages.Count == 0;
 }

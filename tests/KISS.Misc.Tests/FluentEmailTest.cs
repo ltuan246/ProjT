@@ -2,7 +2,7 @@ namespace KISS.Misc.Tests;
 
 public class FluentEmailTest : IDisposable
 {
-    private ServiceProvider ServiceProvider { get; init; }
+    private ServiceProvider Services { get; init; }
 
     public FluentEmailTest()
     {
@@ -11,45 +11,82 @@ public class FluentEmailTest : IDisposable
             .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
             .Build();
 
-        IServiceCollection services = new ServiceCollection();
-        services.ConfigureSmtpClientOptions(configuration);
-        services.ConfigureMailKitOptions(configuration);
-        ServiceProvider = services.BuildServiceProvider();
+        IServiceCollection serviceCollection = new ServiceCollection();
+        serviceCollection.ConfigureSmtpClientOptions(configuration);
+        serviceCollection.ConfigureMailKitOptions(configuration);
+        serviceCollection.ConfigureMailtrapOptions(configuration);
+        serviceCollection.ConfigureElasticEmailOptions(configuration);
+        Services = serviceCollection.BuildServiceProvider();
     }
 
     public void Dispose()
     {
-        ServiceProvider.Dispose();
+        Services.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private static SendingMessage CreateMailMessage()
+    {
+        SendingMessage mailMessage =
+            new(new("diparab605@rinseart.com"), "Hello world", "This is a test email sent using C#.Net");
+        mailMessage.ToAddresses.Add(new("diparab605@rinseart.com"));
+
+        return mailMessage;
     }
 
     [Fact]
     public void SendEmail_SmtpSender_CanSendEmail()
     {
-        var smtpClientOptions = ServiceProvider.GetService<IOptions<SmtpClientOptions>>();
+        var smtpClientOptions = Services.GetService<IOptions<SmtpClientOptions>>();
 
         Assert.NotNull(smtpClientOptions);
 
-        SendingMessage mailMessage =
-            new(new("from@example.com"), "Hello world", "This is a test email sent using C#.Net");
-        mailMessage.ToAddresses.Add(new("yenilay182@nastyx.com"));
-
+        var mailMessage = CreateMailMessage();
         var sender = new SmtpSender(smtpClientOptions);
-        sender.Send(mailMessage);
+        var response = sender.Send(mailMessage);
+
+        Assert.True(response.IsSuccessful);
     }
 
     [Fact]
     public void SendEmail_MailKitSender_CanSendEmail()
     {
-        var mailKitOptions = ServiceProvider.GetService<IOptions<MailKitOptions>>();
+        var mailKitOptions = Services.GetService<IOptions<MailKitOptions>>();
 
         Assert.NotNull(mailKitOptions);
 
-        SendingMessage mailMessage =
-            new(new("from@example.com"), "Hello world", "This is a test email sent using C#.Net");
-        mailMessage.ToAddresses.Add(new("yenilay182@nastyx.com"));
-
+        var mailMessage = CreateMailMessage();
         var sender = new MailKitSender(mailKitOptions);
-        sender.Send(mailMessage);
+        var response = sender.Send(mailMessage);
+
+        Assert.True(response.IsSuccessful);
+    }
+
+    [Fact]
+    public void SendEmail_MailtrapSender_CanSendEmail()
+    {
+        var mailtrapOptions = Services.GetService<IOptions<MailtrapOptions>>();
+
+        Assert.NotNull(mailtrapOptions);
+
+        var mailMessage = CreateMailMessage();
+        var sender = new MailtrapSender(mailtrapOptions);
+        var response = sender.Send(mailMessage);
+
+        Assert.True(response.IsSuccessful);
+    }
+
+    [Fact]
+    public void SendEmail_ElasticEmailSender_CanSendEmail()
+    {
+        var elasticEmailOptions = Services.GetService<IOptions<ElasticEmailOptions>>();
+
+        Assert.NotNull(elasticEmailOptions);
+
+        var mailMessage = CreateMailMessage();
+        var sender = new ElasticEmailSender(elasticEmailOptions);
+        var response = sender.Send(mailMessage);
+
+        Assert.True(response.IsSuccessful);
     }
 }

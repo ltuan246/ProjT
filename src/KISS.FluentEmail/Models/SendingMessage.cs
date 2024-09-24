@@ -9,6 +9,11 @@
 /// <param name="IsHtml">Checks whether the body of the message is text/html.</param>
 public record SendingMessage(MailingAddress FromAddress, string MailSubject, string MailBody, bool IsHtml = false)
 {
+    // public MailingAddress FromAddress { get; set; } = string.Empty;
+    // public string MailSubject { get; set; } = string.Empty;
+    // public string MailBody { get; set; } = string.Empty;
+    // public bool IsHtml { get; set; } = false;
+
     /// <summary>
     ///     An array of email addresses for the primary recipients of the message.
     /// </summary>

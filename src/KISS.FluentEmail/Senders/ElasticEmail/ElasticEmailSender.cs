@@ -1,18 +1,18 @@
 ﻿using System.Net;
 using System.Net.Mail;
 
-namespace KISS.FluentEmail.Senders.Mailtrap;
+namespace KISS.FluentEmail.Senders.ElasticEmail;
 
 /// <summary>
-///     MailtrapSender.
+///     ElasticEmailSender.
 /// </summary>
-public class MailtrapSender
+public class ElasticEmailSender
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="MailtrapSender" /> class.
+    ///     Initializes a new instance of the <see cref="ElasticEmailSender" /> class.
     /// </summary>
     /// <param name="options">An SMTP client options that can be used to send email messages.</param>
-    public MailtrapSender(IOptions<MailtrapOptions> options)
+    public ElasticEmailSender(IOptions<ElasticEmailOptions> options)
     {
         ArgumentNullException.ThrowIfNull(options, nameof(options));
 

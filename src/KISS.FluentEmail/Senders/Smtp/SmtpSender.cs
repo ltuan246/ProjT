@@ -26,13 +26,8 @@ public class SmtpSender
 
         if (options.Value.UseDefaultCredentials)
         {
-            return;
+            Sender.Credentials = new NetworkCredential(options.Value.UserName, options.Value.Password);
         }
-
-        ArgumentException.ThrowIfNullOrEmpty(options.Value.UserName, nameof(options.Value.UserName));
-        ArgumentException.ThrowIfNullOrEmpty(options.Value.Password, nameof(options.Value.Password));
-
-        Sender.Credentials = new NetworkCredential(options.Value.UserName, options.Value.Password);
     }
 
     private SmtpClient Sender { get; }
@@ -48,7 +43,7 @@ public class SmtpSender
         {
             using var mailMessage = CreateMailMessage(sendingMessage);
             Sender.Send(mailMessage);
-            return new();
+            return new SendResponse();
         }
         catch (Exception e)
         {
@@ -87,7 +82,7 @@ public class SmtpSender
             message.ReplyToList.Add(new MailAddress(address, displayName));
         }
 
-        foreach ((var filename, var data, var contentType) in sendingMessage.Attachments)
+        foreach (var (filename, data, contentType) in sendingMessage.Attachments)
         {
             message.Attachments.Add(new Attachment(data, filename, contentType));
         }
