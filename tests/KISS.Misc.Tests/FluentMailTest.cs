@@ -1,10 +1,10 @@
 namespace KISS.Misc.Tests;
 
-public class FluentEmailTest : IDisposable
+public class FluentMailTest : IDisposable
 {
     private ServiceProvider Services { get; init; }
 
-    public FluentEmailTest()
+    public FluentMailTest()
     {
         IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -27,9 +27,14 @@ public class FluentEmailTest : IDisposable
 
     private static SendingMessage CreateMailMessage()
     {
+        const string sender = "kiss@mailslurp.net";
+        const string to = "kiss.inboxes@yopmail.com";
+        const string subject = "KISS";
+        const string body = "This is a test email sent using C#.Net";
+
         SendingMessage mailMessage =
-            new(new("diparab605@rinseart.com"), "Hello world", "This is a test email sent using C#.Net");
-        mailMessage.ToAddresses.Add(new("diparab605@rinseart.com"));
+            new(new(sender), subject, body);
+        mailMessage.ToAddresses.Add(new(to));
 
         return mailMessage;
     }

@@ -3,10 +3,10 @@
 /// <summary>
 ///     The Mail Provider Integrations.
 /// </summary>
-public class FluentEmail
+public class FluentMail
 {
     /// <summary>
     /// MailMessage.
     /// </summary>
-    public SendingMessage MailMessage { get; set; }
+    public SendingMessage? MailMessage { get; set; }
 }
