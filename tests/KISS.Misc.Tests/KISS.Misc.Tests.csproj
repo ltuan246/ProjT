@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\KISS.GuardClauses\KISS.GuardClauses.csproj" />
     <ProjectReference Include="..\..\src\KISS.Misc\KISS.Misc.csproj" />
+    <ProjectReference Include="..\..\src\KISS.FluentEmail\KISS.FluentEmail.csproj" />
   </ItemGroup>
 
   <ItemGroup>

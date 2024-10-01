@@ -1,12 +1,12 @@
 namespace KISS.Misc.DataAccess;
 
 /// <summary>
-/// The common helper containing frequently reused functions.
+///     The common helper containing frequently reused functions.
 /// </summary>
 public static class CsvAssists
 {
     /// <summary>
-    /// Reading a CSV File into a List.
+    ///     Reading a CSV File into a List.
     /// </summary>
     /// <param name="path">The fully qualified location of path.</param>
     /// <param name="config">The configuration.</param>
@@ -15,14 +15,14 @@ public static class CsvAssists
     /// <exception cref="FileNotFoundException">The exception that is throw if invalid path.</exception>
     public static IEnumerable<TEntity> FromCsv<TEntity>(string path, CsvConfiguration? config = null)
     {
-        string filePath = PathHelper.GetFullPath(path);
+        var filePath = PathHelper.GetFullPath(path);
 
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"Invalid path: {filePath}");
         }
 
-        config ??= new(CultureInfo.InvariantCulture) { HasHeaderRecord = true };
+        config ??= new CsvConfiguration(CultureInfo.InvariantCulture) { HasHeaderRecord = true };
         using StreamReader streamReader = new(filePath);
         using CsvReader csvReader = new(streamReader, config);
 
