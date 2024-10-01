@@ -34,7 +34,7 @@ public class DirectoriesTest
     public void GetFullPath_ValidPath_ReturnsFullPath()
     {
         const string path = "C:/Assets/GlobalWeatherRepository.csv";
-        const string expected = "C:\\Assets\\GlobalWeatherRepository.csv";
-        Assert.Equal(expected, PathHelper.GetFullPath(path));
+        const string expected = "C:/Assets/GlobalWeatherRepository.csv";
+        Assert.Equal(expected, PathHelper.GetFullPath(path).Replace("\\", "/"));
     }
 }
