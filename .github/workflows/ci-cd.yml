@@ -5,14 +5,17 @@ name: Continuous Integration and Delivery
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
 
     steps:
     - uses: actions/checkout@v4
