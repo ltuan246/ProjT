@@ -15,7 +15,7 @@ public record SmtpClientOptions(
     bool UseDefaultCredentials,
     string? UserName,
     string? Password,
-    bool UseSsl)
+    bool UseSsl) : ISmtpClientOptions
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="SmtpClientOptions" /> class.

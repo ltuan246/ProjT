@@ -11,26 +11,16 @@ public class SmtpSender
     /// <summary>
     ///     Initializes a new instance of the <see cref="SmtpSender" /> class.
     /// </summary>
-    /// <param name="options">An SMTP client options that can be used to send email messages.</param>
-    public SmtpSender(IOptions<SmtpClientOptions> options)
-    {
-        ArgumentNullException.ThrowIfNull(options, nameof(options));
+    /// <param name="options">The SmtpClient class is used to send email to an SMTP server for delivery.</param>
+    public SmtpSender([NotNull] IOptions<SmtpClientOptions> options) => Options = options.Value;
 
-        Sender = new SmtpClient
-        {
-            Host = options.Value.Host,
-            Port = options.Value.Port,
-            UseDefaultCredentials = options.Value.UseDefaultCredentials,
-            EnableSsl = options.Value.UseSsl
-        };
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="SmtpSender" /> class.
+    /// </summary>
+    /// <param name="options">The SmtpClient class is used to send email to an SMTP server for delivery.</param>
+    public SmtpSender(ISmtpClientOptions options) => Options = options;
 
-        if (options.Value.UseDefaultCredentials)
-        {
-            Sender.Credentials = new NetworkCredential(options.Value.UserName, options.Value.Password);
-        }
-    }
-
-    private SmtpClient Sender { get; }
+    private ISmtpClientOptions Options { get; }
 
     /// <summary>
     ///     Send the specified message.
@@ -42,7 +32,15 @@ public class SmtpSender
         try
         {
             using var mailMessage = CreateMailMessage(sendingMessage);
-            Sender.Send(mailMessage);
+
+            using SmtpClient sender = new();
+            sender.Host = Options.Host;
+            sender.Port = Options.Port;
+            sender.UseDefaultCredentials = Options.UseDefaultCredentials;
+            sender.Credentials = new NetworkCredential(Options.UserName, Options.Password);
+            sender.EnableSsl = Options.UseSsl;
+            sender.Send(mailMessage);
+
             return new SendResponse();
         }
         catch (Exception e)

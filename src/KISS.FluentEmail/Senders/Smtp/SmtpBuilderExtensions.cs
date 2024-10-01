@@ -22,23 +22,11 @@ public static class SmtpBuilderExtensions
         services
             .AddOptions<SmtpClientOptions>()
             .Bind(section)
+            .Validate(options => !string.IsNullOrEmpty(options.Host))
             .Validate(options =>
-            {
-                if (string.IsNullOrEmpty(options.Host))
-                {
-                    return false;
-                }
-
-                if (!options.UseDefaultCredentials)
-                {
-                    if (string.IsNullOrEmpty(options.UserName) || string.IsNullOrEmpty(options.Password))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            })
+                !options.UseDefaultCredentials || (options.UseDefaultCredentials
+                                                   && !string.IsNullOrEmpty(options.UserName)
+                                                   && !string.IsNullOrEmpty(options.Password)))
             .ValidateOnStart();
     }
 }

@@ -40,8 +40,8 @@ public class MailKitSender(IOptions<MailKitOptions> options)
         MimeMessage message = new();
 
         message.From.Add(new MailboxAddress(
-            sendingMessage.FromAddress.MailAddress,
-            sendingMessage.FromAddress.DisplayName));
+            sendingMessage.FromAddress.DisplayName,
+            sendingMessage.FromAddress.MailAddress));
 
         BodyBuilder builder = new();
 
@@ -58,22 +58,22 @@ public class MailKitSender(IOptions<MailKitOptions> options)
 
         foreach (var (address, displayName) in sendingMessage.ToAddresses)
         {
-            message.To.Add(new MailboxAddress(address, displayName));
+            message.To.Add(new MailboxAddress(displayName, address));
         }
 
         foreach (var (address, displayName) in sendingMessage.CcAddresses)
         {
-            message.Cc.Add(new MailboxAddress(address, displayName));
+            message.Cc.Add(new MailboxAddress(displayName, address));
         }
 
         foreach (var (address, displayName) in sendingMessage.BccAddresses)
         {
-            message.Bcc.Add(new MailboxAddress(address, displayName));
+            message.Bcc.Add(new MailboxAddress(displayName, address));
         }
 
         foreach (var (address, displayName) in sendingMessage.ReplyToAddresses)
         {
-            message.ReplyTo.Add(new MailboxAddress(address, displayName));
+            message.ReplyTo.Add(new MailboxAddress(displayName, address));
         }
 
         return message;

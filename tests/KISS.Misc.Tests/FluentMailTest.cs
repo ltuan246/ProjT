@@ -27,20 +27,21 @@ public class FluentMailTest : IDisposable
 
     private static SendingMessage CreateMailMessage()
     {
-        const string sender = "kiss@mailslurp.net";
-        const string to = "kiss.inboxes@yopmail.com";
+        const string sender = "fluentmail@protonmail.com";
+        const string displayName = "fluentmail";
+        const string to = "fluentmail@protonmail.com";
         const string subject = "KISS";
         const string body = "This is a test email sent using C#.Net";
 
         SendingMessage mailMessage =
-            new(new(sender), subject, body);
+            new(new(sender, displayName), subject, body);
         mailMessage.ToAddresses.Add(new(to));
 
         return mailMessage;
     }
 
     [Fact]
-    public void SendEmail_SmtpSender_CanSendEmail()
+    public void SendEmail_SmtpSender_SentSuccessfully()
     {
         var smtpClientOptions = Services.GetService<IOptions<SmtpClientOptions>>();
 
@@ -54,7 +55,7 @@ public class FluentMailTest : IDisposable
     }
 
     [Fact]
-    public void SendEmail_MailKitSender_CanSendEmail()
+    public void SendEmail_MailKitSender_SentSuccessfully()
     {
         var mailKitOptions = Services.GetService<IOptions<MailKitOptions>>();
 
@@ -68,7 +69,7 @@ public class FluentMailTest : IDisposable
     }
 
     [Fact]
-    public void SendEmail_MailtrapSender_CanSendEmail()
+    public void SendEmail_MailtrapSender_SentSuccessfully()
     {
         var mailtrapOptions = Services.GetService<IOptions<MailtrapOptions>>();
 
@@ -82,7 +83,7 @@ public class FluentMailTest : IDisposable
     }
 
     [Fact]
-    public void SendEmail_ElasticEmailSender_CanSendEmail()
+    public void SendEmail_ElasticEmailSender_SentSuccessfully()
     {
         var elasticEmailOptions = Services.GetService<IOptions<ElasticEmailOptions>>();
 

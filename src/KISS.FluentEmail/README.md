@@ -1,6 +1,4 @@
 ## Env
 
-- mailslurp: ltuan@inboxbear.com/inboxbear
-- mailtrap: kiss@mailslurp.net/mailslurp
-- elasticemail kiss@mailslurp.net/mailslurp
-- mailbit: kiss@mailslurp.net/mailslurp
+- proton: fluentmail@protonmail.com/fluentmail
+- elasticemail fluentmail@protonmail.com/fluentmail
