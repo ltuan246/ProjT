@@ -18,6 +18,9 @@ jobs:
     build:
         
         runs-on: ubuntu-latest
+        env:
+            coverageReportPath: ${{ github.workspace }}/coverage-reports/
+            mergedCoverageReportFileName: merged-coverage.xml
         
         steps:
             -   uses: actions/checkout@v4
@@ -29,5 +32,13 @@ jobs:
                 run: dotnet restore
             -   name: Build
                 run: dotnet build --no-restore
-            -   name: Test
-                run: dotnet test --no-build --verbosity normal
+            -   name: Run unit tests
+                run: dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ${{ env.coverageReportPath }} -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+            -   name: Merge coverage reports
+                run: dotnet-coverage merge ${{ env.coverageReportPath }}**/*.xml -f cobertura -o ${{ env.coverageReportPath }}${{ env.mergedCoverageReportFileName }}
+            -   name: Codecov
+                uses: codecov/codecov-action@v4
+                with:
+                    directory: ${{ env.coverageReportPath }}
+                    files: ${{ env.mergedCoverageReportFileName }}
+                    token: ${{ secrets.CODECOV_TOKEN }}
