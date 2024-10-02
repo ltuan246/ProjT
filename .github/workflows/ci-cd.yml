@@ -23,21 +23,31 @@ jobs:
             mergedCoverageReportFileName: merged-coverage.xml
         
         steps:
-            -   uses: actions/checkout@v4
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+                with:
+                    fetch-depth: 0
+
             -   name: Setup .NET
                 uses: actions/setup-dotnet@v4
                 with:
                     dotnet-version: 8.0.x
+
             -   name: Restore dependencies
                 run: dotnet restore
+
             -   name: Build
                 run: dotnet build --no-restore
+
             -   name: Run unit tests
                 run: dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ${{ env.coverageReportPath }} -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
             -   name: Install dotnet-coverage
                 run: dotnet tool install --global dotnet-coverage
+
             -   name: Merge coverage reports
                 run: dotnet-coverage merge ${{ env.coverageReportPath }}**/*.xml -f cobertura -o ${{ env.coverageReportPath }}${{ env.mergedCoverageReportFileName }}
+
             -   name: Codecov
                 uses: codecov/codecov-action@v4
                 with:
