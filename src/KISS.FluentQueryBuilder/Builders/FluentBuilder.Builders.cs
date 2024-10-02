@@ -6,41 +6,9 @@
 /// <typeparam name="TEntity">The type of the record.</typeparam>
 public sealed partial class FluentBuilder<TEntity>
 {
-    /// <summary>
-    ///     The Action clause defines the SQL statements that are executed when the trigger is activated.
-    /// </summary>
-    private enum ClauseAction
-    {
-        // None,
-        // Delete,
-        // FetchNext,
-        // GroupBy,
-        // Having,
-        // InnerJoin,
-        // Insert,
-        // InsertColumn,
-        // InsertValue,
-        // Limit,
-        // LeftJoin,
-        // Offset,
-        // Only,
-        // OrderBy,
-        // RightJoin,
-        // Rows,
-        Select,
-        SelectDistinct,
-
-        // SelectFrom,
-        // Update,
-        // UpdateSet,
-        Where
-    }
-
     private StringBuilder StringBuilder { get; } = new();
 
     private SqlFormatter Formatter { get; } = new();
-
-    private Dictionary<ClauseAction, Expression> EntryClause { get; } = [];
 
     private Stack<Expression> ExpressionStack { get; } = new();
 
@@ -84,9 +52,6 @@ public sealed partial class FluentBuilder<TEntity>
         HasOpenParentheses = false;
         StringBuilder.Append(BuilderConstants.CloseParentheses);
     }
-
-    private void SetEntryClause(ClauseAction clauseAction, Expression expression)
-        => EntryClause.Add(clauseAction, expression);
 
     private void AddCommaSeparated()
         => StringBuilder.Append(BuilderConstants.Comma);
