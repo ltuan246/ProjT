@@ -7,4 +7,5 @@
 public interface IFluentBuilderEntry<TEntity> :
     ISelectBuilderEntry<TEntity>,
     ISelectDistinctBuilderEntry<TEntity>,
-    IWhereBuilderEntry<TEntity>;
+    IWhereBuilderEntry<TEntity>,
+    IOrderByBuilderEntry<TEntity>;

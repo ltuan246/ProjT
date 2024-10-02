@@ -9,8 +9,6 @@ public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IF
     /// <inheritdoc />
     public ISelectBuilder<TEntity> Select<TResult>([NotNull] Expression<Func<TEntity, TResult>> expression)
     {
-        SetEntryClause(ClauseAction.Select, expression.Body);
-
         Append(" SELECT ");
         Translate(expression.Body);
         Append($" FROM {typeof(TEntity).Name}s ");
@@ -22,8 +20,6 @@ public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IF
     public ISelectDistinctBuilder<TEntity> SelectDistinct<TResult>(
         [NotNull] Expression<Func<TEntity, TResult>> expression)
     {
-        SetEntryClause(ClauseAction.SelectDistinct, expression.Body);
-
         Append(" SELECT DISTINCT ");
         Translate(expression.Body);
         Append($" FROM {typeof(TEntity).Name}s ");
@@ -34,7 +30,7 @@ public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IF
     /// <inheritdoc />
     public IWhereBuilder<TEntity> Where([NotNull] Expression<Func<TEntity, bool>> expression)
     {
-        if (!EntryClause.ContainsKey(ClauseAction.Select) && !EntryClause.ContainsKey(ClauseAction.SelectDistinct))
+        if (string.IsNullOrEmpty(Sql))
         {
             var entity = typeof(TEntity);
             var table = entity.Name;
@@ -43,11 +39,46 @@ public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IF
             Append($"SELECT {columns} FROM {table}s ");
         }
 
-        SetEntryClause(ClauseAction.Where, expression.Body);
-
         Append(" WHERE ");
         Translate(expression.Body);
 
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IOrderByBuilder<TEntity> OrderBy<TResult>(Expression<Func<TEntity, TResult>> expression)
+    {
+        Append(" ORDER BY ");
+        Translate(expression.Body);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IFluentBuilder<TEntity> Offset(int offset)
+    {
+        Append($" OFFSET {offset} ");
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IFluentBuilder<TEntity> Limit(int rows)
+    {
+        Append($" LIMIT {rows} ");
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IFetchBuilder<TEntity> OffsetRows(int offset)
+    {
+        Append($" OFFSET {offset} ROWS ");
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IFluentBuilder<TEntity> FetchNext(int rows)
+    {
+        Append($" FETCH NEXT {rows} ROWS ONLY ");
         return this;
     }
 

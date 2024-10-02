@@ -7,4 +7,9 @@
 public interface IFluentBuilder<TEntity> :
     ISelectBuilder<TEntity>,
     ISelectDistinctBuilder<TEntity>,
-    IWhereBuilder<TEntity>;
+    IWhereBuilder<TEntity>,
+    IOrderByBuilder<TEntity>,
+    IOffsetBuilder<TEntity>,
+    IOffsetRowsBuilder<TEntity>,
+    ILimitBuilder<TEntity>,
+    IFetchBuilder<TEntity>;
