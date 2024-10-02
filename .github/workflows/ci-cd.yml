@@ -6,8 +6,8 @@ name: Continuous Integration and Delivery
 on:
     push:
         branches: [ "main", "develop" ]
-        # paths:
-        #   - "src/**"
+        paths:
+            - "src/**"
     pull_request:
         branches: [ "main", "develop" ]
 
