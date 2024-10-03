@@ -20,6 +20,18 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
+    public void WhenGettingAllCards_ThenAllWeathersReturn()
+    {
+        // Act
+        IList<Card> cards = Connection.Gets<Card>();
+        IList<DustCost> dustCosts = Connection.Gets<DustCost>();
+
+        // Assert
+        Assert.Equal(2819, cards.Count);
+        Assert.Equal(4040, dustCosts.Count);
+    }
+
+    [Fact]
     public void Integration_QueryBuilder_ReturnsDataIfTrue()
     {
         // Arrange
