@@ -11,6 +11,9 @@ public static class QuartzServiceRegistrationExtensions
     /// <param name="services">The service container.</param>
     public static void ConfigureQuartz(this IServiceCollection services)
     {
+        // ILoggerFactory service is required
+        services.AddLogging();
+
         // Add the required Quartz.NET services
         services.AddQuartz(q =>
         {
