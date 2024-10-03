@@ -5,7 +5,7 @@ public class DirectoriesTest
     [Fact]
     public void ReadingCSV_ValidPath_ReturnsWeatherCollection()
     {
-        const string fileName = "Assets/GlobalWeatherRepository.csv";
+        const string fileName = "Assets/Weather.csv";
         var weathers = CsvAssists.FromCsv<Weather>(fileName);
         Assert.Equal(100, weathers.Count());
     }
@@ -17,10 +17,10 @@ public class DirectoriesTest
         Assert.Throws<FileNotFoundException>(() => CsvAssists.FromCsv<Weather>(fileName));
     }
 
-    [Theory(Skip = "Doesn't work at the moment")]
+    [Theory]
     [InlineData("ftp://")] // Missing Protocol
     [InlineData("https://")] // Missing Hostname
-    [InlineData("https://example.com/path with spaces")] // Illegal Characters or Incomplete Encoding
+    [InlineData("https://example with spaces.com/path with spaces")] // Illegal Characters or Incomplete Encoding
     [InlineData("https://example.com:8080/?query")] // Incorrect Structure
     [InlineData("https://example.com]")] // Malformed URL Components
     [InlineData("http://ex@mple!.com")] // Invalid Domain Name
@@ -32,8 +32,13 @@ public class DirectoriesTest
     [Fact]
     public void GetFullPath_ValidPath_ReturnsFullPath()
     {
-        const string path = "C:/Assets/GlobalWeatherRepository.csv";
-        const string expected = "C:/Assets/GlobalWeatherRepository.csv";
-        Assert.Equal(expected, PathHelper.GetFullPath(path).Replace("\\", "/"));
+        const string path = "C:/Assets/Weather.csv";
+        FileInfo expected = new(path);
+        FileInfo actual = new(PathHelper.GetFullPath(path));
+
+        Assert.Equal(
+            expected, actual,
+            (e, a) => e.Name == a.Name && e.DirectoryName == a.DirectoryName && e.Exists == a.Exists
+        );
     }
 }

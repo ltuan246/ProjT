@@ -9,7 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // https://dev.to/connerphillis/sequential-guids-in-entity-framework-core-might-not-be-sequential-3408
         // modelBuilder.Entity<User>().Property(e => e.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
 
-        const string fileName = "Assets/GlobalWeatherRepository.csv";
+        const string fileName = "Assets/Weather.csv";
         var weathers = CsvAssists.FromCsv<Weather>(fileName);
 
         modelBuilder.Entity<Weather>().HasData(weathers);
