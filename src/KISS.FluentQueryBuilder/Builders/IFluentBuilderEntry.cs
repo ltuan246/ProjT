@@ -6,6 +6,4 @@
 /// <typeparam name="TEntity">The type of the record.</typeparam>
 public interface IFluentBuilderEntry<TEntity> :
     ISelectBuilderEntry<TEntity>,
-    ISelectDistinctBuilderEntry<TEntity>,
-    IWhereBuilderEntry<TEntity>,
-    IOrderByBuilderEntry<TEntity>;
+    IFluentBuilder<TEntity>;

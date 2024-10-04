@@ -17,7 +17,7 @@ public sealed partial class FluentBuilder<TEntity> : ExpressionVisitor
         {
             // The only way to get a void-returning expression within an expression tree is as part of a BlockExpression
             // other expression types cannot contain a void-returning expression
-            case { } when node.Type == typeof(void):
+            case not null when node.Type == typeof(void):
                 foreach (var x in ExpressionStack)
                 {
                     // BlockExpressions may have a value even though one of the statements is a void-returning expression
@@ -33,7 +33,7 @@ public sealed partial class FluentBuilder<TEntity> : ExpressionVisitor
             // LoopExpression because it might be a never-ending loop
             case ParameterExpression:
             case LoopExpression:
-            case { NodeType: ExpressionType.Extension, CanReduce: false }:
+            case { NodeType: Extension, CanReduce: false }:
                 foreach (var x in ExpressionStack)
                 {
                     Evaluable[x] = false;
@@ -63,7 +63,7 @@ public sealed partial class FluentBuilder<TEntity> : ExpressionVisitor
 
         var ret = node switch
         {
-            { NodeType: ExpressionType.Extension, CanReduce: false } => node,
+            { NodeType: Extension, CanReduce: false } => node,
             _ => base.Visit(node)
         };
 

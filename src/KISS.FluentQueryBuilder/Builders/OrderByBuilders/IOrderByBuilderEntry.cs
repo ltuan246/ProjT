@@ -9,8 +9,8 @@ public interface IOrderByBuilderEntry<TEntity> : IToCollectionBuilderEntry<TEnti
     /// <summary>
     ///     Appends the <c>ORDER BY</c> clause and the interpolated string to the builder.
     /// </summary>
-    /// <param name="expression">The LambdaExpression.</param>
+    /// <param name="columns">The column(s) based on which the rows will be ordered.</param>
     /// <typeparam name="TResult">The type of the result.</typeparam>
     /// <returns>The <see cref="IOrderByBuilder{TEntity}" /> instance.</returns>
-    IOrderByBuilder<TEntity> OrderBy<TResult>(Expression<Func<TEntity, TResult>> expression);
+    IOrderByBuilder<TEntity> OrderBy<TResult>(Expression<Func<TEntity, TResult>> columns);
 }

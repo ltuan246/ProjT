@@ -5,7 +5,7 @@ public class DirectoriesTest
     [Fact]
     public void ReadingCSV_ValidPath_ReturnsWeatherCollection()
     {
-        const string fileName = "Assets/Weather.csv";
+        const string fileName = "Assets/GlobalWeatherRepository.csv";
         var weathers = CsvAssists.FromCsv<Weather>(fileName);
         Assert.Equal(100, weathers.Count());
     }

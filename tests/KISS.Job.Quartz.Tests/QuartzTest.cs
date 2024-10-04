@@ -1,13 +1,14 @@
 namespace KISS.Job.Quartz.Tests;
 
-public class UnitTest1 : IDisposable
+public class QuartzTest : IDisposable
 {
     private ServiceProvider Services { get; init; }
 
-    public UnitTest1()
+    public QuartzTest()
     {
         IServiceCollection serviceCollection = new ServiceCollection();
-        serviceCollection.ConfigureQuartz();
+        serviceCollection.ConfigureQuartzOptions<QuartzCustomOptions>();
+        serviceCollection.ConfigureQuartzService();
         Services = serviceCollection.BuildServiceProvider();
     }
 
