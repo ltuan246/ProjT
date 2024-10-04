@@ -21,10 +21,25 @@ public class QuartzTest : IDisposable
     [Fact]
     public async void Test1()
     {
+        IJobDetail job = JobBuilder.Create<DummyJob>()
+            .WithIdentity("job1", "group1")
+            .Build();
+
+        ITrigger trigger = TriggerBuilder.Create()
+            .WithIdentity("trigger1", "group1")
+            .StartNow()
+            .WithSimpleSchedule(x => x.WithIntervalInSeconds(1))
+            .Build();
+
         var schedulerFactory = Services.GetRequiredService<ISchedulerFactory>();
         var scheduler = await schedulerFactory.GetScheduler();
 
+        await scheduler.ScheduleJob(job, trigger);
         await scheduler.Start();
+
+        await Task.Delay(2000);
+
+        await scheduler.ResumeAll();
         await scheduler.Shutdown();
     }
 }
