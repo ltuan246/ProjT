@@ -27,12 +27,12 @@ public sealed partial class FluentBuilder<TEntity>
         => Formatter.Parameters;
 
     /// <summary>
-    /// The connection to a database.
+    ///     The connection to a database.
     /// </summary>
     public required DbConnection Connection { get; init; }
 
     /// <summary>
-    /// Use checks to know when to use Close Parenthesis.
+    ///     Use checks to know when to use Close Parenthesis.
     /// </summary>
     private bool HasOpenParentheses { get; set; }
 

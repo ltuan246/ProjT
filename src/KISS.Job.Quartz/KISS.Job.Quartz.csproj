@@ -1,0 +1,6 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <PackageReference Include="Quartz"/>
+        <PackageReference Include="Quartz.AspNetCore"/>
+    </ItemGroup>
+</Project>

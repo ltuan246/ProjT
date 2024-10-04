@@ -7,28 +7,60 @@
 public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IFluentBuilderEntry<TEntity>
 {
     /// <inheritdoc />
-    public ISelectBuilder<TEntity> Select<TResult>([NotNull] Expression<Func<TEntity, TResult>> expression)
-    {
-        Append(" SELECT ");
-        Translate(expression.Body);
-        Append($" FROM {typeof(TEntity).Name}s ");
-
-        return this;
-    }
-
-    /// <inheritdoc />
     public ISelectDistinctBuilder<TEntity> SelectDistinct<TResult>(
-        [NotNull] Expression<Func<TEntity, TResult>> expression)
+        [NotNull] Expression<Func<TEntity, TResult>> columns)
     {
         Append(" SELECT DISTINCT ");
-        Translate(expression.Body);
+        Translate(columns.Body);
         Append($" FROM {typeof(TEntity).Name}s ");
 
         return this;
     }
 
     /// <inheritdoc />
-    public IWhereBuilder<TEntity> Where([NotNull] Expression<Func<TEntity, bool>> expression)
+    public IJoinBuilder<TEntity> InnerJoin<TResult>(
+        Expression<Func<TEntity, TResult>> table,
+        Expression<Func<TEntity, bool>> condition)
+    {
+        Append(" INNER JOIN ");
+        Translate(table.Body);
+
+        Append(" ON ");
+        Translate(condition.Body);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IJoinBuilder<TEntity> LeftJoin<TResult>(
+        Expression<Func<TEntity, TResult>> table,
+        Expression<Func<TEntity, bool>> condition)
+    {
+        Append(" LEFT JOIN ");
+        Translate(table.Body);
+
+        Append(" ON ");
+        Translate(condition.Body);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IJoinBuilder<TEntity> RightJoin<TResult>(
+        Expression<Func<TEntity, TResult>> table,
+        Expression<Func<TEntity, bool>> condition)
+    {
+        Append(" RIGHT JOIN ");
+        Translate(table.Body);
+
+        Append(" ON ");
+        Translate(condition.Body);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IWhereBuilder<TEntity> Where([NotNull] Expression<Func<TEntity, bool>> condition)
     {
         if (string.IsNullOrEmpty(Sql))
         {
@@ -40,16 +72,34 @@ public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IF
         }
 
         Append(" WHERE ");
-        Translate(expression.Body);
+        Translate(condition.Body);
 
         return this;
     }
 
     /// <inheritdoc />
-    public IOrderByBuilder<TEntity> OrderBy<TResult>(Expression<Func<TEntity, TResult>> expression)
+    public IGroupByBuilder<TEntity> GroupBy(Expression<Func<TEntity, bool>> columns)
+    {
+        Append(" GROUP BY ");
+        Translate(columns.Body);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IHavingBuilder<TEntity> Having(Expression<Func<TEntity, bool>> condition)
+    {
+        Append(" HAVING ");
+        Translate(condition.Body);
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IOrderByBuilder<TEntity> OrderBy<TResult>(Expression<Func<TEntity, TResult>> columns)
     {
         Append(" ORDER BY ");
-        Translate(expression.Body);
+        Translate(columns.Body);
 
         return this;
     }
@@ -85,4 +135,14 @@ public sealed partial class FluentBuilder<TEntity> : IFluentBuilder<TEntity>, IF
     /// <inheritdoc />
     public IList<TEntity> ToList()
         => Connection.Query<TEntity>(Sql, Parameters).ToList();
+
+    /// <inheritdoc />
+    public ISelectBuilder<TEntity> Select<TResult>([NotNull] Expression<Func<TEntity, TResult>> columns)
+    {
+        Append(" SELECT ");
+        Translate(columns.Body);
+        Append($" FROM {typeof(TEntity).Name}s ");
+
+        return this;
+    }
 }
