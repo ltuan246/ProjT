@@ -27,19 +27,29 @@ public class QuartzTest : IDisposable
 
         ITrigger trigger = TriggerBuilder.Create()
             .WithIdentity("trigger1", "group1")
-            .StartNow()
-            .WithSimpleSchedule(x => x.WithIntervalInSeconds(1))
             .Build();
 
         var schedulerFactory = Services.GetRequiredService<ISchedulerFactory>();
         var scheduler = await schedulerFactory.GetScheduler();
 
-        await scheduler.ScheduleJob(job, trigger);
+        TriggerListener triggerListener = new();
+        scheduler.ListenerManager.AddTriggerListener(triggerListener);
+
         await scheduler.Start();
+        await scheduler.ScheduleJob(job, trigger);
 
         await Task.Delay(2000);
 
-        await scheduler.ResumeAll();
         await scheduler.Shutdown();
+    }
+
+    public class TriggerListener : ITriggerListener
+    {
+        public string Name => "QuartzTest";
+
+        public Task TriggerComplete(ITrigger trigger, IJobExecutionContext context, SchedulerInstruction triggerInstructionCode, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task TriggerFired(ITrigger trigger, IJobExecutionContext context, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task TriggerMisfired(ITrigger trigger, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<bool> VetoJobExecution(ITrigger trigger, IJobExecutionContext context, CancellationToken cancellationToken = default) => Task.FromResult(true);
     }
 }
