@@ -5,11 +5,11 @@ name: Continuous Integration and Delivery
 
 on:
     push:
-        branches: [ "main", "develop" ]
+        branches: [ "main" ]
         paths:
             - "src/**"
     pull_request:
-        branches: [ "main", "develop" ]
+        branches: [ "main" ]
 
 # env:
 #     configuration: release

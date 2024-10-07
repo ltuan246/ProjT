@@ -32,11 +32,20 @@
 
     <!-- Use third party .NET libraries -->
     <ItemGroup>
-        <PackageVersion Include="Dapper" Version="2.1.35"/>
         <PackageVersion Include="CsvHelper" Version="32.0.3"/>
         <PackageVersion Include="MailKit" Version="4.4.0"/>
+    </ItemGroup>
+
+    <!-- Dapper - a simple object mapper for .Net -->
+    <ItemGroup>
+        <PackageVersion Include="Dapper" Version="2.1.35"/>
+    </ItemGroup>
+
+    <!-- Quartz - Open-source job scheduling system for .NET -->
+    <ItemGroup>
         <PackageVersion Include="Quartz" Version="3.13.0" />
         <PackageVersion Include="Quartz.AspNetCore" Version="3.13.0" />
+        <PackageVersion Include="Quartz.Plugins.TimeZoneConverter" Version="3.13.0" />
     </ItemGroup>
 
     <!-- xUnit -->
