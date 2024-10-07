@@ -19,14 +19,20 @@ public class QuartzTest : IDisposable
     }
 
     [Fact]
-    public async void Test1()
+    public async void SchedulingBackgroundTasks_ScheduleJob_TriggerFired()
     {
+        // Arrange
+        const string jobName = "job";
+        const string jobGroup = "group";
+        const string triggerName = "trigger";
+        const string triggerGroup = "group";
+
         IJobDetail job = JobBuilder.Create<DummyJob>()
-            .WithIdentity("job1", "group1")
+            .WithIdentity(jobName, jobGroup)
             .Build();
 
         ITrigger trigger = TriggerBuilder.Create()
-            .WithIdentity("trigger1", "group1")
+            .WithIdentity(triggerName, triggerGroup)
             .Build();
 
         var schedulerFactory = Services.GetRequiredService<ISchedulerFactory>();
@@ -35,21 +41,18 @@ public class QuartzTest : IDisposable
         TriggerListener triggerListener = new();
         scheduler.ListenerManager.AddTriggerListener(triggerListener);
 
+        SchedulerListener schedulerListener = new();
+        scheduler.ListenerManager.AddSchedulerListener(schedulerListener);
+
+        // Act
         await scheduler.Start();
         await scheduler.ScheduleJob(job, trigger);
 
         await Task.Delay(2000);
 
         await scheduler.Shutdown();
-    }
 
-    public class TriggerListener : ITriggerListener
-    {
-        public string Name => "QuartzTest";
-
-        public Task TriggerComplete(ITrigger trigger, IJobExecutionContext context, SchedulerInstruction triggerInstructionCode, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task TriggerFired(ITrigger trigger, IJobExecutionContext context, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task TriggerMisfired(ITrigger trigger, CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public Task<bool> VetoJobExecution(ITrigger trigger, IJobExecutionContext context, CancellationToken cancellationToken = default) => Task.FromResult(true);
+        // Assert
+        Assert.Equal(triggerListener.FireCount, 1);
     }
 }
