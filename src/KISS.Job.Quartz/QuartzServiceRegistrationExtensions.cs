@@ -34,7 +34,7 @@ public static class QuartzServiceRegistrationExtensions
         services.AddQuartz(q =>
         {
             // convert time zones using converter that can handle Windows/Linux differences
-            // q.UseTimeZoneConverter();
+            q.UseTimeZoneConverter();
         });
 
         // Add the Quartz.NET hosted service
