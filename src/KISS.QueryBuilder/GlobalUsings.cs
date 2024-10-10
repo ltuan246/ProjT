@@ -1,1 +1,11 @@
-﻿
+﻿global using System.Text;
+global using KISS.QueryBuilder.FluentBuilder;
+global using KISS.QueryBuilder.FluentBuilder.Builders.FetchBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.GroupByBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.HavingBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.JoinBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.LimitBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.OffsetBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.OrderByBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.SelectBuilders;
+global using KISS.QueryBuilder.FluentBuilder.Builders.WhereBuilders;
