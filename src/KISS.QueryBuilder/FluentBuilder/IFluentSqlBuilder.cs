@@ -3,4 +3,4 @@
 /// <summary>
 ///     An interface that defines the fluent SQL builder type.
 /// </summary>
-internal interface IFluentSqlBuilder : ISqlBuilder, IFluentBuilder;
+public interface IFluentSqlBuilder : ISqlBuilder, IFluentBuilder;

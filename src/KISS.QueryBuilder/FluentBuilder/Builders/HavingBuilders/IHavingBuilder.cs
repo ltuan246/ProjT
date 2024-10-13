@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the having builder type.
 /// </summary>
-internal interface IHavingBuilder : IOrderByBuilderEntry
+public interface IHavingBuilder : IOrderByBuilderEntry
 {
     /// <summary>
     ///     Appends the <c>HAVING</c> clause and the interpolated string to the builder.

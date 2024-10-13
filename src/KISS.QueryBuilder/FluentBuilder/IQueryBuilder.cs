@@ -1,9 +1,9 @@
 ﻿namespace KISS.QueryBuilder.FluentBuilder;
 
 /// <summary>
-///     An interface that defines the simple fluent builder type.
+///     An interface that defines the fluent builder type.
 /// </summary>
-internal interface IQueryBuilder :
+public interface IQueryBuilder :
     ISelectBuilder,
     ISelectDistinctBuilder,
     IJoinBuilder,

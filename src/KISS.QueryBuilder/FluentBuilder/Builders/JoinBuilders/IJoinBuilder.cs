@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the join builder type.
 /// </summary>
-internal interface IJoinBuilder : IWhereBuilder
+public interface IJoinBuilder : IWhereBuilder
 {
     /// <summary>
     ///     Appends the <c>INNER JOIN</c> clause and the interpolated string to the builder.

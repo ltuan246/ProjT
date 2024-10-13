@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the limit builder type.
 /// </summary>
-internal interface ILimitBuilder : IFluentSqlBuilder
+public interface ILimitBuilder : IFluentSqlBuilder
 {
     /// <summary>
     ///     Appends the <c>LIMIT</c> clause and the <paramref name="rows" /> to the builder.

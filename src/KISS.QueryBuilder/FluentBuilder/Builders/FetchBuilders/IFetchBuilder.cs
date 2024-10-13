@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the fetch builder type.
 /// </summary>
-internal interface IFetchBuilder : IFluentSqlBuilder
+public interface IFetchBuilder : IFluentSqlBuilder
 {
     /// <summary>
     ///     Appends the <c>FETCH NEXT</c> clause, the <paramref name="rows" /> and the <c>ROWS ONLY</c> clause to the builder.

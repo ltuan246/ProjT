@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the order by entry builder type.
 /// </summary>
-internal interface IOrderByBuilderEntry : IFluentSqlBuilder
+public interface IOrderByBuilderEntry : IFluentSqlBuilder
 {
     /// <summary>
     ///     Appends the <c>ORDER BY</c> clause and the interpolated string to the builder.

@@ -1,6 +1,14 @@
 ﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
-/// Implements the Formatter for the <see cref="FluentSqlBuilder"/> type.
+///     Implements the Formatter for the <see cref="FluentSqlBuilder{TEntity}" /> type.
 /// </summary>
-internal sealed partial class FluentSqlBuilder;
+/// <typeparam name="TEntity">The type of results to return.</typeparam>
+public sealed partial class FluentSqlBuilder<TEntity>
+{
+    private void Append(string value)
+        => SqlBuilder.Append(value);
+
+    private void AppendFormat(FormattableString formatString)
+        => SqlBuilder.AppendFormat(SqlFormatter, formatString.Format, formatString.GetArguments());
+}

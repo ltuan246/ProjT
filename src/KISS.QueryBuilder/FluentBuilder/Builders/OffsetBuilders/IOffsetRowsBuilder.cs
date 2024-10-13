@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the offset rows builder type.
 /// </summary>
-internal interface IOffsetRowsBuilder : IFluentSqlBuilder
+public interface IOffsetRowsBuilder : IFluentSqlBuilder
 {
     /// <summary>
     ///     Appends the <c>OFFSET</c> clause, the <paramref name="offset" /> and the <c>ROWS</c> clause to the builder.

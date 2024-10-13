@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the group by builder type.
 /// </summary>
-internal interface IGroupByBuilder : IHavingBuilder
+public interface IGroupByBuilder : IHavingBuilder
 {
     /// <summary>
     ///     Appends the <c>GROUP BY</c> clause and the interpolated string to the builder.
