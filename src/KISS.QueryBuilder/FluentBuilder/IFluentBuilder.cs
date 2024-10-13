@@ -3,4 +3,4 @@
 /// <summary>
 ///     An interface that defines the fluent builder type.
 /// </summary>
-internal interface IFluentBuilder;
+public interface IFluentBuilder;

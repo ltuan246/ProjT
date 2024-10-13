@@ -1,17 +1,24 @@
-﻿using System;
-
-namespace KISS.QueryBuilder.Core;
+﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
-///     Implements <see cref="IQueryBuilder" /> interfaces for the <see cref="FluentSqlBuilder" /> type.
+///     Implements <see cref="IQueryBuilder" /> interfaces and <see cref="IQueryBuilderEntry" /> interfaces
+///     for the <see cref="FluentSqlBuilder{TEntity}" /> type.
 /// </summary>
-internal sealed partial class FluentSqlBuilder : IQueryBuilder
+/// <typeparam name="TEntity">The type of results to return.</typeparam>
+public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder, IQueryBuilderEntry
 {
     /// <inheritdoc />
-    public string Sql => SqlBuilder.ToString();
+    public string Sql
+        => SqlBuilder.ToString();
 
     /// <inheritdoc />
-    public ISelectBuilder Select() => throw new NotImplementedException();
+    public DynamicParameters Parameters
+        => SqlFormatter.Parameters;
+
+    /// <inheritdoc />
+    public ISelectBuilder Select<TRecordset, TResult>(Expression<Func<TRecordset, TResult>> columns)
+        where TRecordset : TEntity
+        => throw new NotImplementedException();
 
     /// <inheritdoc />
     public ISelectDistinctBuilder SelectDistinct() => throw new NotImplementedException();
@@ -69,4 +76,9 @@ internal sealed partial class FluentSqlBuilder : IQueryBuilder
 
     /// <inheritdoc />
     public IFluentSqlBuilder FetchNext(int rows) => throw new NotImplementedException();
+
+    /// <inheritdoc />
+    public IList<TResult> ToList<TResult>()
+        where TResult : TEntity
+        => throw new NotImplementedException();
 }

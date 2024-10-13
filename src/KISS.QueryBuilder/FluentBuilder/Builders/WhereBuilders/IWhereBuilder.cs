@@ -3,7 +3,7 @@
 /// <summary>
 ///     An interface that defines the where builder type.
 /// </summary>
-internal interface IWhereBuilder : IGroupByBuilder
+public interface IWhereBuilder : IGroupByBuilder
 {
     /// <summary>
     ///     Appends the <c>WHERE</c> clause and the interpolated string to the builder.

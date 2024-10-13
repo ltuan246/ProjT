@@ -103,11 +103,15 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
     [Fact]
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
-    {
+    {   
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
 
-        // Act  
+        // Act
+        var ret = Connection.Retrieving<Weather>()
+            .Select((Weather w) => new { w.Id, w.Country })
+            .Where();
+
         IList<Weather> weathers = Connection.Retrieve<Weather>()
             .Where(w => w.Id == exId)
             .ToList();
