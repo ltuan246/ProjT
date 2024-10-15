@@ -3,7 +3,8 @@
 /// <summary>
 ///     An interface that defines the fluent builder type.
 /// </summary>
-public interface IQueryBuilder :
+/// <typeparam name="TRecordset">The type in the recordset.</typeparam>
+public interface IQueryBuilder<TRecordset> :
     ISelectBuilder,
     ISelectDistinctBuilder,
     IJoinBuilder,
@@ -12,4 +13,5 @@ public interface IQueryBuilder :
     IFetchBuilder,
     IOffsetRowsBuilder,
     ILimitBuilder,
-    IOffsetBuilder;
+    IOffsetBuilder,
+    ICollectionBuilder<TRecordset>;
