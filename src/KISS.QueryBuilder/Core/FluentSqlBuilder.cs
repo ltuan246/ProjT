@@ -6,9 +6,24 @@
 /// <typeparam name="TEntity">The type of results to return.</typeparam>
 public sealed partial class FluentSqlBuilder<TEntity>
 {
-    private StringBuilder SqlBuilder { get; } = new();
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="FluentSqlBuilder{TEntity}" /> class.
+    /// </summary>
+    public FluentSqlBuilder()
+    {
+        SqlBuilder = new StringBuilder();
 
-    private SqlFormatter SqlFormatter { get; } = new();
+        var entity = typeof(TEntity);
+        var table = entity.Name;
+        var properties = entity.GetProperties();
+        var cols = properties.Select(p => $"[{p.Name}]").ToArray();
+
+        Append($"SELECT {cols} FROM {table}s ");
+    }
+
+    private StringBuilder SqlBuilder { get; }
+
+    private SqlFormatter SqlFormat { get; } = new();
 
     /// <summary>
     ///     Use checks to know when to use Close Parenthesis.

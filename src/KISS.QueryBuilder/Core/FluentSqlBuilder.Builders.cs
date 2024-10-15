@@ -1,11 +1,11 @@
 ﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
-///     Implements <see cref="IQueryBuilder" /> interfaces and <see cref="IQueryBuilderEntry" /> interfaces
+///     Implements <see cref="IQueryBuilder{TEntity}" /> and <see cref="IQueryBuilderEntry{TEntity}" />
 ///     for the <see cref="FluentSqlBuilder{TEntity}" /> type.
 /// </summary>
 /// <typeparam name="TEntity">The type of results to return.</typeparam>
-public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder, IQueryBuilderEntry
+public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder<TEntity>, IQueryBuilderEntry<TEntity>
 {
     /// <inheritdoc />
     public string Sql
@@ -13,15 +13,35 @@ public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder, IQueryBui
 
     /// <inheritdoc />
     public DynamicParameters Parameters
-        => SqlFormatter.Parameters;
+        => SqlFormat.Parameters;
 
     /// <inheritdoc />
-    public ISelectBuilder Select<TRecordset, TResult>(Expression<Func<TRecordset, TResult>> columns)
-        where TRecordset : TEntity
-        => throw new NotImplementedException();
+    public ISelectBuilder Select([NotNull] Expression<Func<TEntity, object>> columns)
+    {
+        var entity = typeof(TEntity);
+        var table = entity.Name;
+        var properties = columns.Parameters[1].GetType().GetProperties();
+        var cols = properties.Select(p => $"[{p.Name}]").ToArray();
+
+        SqlBuilder.Clear();
+        Append($"SELECT {cols} FROM {table}s ");
+
+        return this;
+    }
 
     /// <inheritdoc />
-    public ISelectDistinctBuilder SelectDistinct() => throw new NotImplementedException();
+    public ISelectDistinctBuilder SelectDistinct([NotNull] Expression<Func<TEntity, object>> columns)
+    {
+        var entity = typeof(TEntity);
+        var table = entity.Name;
+        var properties = columns.Parameters[1].GetType().GetProperties();
+        var cols = properties.Select(p => $"[{p.Name}]").ToArray();
+
+        SqlBuilder.Clear();
+        Append($"SELECT DISTINCT {cols} FROM {table}s ");
+
+        return this;
+    }
 
     /// <inheritdoc />
     public IJoinBuilder InnerJoin() => throw new NotImplementedException();
@@ -78,7 +98,6 @@ public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder, IQueryBui
     public IFluentSqlBuilder FetchNext(int rows) => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IList<TResult> ToList<TResult>()
-        where TResult : TEntity
+    public IList<TEntity> ToList()
         => throw new NotImplementedException();
 }

@@ -10,5 +10,5 @@ public sealed partial class FluentSqlBuilder<TEntity>
         => SqlBuilder.Append(value);
 
     private void AppendFormat(FormattableString formatString)
-        => SqlBuilder.AppendFormat(SqlFormatter, formatString.Format, formatString.GetArguments());
+        => SqlBuilder.AppendFormat(SqlFormat, formatString.Format, formatString.GetArguments());
 }

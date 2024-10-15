@@ -3,20 +3,20 @@
 /// <summary>
 ///     An interface that defines the select builder entry type.
 /// </summary>
-public interface ISelectBuilderEntry : IFluentSqlBuilder
+/// <typeparam name="TRecordset">The type in the recordset.</typeparam>
+public interface ISelectBuilderEntry<TRecordset> : IFluentSqlBuilder
 {
     /// <summary>
     ///     Appends the <c>SELECT</c> clause to the builder.
     /// </summary>
     /// <param name="columns">The table columns.</param>
-    /// <typeparam name="TRecordset">The type in the recordset.</typeparam>
-    /// <typeparam name="TResult">The combined type to return.</typeparam>
     /// <returns>The <see cref="ISelectBuilder" /> instance.</returns>
-    ISelectBuilder Select<TRecordset, TResult>(Expression<Func<TRecordset, TResult>> columns);
+    ISelectBuilder Select(Expression<Func<TRecordset, object>> columns);
 
     /// <summary>
-    ///     Appends the <c>SELECT DISTINCT</c> clause and the interpolated string to the builder.
+    ///     Appends the <c>SELECT DISTINCT</c> clause to the builder.
     /// </summary>
-    /// <returns>The <see cref="ISelectDistinctBuilder" /> instance.</returns>
-    ISelectDistinctBuilder SelectDistinct();
+    /// <param name="columns">The table columns.</param>
+    /// <returns>The <see cref="ISelectBuilder" /> instance.</returns>
+    ISelectDistinctBuilder SelectDistinct(Expression<Func<TRecordset, object>> columns);
 }
