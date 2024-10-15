@@ -78,19 +78,18 @@ public sealed partial class FluentSqlBuilder<TEntity> : ExpressionVisitor
 
     private (bool Evaluated, FormattableString Value) GetValue(Expression node)
     {
-        if (!Evaluable.TryGetValue(node, out var canEvaluate))
+        if (!Evaluable.TryGetValue(node, out bool canEvaluate))
         {
             Visit(node);
             Evaluable.TryGetValue(node, out canEvaluate);
         }
 
-        (var evaluated, FormattableString value) = (canEvaluate, $"");
-        if (canEvaluate)
+        if (!canEvaluate)
         {
-            var lambdaExpression = Expression.Lambda(node);
-            value = $"{lambdaExpression.Compile().DynamicInvoke()}";
+            return (false, $"");
         }
 
-        return (evaluated, value);
+        var lambdaExpression = Expression.Lambda(node);
+        return (canEvaluate, $"{lambdaExpression.Compile().DynamicInvoke()}");
     }
 }
