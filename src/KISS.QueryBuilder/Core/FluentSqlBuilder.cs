@@ -15,10 +15,8 @@ public sealed partial class FluentSqlBuilder<TEntity>
 
         var entity = typeof(TEntity);
         var table = entity.Name;
-        var properties = entity.GetProperties();
-        var cols = properties.Select(p => $"[{p.Name}]").ToArray();
 
-        Append($"SELECT {cols} FROM {table}s ");
+        Append($"SELECT {TemporaryColumnsTemplate} FROM {table}s {DefaultEntityAliasTemplate}");
     }
 
     private StringBuilder SqlBuilder { get; }
@@ -33,7 +31,7 @@ public sealed partial class FluentSqlBuilder<TEntity>
     private void OpenParentheses()
     {
         HasOpenParentheses = true;
-        SqlBuilder.Append(BuilderConstants.OpenParentheses);
+        SqlBuilder.Append(OpenParenthesis);
     }
 
     private void CloseParentheses()
@@ -44,9 +42,9 @@ public sealed partial class FluentSqlBuilder<TEntity>
         }
 
         HasOpenParentheses = false;
-        SqlBuilder.Append(BuilderConstants.CloseParentheses);
+        SqlBuilder.Append(CloseParenthesis);
     }
 
     private void AddCommaSeparated()
-        => SqlBuilder.Append(BuilderConstants.Comma);
+        => SqlBuilder.Append(Comma);
 }
