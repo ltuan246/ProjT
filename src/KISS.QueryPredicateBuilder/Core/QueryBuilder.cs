@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Core;
 
 /// <summary>
-/// A class that defines the SQL builder type. The core QueryBuilder partial class.
+///     A class that defines the SQL builder type. The core QueryBuilder partial class.
 /// </summary>
 public sealed partial class QueryBuilder
 {
@@ -42,7 +42,7 @@ public sealed partial class QueryBuilder
 
     private void Join(string separator, IEnumerable<IComponent> expressions)
     {
-        using IEnumerator<IComponent> enumerator = expressions.GetEnumerator();
+        using var enumerator = expressions.GetEnumerator();
         if (enumerator.MoveNext())
         {
             OpenParentheses();

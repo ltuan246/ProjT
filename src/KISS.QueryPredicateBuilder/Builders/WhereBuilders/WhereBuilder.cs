@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Builders.WhereBuilders;
 
 /// <summary>
-/// Defines the where builder type.
+///     Defines the where builder type.
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity.</typeparam>
 public sealed record WhereBuilder<TEntity>
@@ -13,7 +13,7 @@ public sealed record WhereBuilder<TEntity>
         => $"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] {comparisonOperator:raw} {value}";
 
     /// <summary>
-    /// Creates an equality filter.
+    ///     Creates an equality filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="value">The value.</param>
@@ -23,7 +23,7 @@ public sealed record WhereBuilder<TEntity>
         => new(BuildClause(field, ComparisonOperator.AreEqual, value));
 
     /// <summary>
-    /// Creates a not equal filter.
+    ///     Creates a not equal filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="value">The value.</param>
@@ -35,7 +35,7 @@ public sealed record WhereBuilder<TEntity>
         => new(BuildClause(field, ComparisonOperator.NotEqual, value));
 
     /// <summary>
-    /// Creates a greater than filter.
+    ///     Creates a greater than filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="value">The value.</param>
@@ -47,7 +47,7 @@ public sealed record WhereBuilder<TEntity>
         => new(BuildClause(field, ComparisonOperator.GreaterThan, value));
 
     /// <summary>
-    /// Creates a greater than or equal filter.
+    ///     Creates a greater than or equal filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="value">The value.</param>
@@ -59,7 +59,7 @@ public sealed record WhereBuilder<TEntity>
         => new(BuildClause(field, ComparisonOperator.GreaterThanOrEqualTo, value));
 
     /// <summary>
-    /// Creates a less than filter.
+    ///     Creates a less than filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="value">The value.</param>
@@ -71,7 +71,7 @@ public sealed record WhereBuilder<TEntity>
         => new(BuildClause(field, ComparisonOperator.LessThan, value));
 
     /// <summary>
-    /// Creates a less than or equal filter.
+    ///     Creates a less than or equal filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="value">The value.</param>
@@ -83,7 +83,7 @@ public sealed record WhereBuilder<TEntity>
         => new(BuildClause(field, ComparisonOperator.LessThanOrEqualTo, value));
 
     /// <summary>
-    /// Creates an in filter for an array field.
+    ///     Creates an in filter for an array field.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="values">The values.</param>
@@ -95,7 +95,7 @@ public sealed record WhereBuilder<TEntity>
         => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] IN {values}");
 
     /// <summary>
-    /// Creates a not in filter.
+    ///     Creates a not in filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="values">The values.</param>
@@ -107,7 +107,7 @@ public sealed record WhereBuilder<TEntity>
         => new($"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] NOT IN {values}");
 
     /// <summary>
-    /// Creates the between filter.
+    ///     Creates the between filter.
     /// </summary>
     /// <param name="field">The field.</param>
     /// <param name="beginValue">The begin values.</param>
@@ -122,7 +122,7 @@ public sealed record WhereBuilder<TEntity>
             $"[{(string)new ExpressionFieldDefinition<TEntity, TField>(field):raw}] BETWEEN {beginValue} AND {endValue}");
 
     /// <summary>
-    /// Creates an and filter.
+    ///     Creates an and filter.
     /// </summary>
     /// <param name="filterDefinitions">The filters.</param>
     /// <returns>A filter.</returns>
@@ -130,7 +130,7 @@ public sealed record WhereBuilder<TEntity>
         => new(ClauseAction.Where, ClauseConstants.Where.AndSeparator, filterDefinitions);
 
     /// <summary>
-    /// Creates an or filter.
+    ///     Creates an or filter.
     /// </summary>
     /// <param name="filterDefinitions">The filters.</param>
     /// <returns>An or filter.</returns>
@@ -139,37 +139,37 @@ public sealed record WhereBuilder<TEntity>
 }
 
 /// <summary>
-/// Used in conditions that compares one expression with another.
+///     Used in conditions that compares one expression with another.
 /// </summary>
 public sealed class ComparisonOperator
 {
     /// <summary>
-    /// Equal.
+    ///     Equal.
     /// </summary>
     public const string AreEqual = "=";
 
     /// <summary>
-    /// Not Equal.
+    ///     Not Equal.
     /// </summary>
     public const string NotEqual = "<>";
 
     /// <summary>
-    /// Greater Than.
+    ///     Greater Than.
     /// </summary>
     public const string GreaterThan = ">";
 
     /// <summary>
-    /// Greater Than Or Equal To.
+    ///     Greater Than Or Equal To.
     /// </summary>
     public const string GreaterThanOrEqualTo = ">=";
 
     /// <summary>
-    /// Less Than.
+    ///     Less Than.
     /// </summary>
     public const string LessThan = "<";
 
     /// <summary>
-    /// Less Than Or Equal To.
+    ///     Less Than Or Equal To.
     /// </summary>
     public const string LessThanOrEqualTo = "<=";
 }

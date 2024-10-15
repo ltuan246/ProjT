@@ -1,7 +1,4 @@
-﻿using System.Net;
-using System.Net.Mail;
-
-namespace KISS.FluentEmail.Senders.ElasticEmail;
+﻿namespace KISS.FluentEmail.Senders.ElasticEmail;
 
 /// <summary>
 ///     Send email via ElasticEmail.

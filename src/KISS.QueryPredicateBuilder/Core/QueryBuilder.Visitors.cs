@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Core;
 
 /// <summary>
-/// The Visitor implements several versions of the same behaviors, tailored for different concrete element classes.
+///     The Visitor implements several versions of the same behaviors, tailored for different concrete element classes.
 /// </summary>
 public sealed partial class QueryBuilder : IVisitor
 {

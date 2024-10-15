@@ -6,7 +6,7 @@
 public class FluentMail
 {
     /// <summary>
-    /// MailMessage.
+    ///     The message.
     /// </summary>
     public SendingMessage? MailMessage { get; set; }
 }

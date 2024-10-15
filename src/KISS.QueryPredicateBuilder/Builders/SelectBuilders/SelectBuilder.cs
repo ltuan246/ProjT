@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Builders.SelectBuilders;
 
 /// <summary>
-/// Defines the select builder type.
+///     Defines the select builder type.
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity.</typeparam>
 public sealed record SelectBuilder<TEntity>
@@ -13,7 +13,7 @@ public sealed record SelectBuilder<TEntity>
     private List<string> ExColumns { get; } = [];
 
     /// <summary>
-    /// Adds one or more field names to be included in the results.
+    ///     Adds one or more field names to be included in the results.
     /// </summary>
     /// <param name="field">The field name.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
@@ -25,7 +25,7 @@ public sealed record SelectBuilder<TEntity>
     }
 
     /// <summary>
-    /// Adds one or more field names to be excluded from the results.
+    ///     Adds one or more field names to be excluded from the results.
     /// </summary>
     /// <param name="field">The field name.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
@@ -37,14 +37,14 @@ public sealed record SelectBuilder<TEntity>
     }
 
     /// <summary>
-    /// A builder for specifying which fields of an entity should return.
+    ///     A builder for specifying which fields of an entity should return.
     /// </summary>
     /// <returns>The SELECT clause.</returns>
     public ProjectionDefinition Build()
         => new($"SELECT {string.Join(", ", GetFields()):raw} FROM {Entity.Name:raw}s");
 
     /// <summary>
-    /// Get fields of a entity should return.
+    ///     Get fields of a entity should return.
     /// </summary>
     /// <returns>The field names.</returns>
     private IEnumerable<string> GetFields()

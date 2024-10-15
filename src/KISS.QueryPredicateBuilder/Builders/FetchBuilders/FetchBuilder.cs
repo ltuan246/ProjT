@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Builders.FetchBuilders;
 
 /// <summary>
-/// Defines the fetch builder type.
+///     Defines the fetch builder type.
 /// </summary>
 public sealed record FetchBuilder
 {
@@ -14,7 +14,7 @@ public sealed record FetchBuilder
     //     => new($"FETCH NEXT {rows:raw}");
 
     /// <summary>
-    /// Appends the LIMIT clause and the <paramref name="rows"/> to the builder.
+    ///     Appends the LIMIT clause and the <paramref name="rows" /> to the builder.
     /// </summary>
     /// <param name="rows">The number of rows to fetch.</param>
     /// <returns>The LIMIT clause.</returns>
@@ -22,7 +22,7 @@ public sealed record FetchBuilder
         => new($"LIMIT {rows:raw}");
 
     /// <summary>
-    /// Appends the OFFSET clause and the <paramref name="offset"/> to the builder.
+    ///     Appends the OFFSET clause and the <paramref name="offset" /> to the builder.
     /// </summary>
     /// <param name="offset">The number of rows to skip.</param>
     /// <returns>The OFFSET clause.</returns>

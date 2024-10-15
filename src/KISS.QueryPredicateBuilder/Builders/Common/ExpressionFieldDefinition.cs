@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Builders.Common;
 
 /// <summary>
-/// The Expression helper containing frequently reused functions.
+///     The Expression helper containing frequently reused functions.
 /// </summary>
 /// <param name="Expression">The MemberExpression.</param>
 /// <typeparam name="TEntity"></typeparam>
@@ -15,10 +15,10 @@ public sealed record ExpressionFieldDefinition<TEntity, TField>(Expression<Func<
     private string GetMemberNameFromLambda()
     {
         var body = Expression.Body;
-        MemberExpression memberExpression = body.NodeType switch
+        var memberExpression = body.NodeType switch
         {
             ExpressionType.MemberAccess => (MemberExpression)body,
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
         var memberInfo = memberExpression.Member;
         return memberInfo.Name;
