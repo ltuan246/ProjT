@@ -8,58 +8,62 @@
 public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder<TEntity>, IQueryBuilderEntry<TEntity>
 {
     /// <inheritdoc />
-    public string Sql
-        => SqlBuilder.ToString();
-
-    /// <inheritdoc />
-    public DynamicParameters Parameters
-        => SqlFormat.Parameters;
-
-    /// <inheritdoc />
-    public ISelectBuilder Select([NotNull] Expression<Func<TEntity, object>> columns)
+    public ISelectBuilder<TEntity> Select([NotNull] Expression<Func<TEntity, object>> selector)
     {
-        var entity = typeof(TEntity);
-        var table = entity.Name;
-        var properties = columns.Parameters[1].GetType().GetProperties();
-        var cols = properties.Select(p => $"[{p.Name}]").ToArray();
+        switch (selector.Body)
+        {
+            case MemberExpression memberExpression:
+                SelectSpecificColumns.Add(memberExpression.Member.Name);
+                break;
 
-        SqlBuilder.Clear();
-        Append($"SELECT {cols} FROM {table}s ");
+            case NewExpression newExpression:
+                // Handle multiple fields or field aliases
+                var selectList = newExpression.Members!
+                    .Select(m => m.Name)
+                    .Zip(newExpression.Arguments, (name, arg) =>
+                    {
+                        if (arg is MemberExpression memberArg)
+                        {
+                            return name == memberArg.Member.Name
+                                ? memberArg.Member.Name
+                                : $"{memberArg.Member.Name} AS {name}";
+                        }
+
+                        return name;
+                    })
+                    .ToArray();
+
+                SelectSpecificColumns.AddRange(selectList);
+                break;
+
+            default:
+                throw new NotSupportedException("Expression not supported.");
+        }
 
         return this;
     }
 
     /// <inheritdoc />
-    public ISelectDistinctBuilder SelectDistinct([NotNull] Expression<Func<TEntity, object>> columns)
+    public ISelectBuilder<TEntity> SelectDistinct([NotNull] Expression<Func<TEntity, object>> selector)
     {
-        var entity = typeof(TEntity);
-        var table = entity.Name;
-        var properties = columns.Parameters[1].GetType().GetProperties();
-        var cols = properties.Select(p => $"[{p.Name}]").ToArray();
+        HasDistinct = true;
+        return Select(selector);
+    }
 
-        SqlBuilder.Clear();
-        Append($"SELECT DISTINCT {cols} FROM {table}s ");
-
+    /// <inheritdoc />
+    public IJoinBuilder<TEntity> Join<TRelation>(
+        Expression<Func<TEntity, object>> leftKeySelector,
+        Expression<Func<TRelation, object>> rightKeySelector)
+    {
         return this;
     }
 
     /// <inheritdoc />
-    public IJoinBuilder InnerJoin() => throw new NotImplementedException();
-
-    /// <inheritdoc />
-    public IJoinBuilder InnerJoin(bool condition) => throw new NotImplementedException();
-
-    /// <inheritdoc />
-    public IJoinBuilder LeftJoin() => throw new NotImplementedException();
-
-    /// <inheritdoc />
-    public IJoinBuilder LeftJoin(bool condition) => throw new NotImplementedException();
-
-    /// <inheritdoc />
-    public IJoinBuilder RightJoin() => throw new NotImplementedException();
-
-    /// <inheritdoc />
-    public IJoinBuilder RightJoin(bool condition) => throw new NotImplementedException();
+    public IJoinBuilder<TEntity> Join<TRelation>(
+        bool condition,
+        Expression<Func<TEntity, object>> leftKeySelector,
+        Expression<Func<TRelation, object>> rightKeySelector)
+        => condition ? Join(leftKeySelector, rightKeySelector) : this;
 
     /// <inheritdoc />
     public IWhereBuilder Where() => throw new NotImplementedException();
@@ -99,5 +103,22 @@ public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder<TEntity>, 
 
     /// <inheritdoc />
     public IList<TEntity> ToList()
-        => throw new NotImplementedException();
+    {
+        List<string> clauses = ["SELECT"];
+
+        if (HasDistinct)
+        {
+            clauses.Add("DISTINCT");
+        }
+
+        clauses.Add(SelectSpecificColumns.Count != 0 ? string.Join(", ", SelectSpecificColumns) : "*");
+        clauses.Add($"FROM {typeof(TEntity).Name}s AS {DefaultEntityAliasTemplate}");
+        clauses.Add(Sql);
+
+        var query = string.Join(" ", clauses);
+
+        _ = Connection.Query<TEntity>(query, Parameters).ToList();
+
+        return [];
+    }
 }

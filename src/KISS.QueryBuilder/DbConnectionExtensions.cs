@@ -12,8 +12,5 @@ public static class DbConnectionExtensions
     /// <typeparam name="TEntity">The type of the record.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
     public static FluentSqlBuilder<TEntity> Retrieving<TEntity>(this DbConnection dbConnection)
-    {
-        _ = dbConnection;
-        return new FluentSqlBuilder<TEntity>();
-    }
+        => new() { Connection = dbConnection };
 }

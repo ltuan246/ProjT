@@ -103,7 +103,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
     [Fact]
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
-    {   
+    {
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
 

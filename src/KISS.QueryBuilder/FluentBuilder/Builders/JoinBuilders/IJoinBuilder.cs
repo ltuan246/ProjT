@@ -3,44 +3,30 @@
 /// <summary>
 ///     An interface that defines the join builder type.
 /// </summary>
-public interface IJoinBuilder : IWhereBuilder
+/// <typeparam name="TRecordset">The type in the recordset.</typeparam>
+public interface IJoinBuilder<TRecordset> : IWhereBuilder
 {
     /// <summary>
-    ///     Appends the <c>INNER JOIN</c> clause and the interpolated string to the builder.
+    ///     Appends the <c>INNER JOIN</c> clause to the builder.
     /// </summary>
-    /// <returns>The <see cref="IJoinBuilder" /> instance.</returns>
-    IJoinBuilder InnerJoin();
+    /// <param name="leftKeySelector">The table as the left key.</param>
+    /// <param name="rightKeySelector">The table as the right key.</param>
+    /// <typeparam name="TRelation">The type of table that want to join.</typeparam>
+    /// <returns>The <see cref="IJoinBuilder{TRecordset}" /> instance.</returns>
+    IJoinBuilder<TRecordset> Join<TRelation>(
+        Expression<Func<TRecordset, object>> leftKeySelector,
+        Expression<Func<TRelation, object>> rightKeySelector);
 
     /// <summary>
-    ///     Appends the <c>INNER JOIN</c> clause and the interpolated string to the builder.
+    ///     Appends the <c>INNER JOIN</c> clause to the builder.
     /// </summary>
     /// <param name="condition">The value to determine whether the method should be executed.</param>
-    /// <returns>The <see cref="IJoinBuilder" /> instance.</returns>
-    IJoinBuilder InnerJoin(bool condition);
-
-    /// <summary>
-    ///     Appends the <c>LEFT JOIN</c> clause and the interpolated string to the builder.
-    /// </summary>
-    /// <returns>The <see cref="IJoinBuilder" /> instance.</returns>
-    IJoinBuilder LeftJoin();
-
-    /// <summary>
-    ///     Appends the <c>LEFT JOIN</c> clause and the interpolated string to the builder.
-    /// </summary>
-    /// <param name="condition">The value to determine whether the method should be executed.</param>
-    /// <returns>The <see cref="IJoinBuilder" /> instance.</returns>
-    IJoinBuilder LeftJoin(bool condition);
-
-    /// <summary>
-    ///     Appends the <c>RIGHT JOIN</c> clause and the interpolated string to the builder.
-    /// </summary>
-    /// <returns>The <see cref="IJoinBuilder" /> instance.</returns>
-    IJoinBuilder RightJoin();
-
-    /// <summary>
-    ///     Appends the <c>RIGHT JOIN</c> clause and the interpolated string to the builder.
-    /// </summary>
-    /// <param name="condition">The value to determine whether the method should be executed.</param>
-    /// <returns>The <see cref="IJoinBuilder" /> instance.</returns>
-    IJoinBuilder RightJoin(bool condition);
+    /// <param name="leftKeySelector">The table as the left key.</param>
+    /// <param name="rightKeySelector">The table as the right key.</param>
+    /// <typeparam name="TRelation">The type of table that want to join.</typeparam>
+    /// <returns>The <see cref="IJoinBuilder{TRecordset}" /> instance.</returns>
+    IJoinBuilder<TRecordset> Join<TRelation>(
+        bool condition,
+        Expression<Func<TRecordset, object>> leftKeySelector,
+        Expression<Func<TRelation, object>> rightKeySelector);
 }
