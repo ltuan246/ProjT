@@ -12,11 +12,6 @@ public sealed partial class FluentSqlBuilder<TEntity>
     private const string DefaultEntityAliasTemplate = "Extend";
 
     /// <summary>
-    ///     Represents a list of names that identify the columns of the final result table.
-    /// </summary>
-    private const string TemporaryColumnsTemplate = "{columns}";
-
-    /// <summary>
     ///     Comma-separated string.
     /// </summary>
     private const char Comma = ',';

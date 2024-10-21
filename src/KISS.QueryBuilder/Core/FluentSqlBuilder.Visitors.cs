@@ -2,19 +2,36 @@
 
 /// <summary>
 ///     Implements <see cref="ExpressionVisitor" /> for the <see cref="FluentSqlBuilder{TEntity}" /> type.
+///     Traversing and analyzing LINQ expression trees and determining which parts of the expression tree
+///     are evaluable at runtime (i.e., whether the expression can be simplified to a value).
 /// </summary>
 /// <typeparam name="TEntity">The type of results to return.</typeparam>
 public sealed partial class FluentSqlBuilder<TEntity> : ExpressionVisitor
 {
+    /// <summary>
+    ///     A stack that holds expressions during the traversal process. This is used to track where we are in the tree.
+    /// </summary>
     private Stack<Expression> ExpressionStack { get; } = new();
 
+    /// <summary>
+    ///     Keeps track of which expressions can be evaluated to a value.
+    /// </summary>
     private Dictionary<Expression, bool> Evaluable { get; } = [];
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Depending on the type of expression (e.g., ConstantExpression, MethodCallExpression),
+    ///     it marks whether certain expressions are evaluable by setting entries in the Evaluable dictionary.
+    /// </summary>
+    /// <param name="node">The expression to visit.</param>
+    /// <returns>
+    ///     The modified expression, if it or any subexpression was modified;
+    ///     otherwise, returns the original expression.
+    /// </returns>
     public override Expression? Visit(Expression? node)
     {
         if (node is null) { return null; }
 
+        // pushes the current expression onto the ExpressionStack and performs different actions based on the type of expression (node).
         ExpressionStack.Push(node);
 
         switch (node)
@@ -71,14 +88,23 @@ public sealed partial class FluentSqlBuilder<TEntity> : ExpressionVisitor
             _ => base.Visit(node)
         };
 
+        // After processing, it pops the expression from the stack.
         ExpressionStack.Pop();
 
         return ret;
     }
 
+    /// <summary>
+    ///     Determines if a specific expression can be evaluated.
+    /// </summary>
+    /// <param name="node">The expression to visit.</param>
+    /// <returns>
+    ///     A tuple of a boolean (Evaluated) indicating whether the expression was evaluable,
+    ///     and the evaluated result (Value) as a FormatString.
+    /// </returns>
     private (bool Evaluated, FormattableString Value) GetValue(Expression node)
     {
-        if (!Evaluable.TryGetValue(node, out bool canEvaluate))
+        if (!Evaluable.TryGetValue(node, out var canEvaluate))
         {
             Visit(node);
             Evaluable.TryGetValue(node, out canEvaluate);

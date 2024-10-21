@@ -6,24 +6,31 @@
 /// <typeparam name="TEntity">The type of results to return.</typeparam>
 public sealed partial class FluentSqlBuilder<TEntity>
 {
+    /// <inheritdoc />
+    public string Sql
+        => SqlBuilder.ToString();
+
+    /// <inheritdoc />
+    public DynamicParameters Parameters
+        => SqlFormat.Parameters;
+
     /// <summary>
-    ///     Initializes a new instance of the <see cref="FluentSqlBuilder{TEntity}" /> class.
+    ///     The connection to a database.
     /// </summary>
-    public FluentSqlBuilder()
-    {
-        SqlBuilder = new StringBuilder();
+    public required DbConnection Connection { get; init; }
 
-        var entity = typeof(TEntity);
-        var table = entity.Name;
-
-        Append($"SELECT {TemporaryColumnsTemplate} FROM {table}s {DefaultEntityAliasTemplate}");
-    }
-
-    private StringBuilder SqlBuilder { get; }
+    private StringBuilder SqlBuilder { get; } = new();
 
     private SqlFormatter SqlFormat { get; } = new();
 
     private List<Type> JoiningTables { get; } = [];
+
+    private List<string> SelectSpecificColumns { get; } = [];
+
+    /// <summary>
+    ///     Use checks to know when to use Distinct.
+    /// </summary>
+    private bool HasDistinct { get; set; }
 
     /// <summary>
     ///     Use checks to know when to use Close Parenthesis.

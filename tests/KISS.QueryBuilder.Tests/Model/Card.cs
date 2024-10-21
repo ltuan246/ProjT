@@ -7,4 +7,5 @@ public class Card
     [Name("type")] public required string Type { get; set; }
     [Name("name")] public required string Name { get; set; }
     [Name("cost")] public int? Cost { get; set; }
+    [Ignore] public DustCost? DustCost { get; set; }
 }

@@ -5,9 +5,8 @@
 /// </summary>
 /// <typeparam name="TRecordset">The type in the recordset.</typeparam>
 public interface IQueryBuilder<TRecordset> :
-    ISelectBuilder,
-    ISelectDistinctBuilder,
-    IJoinBuilder,
+    ISelectBuilder<TRecordset>,
+    IJoinBuilder<TRecordset>,
     IWhereBuilder,
     IOrderByBuilder,
     IFetchBuilder,
