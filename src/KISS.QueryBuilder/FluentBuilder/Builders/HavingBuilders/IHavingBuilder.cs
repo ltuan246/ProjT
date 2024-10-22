@@ -3,18 +3,19 @@
 /// <summary>
 ///     An interface that defines the having builder type.
 /// </summary>
-public interface IHavingBuilder : IOrderByBuilderEntry
+/// <typeparam name="TRecordset">The type in the recordset.</typeparam>
+public interface IHavingBuilder<TRecordset> : IOrderByBuilderEntry<TRecordset>
 {
     /// <summary>
-    ///     Appends the <c>HAVING</c> clause and the interpolated string to the builder.
+    ///     Appends the <c>HAVING</c> clause to the builder.
     /// </summary>
-    /// <returns>The <see cref="IHavingBuilder" /> instance.</returns>
-    IHavingBuilder Having();
+    /// <returns>The <see cref="IHavingBuilder{TRecordset}" /> instance.</returns>
+    IHavingBuilder<TRecordset> Having();
 
     /// <summary>
-    ///     Appends the <c>HAVING</c> clause and the interpolated string to the builder.
+    ///     Appends the <c>HAVING</c> clause to the builder.
     /// </summary>
     /// <param name="condition">The value to determine whether the method should be executed.</param>
-    /// <returns>The <see cref="IHavingBuilder" /> instance.</returns>
-    IHavingBuilder Having(bool condition);
+    /// <returns>The <see cref="IHavingBuilder{TRecordset}" /> instance.</returns>
+    IHavingBuilder<TRecordset> Having(bool condition);
 }

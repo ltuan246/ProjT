@@ -7,8 +7,8 @@
 public interface IQueryBuilder<TRecordset> :
     ISelectBuilder<TRecordset>,
     IJoinBuilder<TRecordset>,
-    IWhereBuilder,
-    IOrderByBuilder,
+    IWhereBuilder<TRecordset>,
+    IOrderByBuilder<TRecordset>,
     IFetchBuilder,
     IOffsetRowsBuilder,
     ILimitBuilder,

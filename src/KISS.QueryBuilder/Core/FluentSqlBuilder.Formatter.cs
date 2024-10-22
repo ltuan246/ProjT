@@ -7,7 +7,10 @@
 public sealed partial class FluentSqlBuilder<TEntity>
 {
     private void Append(string value)
-        => SqlBuilder.Append(value);
+    {
+        SqlBuilder.Append(value);
+        SqlBuilder.Append("  ");
+    }
 
     private void AppendFormat(FormattableString formatString)
         => SqlBuilder.AppendFormat(SqlFormat, formatString.Format, formatString.GetArguments());

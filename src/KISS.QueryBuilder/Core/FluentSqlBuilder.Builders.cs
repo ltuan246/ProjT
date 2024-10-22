@@ -10,35 +10,29 @@ public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder<TEntity>, 
     /// <inheritdoc />
     public ISelectBuilder<TEntity> Select([NotNull] Expression<Func<TEntity, object>> selector)
     {
+        Append("SELECT");
+
+        if (HasDistinct)
+        {
+            Append("DISTINCT");
+        }
+
         switch (selector.Body)
         {
             case MemberExpression memberExpression:
-                SelectSpecificColumns.Add(memberExpression.Member.Name);
+                Translate(memberExpression);
                 break;
 
             case NewExpression newExpression:
-                // Handle multiple fields or field aliases
-                var selectList = newExpression.Members!
-                    .Select(m => m.Name)
-                    .Zip(newExpression.Arguments, (name, arg) =>
-                    {
-                        if (arg is MemberExpression memberArg)
-                        {
-                            return name == memberArg.Member.Name
-                                ? memberArg.Member.Name
-                                : $"{memberArg.Member.Name} AS {name}";
-                        }
-
-                        return name;
-                    })
-                    .ToArray();
-
-                SelectSpecificColumns.AddRange(selectList);
+                Translate(newExpression);
                 break;
 
             default:
                 throw new NotSupportedException("Expression not supported.");
         }
+
+        string tableAlias = GetTableAlias(typeof(TEntity));
+        Append($"FROM {typeof(TEntity).Name}s {tableAlias}");
 
         return this;
     }
@@ -51,43 +45,52 @@ public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder<TEntity>, 
     }
 
     /// <inheritdoc />
-    public IJoinBuilder<TEntity> Join<TRelation>(
-        Expression<Func<TEntity, object>> leftKeySelector,
-        Expression<Func<TRelation, object>> rightKeySelector)
+    public IJoinBuilder<TEntity> Join<TRelation, TKey>(
+        [NotNull] Expression<Func<TEntity, TRelation>> resultSelector,
+        [NotNull] Expression<Func<TEntity, TKey>> leftKeySelector,
+        [NotNull] Expression<Func<TRelation, TKey>> rightKeySelector)
     {
+        string tableAlias = GetTableAlias(typeof(TRelation));
+
+        Append($"JOIN {typeof(TRelation).Name}s {tableAlias} ON");
+        Translate(leftKeySelector.Body);
+        Append("=");
+        Translate(rightKeySelector.Body);
+
         return this;
     }
 
     /// <inheritdoc />
-    public IJoinBuilder<TEntity> Join<TRelation>(
+    public IJoinBuilder<TEntity> Join<TRelation, TKey>(
         bool condition,
-        Expression<Func<TEntity, object>> leftKeySelector,
-        Expression<Func<TRelation, object>> rightKeySelector)
-        => condition ? Join(leftKeySelector, rightKeySelector) : this;
+        Expression<Func<TEntity, TRelation>> resultSelector,
+        Expression<Func<TEntity, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        => condition ? Join(resultSelector, leftKeySelector, rightKeySelector) : this;
 
     /// <inheritdoc />
-    public IWhereBuilder Where() => throw new NotImplementedException();
+    public IWhereBuilder<TEntity> Where() => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IWhereBuilder Where(bool condition) => throw new NotImplementedException();
+    public IWhereBuilder<TEntity> Where(bool condition) => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IGroupByBuilder GroupBy() => throw new NotImplementedException();
+    public IGroupByBuilder<TEntity> GroupBy() => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IGroupByBuilder GroupBy(bool condition) => throw new NotImplementedException();
+    public IGroupByBuilder<TEntity> GroupBy(bool condition) => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IHavingBuilder Having() => throw new NotImplementedException();
+    public IHavingBuilder<TEntity> Having() => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IHavingBuilder Having(bool condition) => throw new NotImplementedException();
+    public IHavingBuilder<TEntity> Having(bool condition) => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IOrderByBuilder OrderBy() => throw new NotImplementedException();
+    public IOrderByBuilder<TEntity> OrderBy() => throw new NotImplementedException();
 
     /// <inheritdoc />
-    public IOrderByBuilder OrderBy(bool condition) => throw new NotImplementedException();
+    public IOrderByBuilder<TEntity> OrderBy(bool condition) => throw new NotImplementedException();
 
     /// <inheritdoc />
     public IFluentSqlBuilder Offset(int offset) => throw new NotImplementedException();
@@ -104,20 +107,8 @@ public sealed partial class FluentSqlBuilder<TEntity> : IQueryBuilder<TEntity>, 
     /// <inheritdoc />
     public IList<TEntity> ToList()
     {
-        List<string> clauses = ["SELECT"];
-
-        if (HasDistinct)
-        {
-            clauses.Add("DISTINCT");
-        }
-
-        clauses.Add(SelectSpecificColumns.Count != 0 ? string.Join(", ", SelectSpecificColumns) : "*");
-        clauses.Add($"FROM {typeof(TEntity).Name}s AS {DefaultEntityAliasTemplate}");
-        clauses.Add(Sql);
-
-        var query = string.Join(" ", clauses);
-
-        _ = Connection.Query<TEntity>(query, Parameters).ToList();
+        _ = Sql;
+        // _ = Connection.Query<TEntity>(Sql, Parameters).ToList();
 
         return [];
     }
