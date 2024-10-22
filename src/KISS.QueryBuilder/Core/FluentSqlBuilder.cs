@@ -23,9 +23,8 @@ public sealed partial class FluentSqlBuilder<TEntity>
 
     private SqlFormatter SqlFormat { get; } = new();
 
-    private List<Type> JoiningTables { get; } = [];
-
-    private List<string> SelectSpecificColumns { get; } = [];
+    private Dictionary<Type, string> JoiningTables { get; } =
+        new() { [typeof(TEntity)] = $"{DefaultTableAliasTemplate}0" };
 
     /// <summary>
     ///     Use checks to know when to use Distinct.
@@ -54,14 +53,22 @@ public sealed partial class FluentSqlBuilder<TEntity>
         SqlBuilder.Append(CloseParenthesis);
     }
 
-    private void AddCommaSeparated()
-        => SqlBuilder.Append(Comma);
+    private string GetTableAlias(Type type)
+    {
+        if (!JoiningTables.TryGetValue(type, out var tableAlias))
+        {
+            tableAlias = $"{DefaultTableAliasTemplate}{JoiningTables.Count}";
+            JoiningTables.Add(type, tableAlias);
+        }
+
+        return tableAlias;
+    }
 
     private void Map()
     {
         // Define parameters for the lambda expression
         var rParam = Expression.Parameter(typeof(TEntity), "r");
-        var parameters = JoiningTables
+        var parameters = JoiningTables.Keys
             .Select(table => Expression.Parameter(table, "e"))
             .ToList();
 
@@ -90,7 +97,7 @@ public sealed partial class FluentSqlBuilder<TEntity>
         var block = Expression.Block([..methods, rParam]);
 
         // Dynamically constructs the corresponding Func type using reflection.
-        List<Type> types = [typeof(TEntity), ..JoiningTables, typeof(TEntity)];
+        List<Type> types = [typeof(TEntity), ..JoiningTables.Keys, typeof(TEntity)];
         var funcType = typeof(Func<>).Assembly
             .GetType($"System.Func`{types.Count}")! // Func type has an additional return type
             .MakeGenericType([..types]);

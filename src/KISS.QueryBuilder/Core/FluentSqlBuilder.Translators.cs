@@ -119,7 +119,8 @@ public sealed partial class FluentSqlBuilder<TEntity>
                 break;
 
             case ParameterExpression:
-                Append(memberExpression.Member.Name);
+                string tableAlias = GetTableAlias(memberExpression.Member.DeclaringType!);
+                Append($"{tableAlias}.{memberExpression.Member.Name}");
                 break;
 
             case ConstantExpression constantExpression:
@@ -154,16 +155,23 @@ public sealed partial class FluentSqlBuilder<TEntity>
     /// <param name="newExpression">The nodes to visit.</param>
     private void Translate(NewExpression newExpression)
     {
-        using var enumerator = newExpression.Arguments.GetEnumerator();
-        if (enumerator.MoveNext())
-        {
-            Translate(enumerator.Current);
-            while (enumerator.MoveNext())
+        var selectList = newExpression.Members!
+            .Select(m => m.Name)
+            .Zip(newExpression.Arguments, (name, arg) =>
             {
-                AddCommaSeparated();
-                Translate(enumerator.Current);
-            }
-        }
+                if (arg is MemberExpression memberExpression)
+                {
+                    string tableAlias = GetTableAlias(memberExpression.Member.DeclaringType!);
+                    return $"{tableAlias}." + (name == memberExpression.Member.Name
+                        ? memberExpression.Member.Name
+                        : $"{memberExpression.Member.Name} AS {name}");
+                }
+
+                return name;
+            })
+            .ToArray();
+
+        Append(string.Join(Comma, selectList));
     }
 
     /// <summary>

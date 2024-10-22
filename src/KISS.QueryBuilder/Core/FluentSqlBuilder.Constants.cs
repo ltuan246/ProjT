@@ -9,12 +9,12 @@ public sealed partial class FluentSqlBuilder<TEntity>
     /// <summary>
     ///     Used to address <typeparamref name="TEntity"/>.
     /// </summary>
-    private const string DefaultEntityAliasTemplate = "Extend";
+    private const string DefaultTableAliasTemplate = "Extend";
 
     /// <summary>
     ///     Comma-separated string.
     /// </summary>
-    private const char Comma = ',';
+    private const string Comma = ", ";
 
     /// <summary>
     ///     Used to begin parenthetical text.
