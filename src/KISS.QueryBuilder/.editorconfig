@@ -1,5 +1,0 @@
-# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
-
-[*.cs]
-# CA1716: Identifiers should not match keywords
-dotnet_diagnostic.CA1716.severity = silent
