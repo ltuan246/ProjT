@@ -73,8 +73,7 @@ public sealed partial class FluentSqlBuilder<TRecordset>
                     var (evaluated, value) = GetValue(binaryExpression);
                     if (evaluated)
                     {
-                        // AppendFormat(value);
-                        Append(value.ToString());
+                        AppendFormat(value);
                     }
 
                     return;

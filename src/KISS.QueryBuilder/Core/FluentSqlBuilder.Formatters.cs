@@ -12,6 +12,9 @@ public sealed partial class FluentSqlBuilder<TRecordset>
         SqlBuilder.Append("  ");
     }
 
+    private void AppendFormat(FormattableString formatString)
+        => SqlBuilder.AppendFormat(SqlFormat, formatString.Format, formatString.GetArguments());
+
     private void AppendTableAlias(Type type)
     {
         if (!TableAliasesMap.TryGetValue(type, out var tableAlias))

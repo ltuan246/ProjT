@@ -9,4 +9,9 @@ public interface ISqlBuilder
     ///     Gets the generated the SQL.
     /// </summary>
     string Sql { get; }
+
+    /// <summary>
+    ///     A dynamic object that can be passed to the Query method instead of normal parameters.
+    /// </summary>
+    DynamicParameters Parameters { get; }
 }

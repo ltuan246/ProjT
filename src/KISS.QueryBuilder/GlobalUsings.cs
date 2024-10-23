@@ -1,7 +1,9 @@
 ﻿global using System;
 global using System.Text;
+global using System.Data;
 global using System.Linq.Expressions;
 global using System.Collections.Generic;
+global using Dapper;
 global using KISS.QueryBuilder.Core;
 global using KISS.QueryBuilder.Common;
 global using KISS.QueryBuilder.Builders;

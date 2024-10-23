@@ -11,7 +11,13 @@ public partial class FluentSqlBuilder<TRecordset>
     public string Sql
         => SqlBuilder.ToString();
 
+    /// <inheritdoc />
+    public DynamicParameters Parameters
+        => SqlFormat.Parameters;
+
     private StringBuilder SqlBuilder { get; } = new();
+
+    private SqlFormatter SqlFormat { get; } = new();
 
     private Type RootTable { get; } = typeof(TRecordset);
 
