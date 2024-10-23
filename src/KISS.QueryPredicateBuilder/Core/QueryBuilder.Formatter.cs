@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Core;
 
 /// <summary>
-/// Implements Custom Formatter, which returns string information for supplied objects based on custom criteria.
+///     Implements Custom Formatter, which returns string information for supplied objects based on custom criteria.
 /// </summary>
 public sealed partial class QueryBuilder
 {

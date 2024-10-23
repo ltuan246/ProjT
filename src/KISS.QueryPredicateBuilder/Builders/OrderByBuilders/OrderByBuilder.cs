@@ -1,7 +1,7 @@
 namespace KISS.QueryPredicateBuilder.Builders.OrderByBuilders;
 
 /// <summary>
-/// Defines the sort builder type.
+///     Defines the sort builder type.
 /// </summary>
 /// <typeparam name="TEntity">The type of the entity.</typeparam>
 public sealed class OrderByBuilder<TEntity>
@@ -9,7 +9,7 @@ public sealed class OrderByBuilder<TEntity>
     private List<string> Columns { get; } = [];
 
     /// <summary>
-    /// Appends an ascending sort to the builder.
+    ///     Appends an ascending sort to the builder.
     /// </summary>
     /// <param name="field">Sorts the results by field.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
@@ -21,7 +21,7 @@ public sealed class OrderByBuilder<TEntity>
     }
 
     /// <summary>
-    /// Appends a descending sort to the builder.
+    ///     Appends a descending sort to the builder.
     /// </summary>
     /// <param name="field">Sorts the results by field.</param>
     /// <typeparam name="TField">The type of the field.</typeparam>
@@ -33,7 +33,7 @@ public sealed class OrderByBuilder<TEntity>
     }
 
     /// <summary>
-    /// A builder for specifying which fields of an entity should sort.
+    ///     A builder for specifying which fields of an entity should sort.
     /// </summary>
     /// <returns>The ORDER BY clause.</returns>
     public OrderByDefinition Build()

@@ -6,7 +6,7 @@
 /// <typeparam name="TEntity">The type of the record.</typeparam>
 public sealed partial class FluentBuilder<TEntity>
 {
-    private StringBuilder StringBuilder { get; } = new();
+    private StringBuilder SqlBuilder { get; } = new();
 
     private SqlFormatter Formatter { get; } = new();
 
@@ -18,7 +18,7 @@ public sealed partial class FluentBuilder<TEntity>
     ///     The SQL to execute for the query.
     /// </summary>
     private string Sql
-        => StringBuilder.ToString();
+        => SqlBuilder.ToString();
 
     /// <summary>
     ///     The parameters to pass, if any.
@@ -39,7 +39,7 @@ public sealed partial class FluentBuilder<TEntity>
     private void OpenParentheses()
     {
         HasOpenParentheses = true;
-        StringBuilder.Append(BuilderConstants.OpenParentheses);
+        SqlBuilder.Append(BuilderConstants.OpenParentheses);
     }
 
     private void CloseParentheses()
@@ -50,11 +50,11 @@ public sealed partial class FluentBuilder<TEntity>
         }
 
         HasOpenParentheses = false;
-        StringBuilder.Append(BuilderConstants.CloseParentheses);
+        SqlBuilder.Append(BuilderConstants.CloseParentheses);
     }
 
     private void AddCommaSeparated()
-        => StringBuilder.Append(BuilderConstants.Comma);
+        => SqlBuilder.Append(BuilderConstants.Comma);
 
     private (bool Evaluated, FormattableString Value) GetValue(Expression node)
     {

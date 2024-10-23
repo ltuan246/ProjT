@@ -107,7 +107,13 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         // Arrange
         Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
 
-        // Act  
+        // Act
+        var ret = Connection.Retrieving<Card>()
+            .Select(c => new { c.Id, c.DustCost!.Cost })
+            .Join(c => c.DustCost, c => c.Id, dc => dc!.CardId)
+            .Where()
+            .Having();
+
         IList<Weather> weathers = Connection.Retrieve<Weather>()
             .Where(w => w.Id == exId)
             .ToList();
