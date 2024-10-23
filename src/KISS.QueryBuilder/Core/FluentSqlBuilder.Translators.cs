@@ -101,6 +101,45 @@ public sealed partial class FluentSqlBuilder<TRecordset>
     /// <param name="memberExpression">The nodes to visit.</param>
     private void Translate(MemberExpression memberExpression)
     {
+        switch (memberExpression.Expression)
+        {
+            case null:
+                switch (memberExpression.Member)
+                {
+                    case FieldInfo fieldInfo:
+                        var fieldType = fieldInfo.GetType();
+                        AppendFormat($"{fieldInfo.GetValue(fieldType)}");
+                        break;
+                    case PropertyInfo propertyInfo:
+                        var propType = propertyInfo.GetType();
+                        AppendFormat($"{propertyInfo.GetValue(propType)}");
+                        break;
+                }
+
+                break;
+
+            case ParameterExpression:
+                string tableAlias = GetTableAlias(memberExpression.Member.DeclaringType!);
+                Append($"{tableAlias}.{memberExpression.Member.Name}");
+                break;
+
+            case ConstantExpression constantExpression:
+                var (evaluated, value) = GetValue(memberExpression);
+                if (evaluated)
+                {
+                    AppendFormat(value);
+                }
+                else
+                {
+                    Translate(constantExpression);
+                }
+
+                break;
+
+            default:
+                Translate(memberExpression.Expression);
+                break;
+        }
     }
 
     /// <summary>
@@ -108,8 +147,7 @@ public sealed partial class FluentSqlBuilder<TRecordset>
     /// </summary>
     /// <param name="constantExpression">The nodes to visit.</param>
     private void Translate(ConstantExpression constantExpression)
-    {
-    }
+        => AppendFormat($"{constantExpression.Value}");
 
     /// <summary>
     ///     Visits the children of the NewExpression.
@@ -117,6 +155,23 @@ public sealed partial class FluentSqlBuilder<TRecordset>
     /// <param name="newExpression">The nodes to visit.</param>
     private void Translate(NewExpression newExpression)
     {
+        var selectList = newExpression.Members!
+            .Select(m => m.Name)
+            .Zip(newExpression.Arguments, (name, arg) =>
+            {
+                if (arg is MemberExpression memberExpression)
+                {
+                    string tableAlias = GetTableAlias(memberExpression.Member.DeclaringType!);
+                    return $"{tableAlias}." + (name == memberExpression.Member.Name
+                        ? memberExpression.Member.Name
+                        : $"{memberExpression.Member.Name} AS {name}");
+                }
+
+                return name;
+            })
+            .ToArray();
+
+        Append(string.Join(ClauseConstants.Comma, selectList));
     }
 
     /// <summary>

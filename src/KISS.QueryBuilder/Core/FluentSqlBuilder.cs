@@ -52,4 +52,15 @@ public partial class FluentSqlBuilder<TRecordset>
         HasOpenParentheses = false;
         SqlBuilder.Append(ClauseConstants.CloseParenthesis);
     }
+
+    private string GetTableAlias(Type type)
+    {
+        if (!TableAliasesMap.TryGetValue(type, out var tableAlias))
+        {
+            tableAlias = $"{ClauseConstants.DefaultTableAlias}{TableAliasesMap.Count}";
+            TableAliasesMap.Add(type, tableAlias);
+        }
+
+        return tableAlias;
+    }
 }
