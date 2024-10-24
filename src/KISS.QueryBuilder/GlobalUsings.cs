@@ -1,10 +1,12 @@
 ﻿global using System;
 global using System.Text;
 global using System.Data;
+global using System.Data.Common;
 global using System.Reflection;
 global using System.Linq;
 global using System.Linq.Expressions;
 global using System.Collections.Generic;
+global using System.Diagnostics.CodeAnalysis;
 global using Dapper;
 global using KISS.QueryBuilder.Core;
 global using KISS.QueryBuilder.Common;

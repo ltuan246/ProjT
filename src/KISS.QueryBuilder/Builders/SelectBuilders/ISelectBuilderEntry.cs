@@ -16,6 +16,7 @@ public interface ISelectBuilderEntry<TRecordset> : IFluentSqlBuilder<TRecordset>
     /// <summary>
     ///     Appends the <c>SELECT DISTINCT</c> clause to the builder.
     /// </summary>
+    /// <param name="selector">The table columns.</param>
     /// <returns>The <see cref="ISelectBuilder{TRecordset}" /> instance.</returns>
-    ISelectBuilder<TRecordset> SelectDistinct();
+    ISelectBuilder<TRecordset> SelectDistinct(Expression<Func<TRecordset, object>> selector);
 }

@@ -41,6 +41,16 @@ internal static class ClauseConstants
     internal const string From = "FROM";
 
     /// <summary>
+    ///     The <c>WHERE</c> text.
+    /// </summary>
+    internal const string Where = "WHERE";
+
+    /// <summary>
+    ///     The <c>AND</c> text.
+    /// </summary>
+    internal const string AndSeparator = "AND";
+
+    /// <summary>
     ///     The <c>JOIN</c> text.
     /// </summary>
     internal const string Join = "JOIN";

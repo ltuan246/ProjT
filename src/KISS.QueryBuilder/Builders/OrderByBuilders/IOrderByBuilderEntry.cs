@@ -9,8 +9,9 @@ public interface IOrderByBuilderEntry<TRecordset> : IFluentSqlBuilder<TRecordset
     /// <summary>
     ///     Appends the <c>ORDER BY</c> clause to the query.
     /// </summary>
+    /// <param name="selector">The table columns.</param>
     /// <returns>The <see cref="IOrderByBuilder{TRecordset}" /> instance.</returns>
-    IOrderByBuilder<TRecordset> OrderBy();
+    IOrderByBuilder<TRecordset> OrderBy(Expression<Func<TRecordset, object>> selector);
 
     /// <summary>
     ///     Appends the <c>ORDER BY</c> clause with a condition.

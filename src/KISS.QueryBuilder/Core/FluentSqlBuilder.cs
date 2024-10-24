@@ -7,6 +7,17 @@ namespace KISS.QueryBuilder.Core;
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 public partial class FluentSqlBuilder<TRecordset>
 {
+    /// <summary>
+    ///      Initializes a new instance of the <see cref="FluentSqlBuilder{TRecordset}"/> class.
+    /// </summary>
+    public FluentSqlBuilder()
+    {
+        var recType = typeof(TRecordset);
+        var tableAlias = GetTableAlias(recType);
+        SqlBuilder = new();
+        Append($"{ClauseConstants.Select} {tableAlias}.* FROM {recType.Name}s {tableAlias} ");
+    }
+
     /// <inheritdoc/>
     public string Sql
         => SqlBuilder.ToString();
@@ -15,7 +26,12 @@ public partial class FluentSqlBuilder<TRecordset>
     public DynamicParameters Parameters
         => SqlFormat.Parameters;
 
-    private StringBuilder SqlBuilder { get; } = new();
+    /// <summary>
+    ///     The connection to a database.
+    /// </summary>
+    public required DbConnection Connection { get; init; }
+
+    private StringBuilder SqlBuilder { get; init; }
 
     private SqlFormatter SqlFormat { get; } = new();
 
@@ -25,6 +41,8 @@ public partial class FluentSqlBuilder<TRecordset>
     {
         [typeof(TRecordset)] = $"{ClauseConstants.DefaultTableAlias}{0}"
     };
+
+    private List<ClauseAction> ClauseActions { get; set; } = [];
 
     /// <summary>
     ///     Use checks to know when to use Distinct.

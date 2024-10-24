@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentQueryBuilder;
+﻿namespace KISS.QueryBuilder;
 
 /// <summary>
 ///     An extension class for database connections.
@@ -11,6 +11,6 @@ public static class DbConnectionExtensions
     /// <param name="dbConnection">The database connections.</param>
     /// <typeparam name="TEntity">The type of the record.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public static FluentBuilder<TEntity> Retrieve<TEntity>(this DbConnection dbConnection)
+    public static FluentSqlBuilder<TEntity> Retrieve<TEntity>(this DbConnection dbConnection)
         => new() { Connection = dbConnection };
 }

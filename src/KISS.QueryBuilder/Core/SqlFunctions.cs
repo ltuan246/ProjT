@@ -1,10 +1,10 @@
-﻿namespace KISS.FluentQueryBuilder;
+﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
 ///     An expression that represents a function in a SQL.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public static class SqlExpression
+public static class SqlFunctions
 {
     /// <summary>
     ///     Appends the <c>BETWEEN</c> clause and the interpolated string to the builder.
