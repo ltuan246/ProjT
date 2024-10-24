@@ -68,6 +68,7 @@ public sealed partial class FluentSqlBuilder<TRecordset>
     {
         if (binaryExpression.NodeType is ExpressionType.ArrayIndex)
         {
+            // Handles array indexing in expressions, e.g., array[index]
             var arrayExpression = binaryExpression.Left;
             var indexExpression = binaryExpression.Right;
             var arrayAccessExpression = Expression.ArrayAccess(arrayExpression, indexExpression);
@@ -76,6 +77,7 @@ public sealed partial class FluentSqlBuilder<TRecordset>
         }
         else
         {
+            // Adds parentheses around logical operations (AND, OR)
             switch (binaryExpression.NodeType)
             {
                 case ExpressionType.Or:
@@ -108,10 +110,12 @@ public sealed partial class FluentSqlBuilder<TRecordset>
                 {
                     switch (memberExpression.Member)
                     {
+                        // Accessing a static field, get its type and value using reflection
                         case FieldInfo fieldInfo:
                             var fieldType = fieldInfo.GetType();
                             AppendFormat($"{fieldInfo.GetValue(fieldType)}");
                             break;
+                        // Accessing a static property, get its type and value using reflection
                         case PropertyInfo propertyInfo:
                             var propType = propertyInfo.GetType();
                             AppendFormat($"{propertyInfo.GetValue(propType)}");
@@ -138,16 +142,37 @@ public sealed partial class FluentSqlBuilder<TRecordset>
                     }
                     else
                     {
+                        /*
+                         Potential Cases Cannot Be Evaluated:
+
+                         1. Private Fields or Properties:
+                            - Accessing a private field or property, and reflection does not have access to that member.
+
+                         2. Static Members with Complex Initialization:
+                            - Accessing a static member that requires complex initialization (e.g., a static property that is dynamically computed or relies on external resources),
+                              it may not be evaluated at compile time or during the initial reflection.
+
+                         3. Indexers (Properties with Parameters):
+                            - Accessing an indexer (i.e., a property that takes parameters).
+
+                         4. Dynamic Members:
+                            - Accessing a member that is dynamically created at runtime.
+
+                         5. Members with Side Effects:
+                            - Accessing a property or field that involves side effects (e.g., a property with a complex getter that performs I/O operations or interacts with external services).
+                         */
                         Translate(constantExpression);
                     }
 
                     break;
                 }
 
+            // Accessing an object creation, method invocation, or method call (e.g., new Object().Property, obj.Method().Property)
             case NewExpression:
             case InvocationExpression:
             case MethodCallExpression:
                 {
+                    // Accessing the property or field (memberExpression.Member.Name) on the object or result of the method (memberExpression.Expression).
                     var member = Expression.Property(memberExpression.Expression, memberExpression.Member.Name);
                     var value = Expression.Lambda(member).Compile().DynamicInvoke();
                     AppendFormat($"{value}");
@@ -210,10 +235,13 @@ public sealed partial class FluentSqlBuilder<TRecordset>
     /// <param name="newExpression">The nodes to visit.</param>
     private void Translate(NewExpression newExpression)
     {
+        // newExpression.Members: This contains the members (e.g., properties) that are being projected.
+        // newExpression.Arguments: These are the expressions (e.g., field access, method calls) that correspond to the members.
         var selectList = newExpression.Members!
             .Select(m => m.Name)
             .Zip(newExpression.Arguments, (name, arg) =>
             {
+                // Accessing a field or property
                 if (arg is MemberExpression memberExpression)
                 {
                     string tableAlias = GetTableAlias(memberExpression.Member.DeclaringType!);
