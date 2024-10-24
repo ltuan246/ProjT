@@ -17,7 +17,7 @@ public sealed partial class FluentSqlBuilder<TRecordset>
 
     private void AppendTableAlias(Type type)
     {
-        SqlBuilder.Append($"{type.Name} {GetTableAlias(type)}");
+        SqlBuilder.Append($"{type.Name}s {GetTableAlias(type)}");
         SqlBuilder.Append("  ");
     }
 }

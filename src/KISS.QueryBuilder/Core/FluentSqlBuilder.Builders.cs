@@ -9,6 +9,8 @@ public partial class FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
     /// <inheritdoc/>
     public ISelectBuilder<TRecordset> Select(Expression<Func<TRecordset, object>> selector)
     {
+        SqlBuilder.Clear();
+
         Append(ClauseConstants.Select);
 
         if (HasDistinct)
