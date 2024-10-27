@@ -119,6 +119,14 @@ public sealed partial class FluentSqlBuilder<TRecordset> : ExpressionVisitor
             Evaluable.TryGetValue(node, out canEvaluate);
         }
 
+        /*
+         Understanding canReduce/canEvaluate:
+         - CanReduce = true: The expression can be simplified or transformed to another expression that is semantically equivalent but simpler or more direct.
+            If an expression involves a function call or any computation that requires execution to determine the final result, it as reducible.
+         - CanReduce = false: The expression is already in its simplest form, or simplification would not yield a valid expression.
+            If an expression is a basic data type and does not require any further computation, it as non-reducible.
+         */
+
         if (!canEvaluate)
         {
             return (false, $"");

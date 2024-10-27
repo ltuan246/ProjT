@@ -6,6 +6,16 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     private SqliteConnection Connection { get; init; } = fixture.Connection;
 
     [Fact]
+    public void InnerJoin_FluentBuilder_ReturnsDataIfTrue()
+    {
+        var dt = Connection.Retrieve<Card>()
+            .InnerJoin(e => e.DustCost,
+                e => e.Id,
+                r => r!.CardId)
+            .ToList();
+    }
+
+    [Fact]
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
     {
         // Arrange

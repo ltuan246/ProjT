@@ -46,8 +46,42 @@ public partial class FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
     }
 
     /// <inheritdoc/>
-    public IJoinBuilder<TRecordset> InnerJoin()
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
     {
+        switch (mapSelector.Body)
+        {
+            case MemberExpression memberExpression:
+                {
+                    var relationParam = Expression.Parameter(typeof(TRelation), GetTableAlias(typeof(TRelation)));
+                    var assignProperty = Expression.Property(ReturnParam, memberExpression.Member.Name);
+                    var assignExpression = Expression.Assign(assignProperty, relationParam);
+                    BlockMapSequence.Add((relationParam, assignExpression));
+
+                    // Define the expressions for setting Customer and merging OrderItems
+                    var accAssignment = Expression.Assign(
+                        Expression.Property(AccumulatedParam, memberExpression.Member.Name),
+                        Expression.Property(CurrentParam, memberExpression.Member.Name));
+                    BlockAggregateSequence.Add(accAssignment);
+
+                    break;
+                }
+
+            default:
+                throw new NotSupportedException("Expression not supported.");
+        }
+
+        Append(ClauseConstants.Join);
+        AppendTableAlias(typeof(TRelation));
+        Append(ClauseConstants.OnSeparator);
+
+        Translate(leftKeySelector.Body);
+        Append(BinaryOperandMap[ExpressionType.Equal]);
+        Translate(rightKeySelector.Body);
+
         return this;
     }
 
@@ -129,6 +163,51 @@ public partial class FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
     /// <inheritdoc/>
     public List<TRecordset> ToList()
     {
-        return Connection.Query<TRecordset>(Sql, Parameters).ToList();
+        if (BlockMapSequence.Count == 0)
+        {
+            return Connection.Query<TRecordset>(Sql, Parameters).ToList();
+        }
+
+        var map = CreatingMap();
+        var query = CreatingQuery();
+        var data = query.Invoke(null, [
+            Connection,
+            Sql, // SQL query string
+            map, // Mapping function
+            Parameters, // Dapper DynamicParameters
+            null, // IDbTransaction, set to null
+            true, // Buffered, true by default
+            "Id", // SplitOn, default to "Id"
+            null, // CommandTimeout, null
+            null // CommandType, null
+        ]);
+
+        _ = data;
+
+        // Combine expressions to form the body of the Aggregate lambda
+        var block = Expression.Block([..BlockAggregateSequence, AccumulatedParam]);
+
+        // Create the lambda expression (accumulatedOrder, currentOrder) => { ... }
+        var aggregateLambda = Expression.Lambda<Func<TRecordset, TRecordset, TRecordset>>(
+            block,
+            AccumulatedParam,
+            CurrentParam);
+
+        // Compile and execute the lambda using Aggregate
+        var aggregateFunc = aggregateLambda.Compile();
+
+        var aggregateMethod = typeof(Enumerable)
+            .GetMethods()
+            .FirstOrDefault(m => m.Name == "Aggregate" && m.GetParameters().Length == 2)!
+            .MakeGenericMethod(typeof(TRecordset));
+
+        var queryAndAggregateResult = aggregateMethod.Invoke(null, [
+            data!, // Result from Query
+            aggregateFunc // Lambda for aggregation
+        ]);
+
+        _ = queryAndAggregateResult;
+
+        return [];
     }
 }
