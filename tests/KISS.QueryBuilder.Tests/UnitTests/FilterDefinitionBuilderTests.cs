@@ -6,16 +6,6 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     private SqliteConnection Connection { get; init; } = fixture.Connection;
 
     [Fact]
-    public void InnerJoin_FluentBuilder_ReturnsDataIfTrue()
-    {
-        var dt = Connection.Retrieve<Card>()
-            .InnerJoin(e => e.DustCost,
-                e => e.Id,
-                r => r!.CardId)
-            .ToList();
-    }
-
-    [Fact]
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
     {
         // Arrange
@@ -192,5 +182,43 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         // Assert
         Assert.Equal(2, weathers.Count);
         Assert.All(weathers, weather => Assert.Contains(weather.Id, exIds));
+    }
+
+    [Fact]
+    public void Join_FluentBuilder_ReturnsExpectedCards()
+    {
+        // Arrange
+        const string exId = "BRM_010t2";
+        const string exCardFlatType = "MINION";
+
+        // Act
+        var cards = Connection.Retrieve<Card>()
+            .InnerJoin(e => e.CardFlat, // Map one-to-one relationship
+                e => e.Id,
+                r => r!.Id)
+            .InnerJoin(e => e.DustCost!, // Map one-to-many relationship
+                e => e.Id,
+                r => r.CardId)
+            .Where(w => w.Id == exId)
+            .ToList();
+
+        // Assert
+        Assert.Single(cards);
+        Assert.Collection(cards,
+            c =>
+            {
+                Assert.Equal(exId, c.Id);
+
+                Assert.NotNull(c.CardFlat);
+                Assert.Equal(exCardFlatType, c.CardFlat.Type);
+
+                Assert.NotNull(c.DustCost);
+                Assert.Equal(4, c.DustCost.Count);
+                Assert.Collection(c.DustCost,
+                    dc => Assert.Equal("CRAFTING_NORMAL", dc.Action),
+                    dc => Assert.Equal("CRAFTING_GOLDEN", dc.Action),
+                    dc => Assert.Equal("DISENCHANT_NORMAL", dc.Action),
+                    dc => Assert.Equal("DISENCHANT_GOLDEN", dc.Action));
+            });
     }
 }

@@ -8,17 +8,17 @@ namespace KISS.QueryBuilder.Core;
 public partial class FluentSqlBuilder<TRecordset>
 {
     /// <summary>
-    ///      Initializes a new instance of the <see cref="FluentSqlBuilder{TRecordset}"/> class.
+    ///     Initializes a new instance of the <see cref="FluentSqlBuilder{TRecordset}" /> class.
     /// </summary>
     public FluentSqlBuilder()
     {
         var recType = typeof(TRecordset);
         var tableAlias = GetTableAlias(recType);
-        SqlBuilder = new();
+        SqlBuilder = new StringBuilder();
         Append($"{ClauseConstants.Select} * FROM {recType.Name}s {tableAlias} ");
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public string Sql
         => SqlBuilder.ToString();
 
@@ -31,43 +31,26 @@ public partial class FluentSqlBuilder<TRecordset>
     /// </summary>
     public required DbConnection Connection { get; init; }
 
-    private StringBuilder SqlBuilder { get; init; }
+    private StringBuilder SqlBuilder { get; }
 
     private SqlFormatter SqlFormat { get; } = new();
 
     private Type RootTable { get; } = typeof(TRecordset);
 
     private ParameterExpression ReturnParam { get; } =
-        Expression.Parameter(typeof(TRecordset), ClauseConstants.DefaultTableAlias);
+        Expression.Variable(typeof(TRecordset), "currentRecordset");
 
     /// <summary>
     ///     The expressions are both ordered and intended for use in an Expression.Block.
     /// </summary>
     private List<(ParameterExpression Parameter, Expression Expr)> BlockMapSequence { get; } = [];
 
-    /// <summary>
-    ///     Define parameters for accumulated in the Aggregate.
-    /// </summary>
-    private ParameterExpression AccumulatedParam { get; } =
-        Expression.Parameter(typeof(TRecordset), "acc");
-
-    /// <summary>
-    ///     Define parameters for current in the Aggregate.
-    /// </summary>
-    private ParameterExpression CurrentParam { get; } =
-        Expression.Parameter(typeof(TRecordset), "cur");
-
-    /// <summary>
-    ///     The expressions are both ordered and intended for use in an Expression.Block.
-    /// </summary>
-    private List<Expression> BlockAggregateSequence { get; } = [];
-
     private Dictionary<Type, string> TableAliasesMap { get; } = new()
     {
         [typeof(TRecordset)] = $"{ClauseConstants.DefaultTableAlias}{0}"
     };
 
-    private List<ClauseAction> ClauseActions { get; set; } = [];
+    private List<ClauseAction> ClauseActions { get; } = [];
 
     /// <summary>
     ///     Use checks to know when to use Distinct.
@@ -107,19 +90,51 @@ public partial class FluentSqlBuilder<TRecordset>
         return tableAlias;
     }
 
-    private Delegate CreatingMap()
+    /// <summary>
+    ///     Generates a delegate that maps records into a dictionary based on a unique identifier (e.g., `Id`).
+    ///     If a record with the given identifier does not already exist in the dictionary, it will be added.
+    ///     This delegate is later used by Dapper as a custom mapping function for database records.
+    /// </summary>
+    /// <param name="dict">A dictionary used to store and retrieve records of type `TRecordset` by ID.</param>
+    /// <returns>A compiled delegate (Func) that performs dictionary lookups and conditionally adds new records.</returns>
+    private Delegate BuildMapRecordset(Dictionary<string, TRecordset> dict)
     {
+        // Get the type of the dictionary parameter to use in reflection
+        var dictType = dict.GetType();
+
         // Define parameters for the lambda expression
         var parameters = BlockMapSequence.Select(e => e.Parameter).ToList();
 
         // Define multiple expressions (Access method).
         var methods = BlockMapSequence.Select(e => e.Expr).ToList();
 
-        // Create block expression
-        // The list of expressions is passed to Expression.Block as a parameter.
-        // Expression.Block executes the expressions in order.
-        // It returns the last expression in the block, which is rParam (the TEntity).
-        var block = Expression.Block([.. methods, ReturnParam]);
+        // Create a constant expression representing the dictionary, so it can be used in the expression tree
+        var dictParam = Expression.Constant(dict);
+
+        // Define a parameter expression for the lambda function, representing a single record of type TRecordset
+        var recordsetParam = Expression.Parameter(typeof(TRecordset), "recordset");
+
+        // Create a call to the dictionary's TryGetValue method to check if a record exists by its Id property
+        var tryGetValueCall = Expression.Call(
+            dictParam,
+            dictType.GetMethod("TryGetValue")!,
+            Expression.Property(recordsetParam, "Id"),
+            ReturnParam);
+
+        // Define a block to add a new record to the dictionary if TryGetValue fails
+        var addNewToDictBlock = Expression.Block(
+            Expression.Assign(ReturnParam, recordsetParam),
+            Expression.Call(
+                dictParam,
+                dictType.GetMethod("Add")!,
+                Expression.Property(recordsetParam, "Id"),
+                recordsetParam));
+
+        // If the record is not in the dictionary (TryGetValue returns false), add it using the block defined above
+        var ifNotInDict = Expression.IfThen(Expression.IsFalse(tryGetValueCall), addNewToDictBlock);
+
+        // Combine expressions into a block: check dictionary, execute additional methods, and return result
+        var block = Expression.Block([ReturnParam], [ifNotInDict, .. methods, ReturnParam]);
 
         // Dynamically constructs the corresponding Func type using reflection.
         List<Type> types = [.. TableAliasesMap.Keys, typeof(TRecordset)];
@@ -128,7 +143,7 @@ public partial class FluentSqlBuilder<TRecordset>
             .MakeGenericType([.. types]);
 
         // Create the lambda expression
-        var lambda = Expression.Lambda(funcType, block, [ReturnParam, .. parameters]);
+        var lambda = Expression.Lambda(funcType, block, [recordsetParam, .. parameters]);
 
         // Compile the expression tree into a delegate
         var map = lambda.Compile();
@@ -136,14 +151,24 @@ public partial class FluentSqlBuilder<TRecordset>
         return map;
     }
 
+    /// <summary>
+    ///     Locates the appropriate generic `Query` method from Dapper's `SqlMapper` type, which allows custom mapping.
+    ///     Constructs a version of this method with the correct generic type arguments based on `TRecordset` and
+    ///     additional types provided by `TableAliasesMap`.
+    /// </summary>
+    /// <returns>A MethodInfo object representing the generic `Query` method tailored for the type mappings.</returns>
     private MethodInfo CreatingQuery()
     {
+        // Create a list of parameter types for the query method
         List<Type> types = [.. TableAliasesMap.Keys, typeof(TRecordset)];
+
+        // Find a generic method named "Query" in SqlMapper with the correct number of generic arguments
         var queryMethod = typeof(SqlMapper)
             .GetMethods()
             .First(m => m is { Name: "Query", IsGenericMethod: true }
                         && m.GetGenericArguments().Length == types.Count);
 
+        // Create a specialized generic method by applying types as generic parameters
         var method = queryMethod.MakeGenericMethod([.. types]);
 
         return method;

@@ -7,5 +7,7 @@ public class Card
     [Name("type")] public required string Type { get; set; }
     [Name("name")] public required string Name { get; set; }
     [Name("cost")] public int? Cost { get; set; }
-    [Ignore, NotMapped] public DustCost? DustCost { get; set; }
+
+    [Ignore, NotMapped] public CardFlat? CardFlat { get; set; }
+    [Ignore, NotMapped] public List<DustCost>? DustCost { get; set; }
 }

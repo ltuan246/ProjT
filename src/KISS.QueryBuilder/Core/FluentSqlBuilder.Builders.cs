@@ -57,15 +57,9 @@ public partial class FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
             case MemberExpression memberExpression:
                 {
                     var relationParam = Expression.Parameter(typeof(TRelation), GetTableAlias(typeof(TRelation)));
-                    var assignProperty = Expression.Property(ReturnParam, memberExpression.Member.Name);
-                    var assignExpression = Expression.Assign(assignProperty, relationParam);
+                    var currentProperty = Expression.Property(ReturnParam, memberExpression.Member.Name);
+                    var assignExpression = Expression.Assign(currentProperty, relationParam);
                     BlockMapSequence.Add((relationParam, assignExpression));
-
-                    // Define the expressions for setting Customer and merging OrderItems
-                    var accAssignment = Expression.Assign(
-                        Expression.Property(AccumulatedParam, memberExpression.Member.Name),
-                        Expression.Property(CurrentParam, memberExpression.Member.Name));
-                    BlockAggregateSequence.Add(accAssignment);
 
                     break;
                 }
@@ -86,10 +80,67 @@ public partial class FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
     }
 
     /// <inheritdoc/>
-    public IJoinBuilder<TRecordset> InnerJoin(bool condition)
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
     {
+        switch (mapSelector.Body)
+        {
+            case MemberExpression memberExpression:
+                {
+                    var relationParam = Expression.Parameter(typeof(TRelation), GetTableAlias(typeof(TRelation)));
+                    var currentProperty = Expression.Property(ReturnParam, memberExpression.Member.Name);
+
+                    var newList = Expression.IfThen(
+                        Expression.Equal(currentProperty, Expression.Constant(null)),
+                        Expression.Assign(currentProperty, Expression.New(typeof(List<TRelation>))));
+
+                    // Add relation to mapSelector if it exists
+                    var addToList = Expression.IfThen(
+                        Expression.NotEqual(relationParam, Expression.Constant(null)),
+                        Expression.Block(
+                            newList,
+                            Expression.Call(currentProperty, "Add", null, relationParam)));
+
+                    BlockMapSequence.Add((relationParam, addToList));
+
+                    break;
+                }
+
+            default:
+                throw new NotSupportedException("Expression not supported.");
+        }
+
+        Append(ClauseConstants.Join);
+        AppendTableAlias(typeof(TRelation));
+        Append(ClauseConstants.OnSeparator);
+
+        Translate(leftKeySelector.Body);
+        Append(BinaryOperandMap[ExpressionType.Equal]);
+        Translate(rightKeySelector.Body);
+
         return this;
     }
+
+    /// <inheritdoc/>
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        bool condition,
+        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
+        => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
+
+    /// <inheritdoc/>
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        bool condition,
+        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
+        => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
 
     /// <inheritdoc/>
     public IWhereBuilder<TRecordset> Where(Expression<Func<TRecordset, bool>> predicate)
@@ -168,9 +219,10 @@ public partial class FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
             return Connection.Query<TRecordset>(Sql, Parameters).ToList();
         }
 
-        var map = CreatingMap();
+        Dictionary<string, TRecordset> dict = [];
+        var map = BuildMapRecordset(dict);
         var query = CreatingQuery();
-        var data = query.Invoke(null, [
+        _ = query.Invoke(null, [
             Connection,
             Sql, // SQL query string
             map, // Mapping function
@@ -182,32 +234,6 @@ public partial class FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
             null // CommandType, null
         ]);
 
-        _ = data;
-
-        // Combine expressions to form the body of the Aggregate lambda
-        var block = Expression.Block([..BlockAggregateSequence, AccumulatedParam]);
-
-        // Create the lambda expression (accumulatedOrder, currentOrder) => { ... }
-        var aggregateLambda = Expression.Lambda<Func<TRecordset, TRecordset, TRecordset>>(
-            block,
-            AccumulatedParam,
-            CurrentParam);
-
-        // Compile and execute the lambda using Aggregate
-        var aggregateFunc = aggregateLambda.Compile();
-
-        var aggregateMethod = typeof(Enumerable)
-            .GetMethods()
-            .FirstOrDefault(m => m.Name == "Aggregate" && m.GetParameters().Length == 2)!
-            .MakeGenericMethod(typeof(TRecordset));
-
-        var queryAndAggregateResult = aggregateMethod.Invoke(null, [
-            data!, // Result from Query
-            aggregateFunc // Lambda for aggregation
-        ]);
-
-        _ = queryAndAggregateResult;
-
-        return [];
+        return dict.Values.ToList();
     }
 }
