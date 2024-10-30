@@ -1,12 +1,11 @@
-namespace KISS.QueryBuilder.Core;
+﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
 ///     Implements <see cref="ExpressionVisitor" /> for the <see cref="FluentSqlBuilder{TRecordset}" /> type.
 ///     Traversing and analyzing LINQ expression trees and determining which parts of the expression tree
 ///     are evaluable at runtime (i.e., whether the expression can be simplified to a value).
 /// </summary>
-/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-public sealed partial class FluentSqlBuilder<TRecordset> : ExpressionVisitor
+internal sealed partial class QueryVisitor : ExpressionVisitor
 {
     /// <summary>
     ///     A stack that holds expressions during the traversal process. This is used to track where we are in the tree.

@@ -1,10 +1,9 @@
-namespace KISS.QueryBuilder.Core;
+﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
-///     Declares operations for the <see cref="FluentSqlBuilder{TRecordset}" /> type.
+///     Declares operations for the <see cref="QueryVisitor" /> type.
 /// </summary>
-/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-public sealed partial class FluentSqlBuilder<TRecordset>
+internal sealed partial class QueryVisitor
 {
     private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
     {
@@ -244,7 +243,7 @@ public sealed partial class FluentSqlBuilder<TRecordset>
                 // Accessing a field or property
                 if (arg is MemberExpression memberExpression)
                 {
-                    string tableAlias = GetTableAlias(memberExpression.Member.DeclaringType!);
+                    var tableAlias = GetTableAlias(memberExpression.Member.DeclaringType!);
                     return $"{tableAlias}." + (name == memberExpression.Member.Name
                         ? memberExpression.Member.Name
                         : $"{memberExpression.Member.Name} AS {name}");

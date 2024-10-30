@@ -33,7 +33,7 @@ internal static class ClauseConstants
     /// <summary>
     ///     The <c>DISTINCT</c> text.
     /// </summary>
-    internal const string Distinct = "DISTINCT";
+    internal const string SelectDistinct = "SELECT DISTINCT";
 
     /// <summary>
     ///     The <c>FROM</c> text.

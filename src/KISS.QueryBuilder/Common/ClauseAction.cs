@@ -6,6 +6,11 @@
 internal enum ClauseAction
 {
     Select,
-    SelectDistinct,
-    Where
+    Join,
+    Where,
+    GroupBy,
+    Having,
+    OrderBy,
+    Limit,
+    Offset
 }

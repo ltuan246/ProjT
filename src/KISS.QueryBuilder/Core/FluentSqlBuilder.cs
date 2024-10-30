@@ -1,176 +1,178 @@
 namespace KISS.QueryBuilder.Core;
 
 /// <summary>
-///     A class that defines the fluent SQL builder type.
-///     The core <see cref="FluentSqlBuilder{TRecordset}" /> partial class.
+///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
+/// <param name="Connection">The connection to a database.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-public partial class FluentSqlBuilder<TRecordset>
+public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQueryBuilder<TRecordset>
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="FluentSqlBuilder{TRecordset}" /> class.
+    ///     Stores the query components categorized by clauses.
     /// </summary>
-    public FluentSqlBuilder()
+    private Dictionary<ClauseAction, List<IQueryComponent>> QueryComponents { get; } = new()
     {
-        var recType = typeof(TRecordset);
-        var tableAlias = GetTableAlias(recType);
-        SqlBuilder = new StringBuilder();
-        Append($"{ClauseConstants.Select} * FROM {recType.Name}s {tableAlias} ");
-    }
-
-    /// <inheritdoc />
-    public string Sql
-        => SqlBuilder.ToString();
-
-    /// <inheritdoc />
-    public DynamicParameters Parameters
-        => SqlFormat.Parameters;
-
-    /// <summary>
-    ///     The connection to a database.
-    /// </summary>
-    public required DbConnection Connection { get; init; }
-
-    private StringBuilder SqlBuilder { get; }
-
-    private SqlFormatter SqlFormat { get; } = new();
-
-    private Type RootTable { get; } = typeof(TRecordset);
-
-    private ParameterExpression ReturnParam { get; } =
-        Expression.Variable(typeof(TRecordset), "currentRecordset");
-
-    /// <summary>
-    ///     The expressions are both ordered and intended for use in an Expression.Block.
-    /// </summary>
-    private List<(ParameterExpression Parameter, Expression Expr)> BlockMapSequence { get; } = [];
-
-    private Dictionary<Type, string> TableAliasesMap { get; } = new()
-    {
-        [typeof(TRecordset)] = $"{ClauseConstants.DefaultTableAlias}{0}"
+        { ClauseAction.Select, [new SelectComponent()] },
+        { ClauseAction.Join, [] },
+        { ClauseAction.Where, [] },
+        { ClauseAction.GroupBy, [] },
+        { ClauseAction.Having, [] },
+        { ClauseAction.OrderBy, [] },
+        { ClauseAction.Limit, [] },
+        { ClauseAction.Offset, [] }
     };
 
-    private List<ClauseAction> ClauseActions { get; } = [];
-
-    /// <summary>
-    ///     Use checks to know when to use Distinct.
-    /// </summary>
-    private bool HasDistinct { get; set; }
-
-    /// <summary>
-    ///     Use checks to know when to use Close Parenthesis.
-    /// </summary>
-    private bool HasOpenParentheses { get; set; }
-
-    private void OpenParentheses()
+    /// <inheritdoc/>
+    public ISelectBuilder<TRecordset> Select(Expression<Func<TRecordset, object>> selector)
     {
-        HasOpenParentheses = true;
-        SqlBuilder.Append(ClauseConstants.OpenParenthesis);
+        SelectComponent component = new(selector.Body);
+        QueryComponents[ClauseAction.Select] = [component];
+        return this;
     }
 
-    private void CloseParentheses()
+    /// <inheritdoc/>
+    public ISelectBuilder<TRecordset> SelectDistinct(Expression<Func<TRecordset, object>> selector)
     {
-        if (!HasOpenParentheses)
+        SelectDistinctComponent component = new(selector.Body);
+        QueryComponents[ClauseAction.Select] = [component];
+        return Select(selector);
+    }
+
+    /// <inheritdoc/>
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
+    {
+        JoinComponent component = new(typeof(TRelation), mapSelector.Body, leftKeySelector.Body, rightKeySelector.Body);
+        QueryComponents[ClauseAction.Join].Add(component);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
+    {
+        JoinComponent component = new(typeof(TRelation), mapSelector.Body, leftKeySelector.Body, rightKeySelector.Body);
+        QueryComponents[ClauseAction.Join].Add(component);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        bool condition,
+        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
+        => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
+
+    /// <inheritdoc/>
+    public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
+        bool condition,
+        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, TKey>> leftKeySelector,
+        Expression<Func<TRelation, TKey>> rightKeySelector)
+        where TKey : IComparable<TKey>
+        => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
+
+    /// <inheritdoc/>
+    public IWhereBuilder<TRecordset> Where(Expression<Func<TRecordset, bool>> predicate)
+    {
+        WhereComponent component = new(predicate.Body);
+        QueryComponents[ClauseAction.Where].Add(component);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IWhereBuilder<TRecordset> Where(bool condition, Expression<Func<TRecordset, bool>> predicate)
+        => condition ? Where(predicate) : this;
+
+    /// <inheritdoc/>
+    public IGroupByBuilder<TRecordset> GroupBy()
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IGroupByBuilder<TRecordset> GroupBy(bool condition)
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IHavingBuilder<TRecordset> Having()
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IHavingBuilder<TRecordset> Having(bool condition)
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IOrderByBuilder<TRecordset> OrderBy(Expression<Func<TRecordset, object>> selector)
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IOrderByBuilder<TRecordset> OrderBy(bool condition)
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IOffsetBuilder<TRecordset> Limit(int rows)
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IFluentSqlBuilder<TRecordset> Offset(int offset)
+    {
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public List<TRecordset> ToList()
+    {
+        QueryVisitor visitor = new(typeof(TRecordset));
+
+        foreach (var components in QueryComponents.Values)
         {
-            return;
+            foreach (var component in components)
+            {
+                component.Accept(visitor);
+            }
         }
 
-        HasOpenParentheses = false;
-        SqlBuilder.Append(ClauseConstants.CloseParenthesis);
-    }
-
-    private string GetTableAlias(Type type)
-    {
-        if (!TableAliasesMap.TryGetValue(type, out var tableAlias))
+        if (QueryComponents[ClauseAction.Join].Count != 0)
         {
-            tableAlias = $"{ClauseConstants.DefaultTableAlias}{TableAliasesMap.Count}";
-            TableAliasesMap.Add(type, tableAlias);
+            Dictionary<string, TRecordset> dict = [];
+            var map = visitor.BuildMapRecordset(dict);
+            var query = visitor.CreatingQuery<TRecordset>();
+            _ = query.Invoke(null, [
+                Connection,
+                visitor.Sql, // SQL query string
+                map, // Mapping function
+                visitor.Parameters, // Dapper DynamicParameters
+                null, // IDbTransaction, set to null
+                true, // Buffered, true by default
+                "Id", // SplitOn, default to "Id"
+                null, // CommandTimeout, null
+                null // CommandType, null
+            ]);
+
+            return dict.Values.ToList();
         }
 
-        return tableAlias;
-    }
-
-    /// <summary>
-    ///     Generates a delegate that maps records into a dictionary based on a unique identifier (e.g., `Id`).
-    ///     If a record with the given identifier does not already exist in the dictionary, it will be added.
-    ///     This delegate is later used by Dapper as a custom mapping function for database records.
-    /// </summary>
-    /// <param name="dict">A dictionary used to store and retrieve records of type `TRecordset` by ID.</param>
-    /// <returns>A compiled delegate (Func) that performs dictionary lookups and conditionally adds new records.</returns>
-    private Delegate BuildMapRecordset(Dictionary<string, TRecordset> dict)
-    {
-        // Get the type of the dictionary parameter to use in reflection
-        var dictType = dict.GetType();
-
-        // Define parameters for the lambda expression
-        var parameters = BlockMapSequence.Select(e => e.Parameter).ToList();
-
-        // Define multiple expressions (Access method).
-        var methods = BlockMapSequence.Select(e => e.Expr).ToList();
-
-        // Create a constant expression representing the dictionary, so it can be used in the expression tree
-        var dictParam = Expression.Constant(dict);
-
-        // Define a parameter expression for the lambda function, representing a single record of type TRecordset
-        var recordsetParam = Expression.Parameter(typeof(TRecordset), "recordset");
-
-        // Create a call to the dictionary's TryGetValue method to check if a record exists by its Id property
-        var tryGetValueCall = Expression.Call(
-            dictParam,
-            dictType.GetMethod("TryGetValue")!,
-            Expression.Property(recordsetParam, "Id"),
-            ReturnParam);
-
-        // Define a block to add a new record to the dictionary if TryGetValue fails
-        var addNewToDictBlock = Expression.Block(
-            Expression.Assign(ReturnParam, recordsetParam),
-            Expression.Call(
-                dictParam,
-                dictType.GetMethod("Add")!,
-                Expression.Property(recordsetParam, "Id"),
-                recordsetParam));
-
-        // If the record is not in the dictionary (TryGetValue returns false), add it using the block defined above
-        var ifNotInDict = Expression.IfThen(Expression.IsFalse(tryGetValueCall), addNewToDictBlock);
-
-        // Combine expressions into a block: check dictionary, execute additional methods, and return result
-        var block = Expression.Block([ReturnParam], [ifNotInDict, .. methods, ReturnParam]);
-
-        // Dynamically constructs the corresponding Func type using reflection.
-        List<Type> types = [.. TableAliasesMap.Keys, typeof(TRecordset)];
-        var funcType = typeof(Func<>).Assembly
-            .GetType($"System.Func`{types.Count}")! // Func type has an additional return type
-            .MakeGenericType([.. types]);
-
-        // Create the lambda expression
-        var lambda = Expression.Lambda(funcType, block, [recordsetParam, .. parameters]);
-
-        // Compile the expression tree into a delegate
-        var map = lambda.Compile();
-
-        return map;
-    }
-
-    /// <summary>
-    ///     Locates the appropriate generic `Query` method from Dapper's `SqlMapper` type, which allows custom mapping.
-    ///     Constructs a version of this method with the correct generic type arguments based on `TRecordset` and
-    ///     additional types provided by `TableAliasesMap`.
-    /// </summary>
-    /// <returns>A MethodInfo object representing the generic `Query` method tailored for the type mappings.</returns>
-    private MethodInfo CreatingQuery()
-    {
-        // Create a list of parameter types for the query method
-        List<Type> types = [.. TableAliasesMap.Keys, typeof(TRecordset)];
-
-        // Find a generic method named "Query" in SqlMapper with the correct number of generic arguments
-        var queryMethod = typeof(SqlMapper)
-            .GetMethods()
-            .First(m => m is { Name: "Query", IsGenericMethod: true }
-                        && m.GetGenericArguments().Length == types.Count);
-
-        // Create a specialized generic method by applying types as generic parameters
-        var method = queryMethod.MakeGenericMethod([.. types]);
-
-        return method;
+        return Connection.Query<TRecordset>(visitor.Sql, visitor.Parameters).ToList();
     }
 }

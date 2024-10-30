@@ -19,3 +19,5 @@ global using KISS.QueryBuilder.Builders.HavingBuilders;
 global using KISS.QueryBuilder.Builders.OrderByBuilders;
 global using KISS.QueryBuilder.Builders.LimitBuilders;
 global using KISS.QueryBuilder.Builders.OffsetBuilders;
+global using KISS.QueryBuilder.Visitors;
+global using KISS.QueryBuilder.Visitors.QueryComponents;

@@ -1,10 +1,9 @@
-namespace KISS.QueryBuilder.Core;
+﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
-///     Implements the Formatter for the <see cref="FluentSqlBuilder{TRecordset}" /> type.
+///     Implements the Formatter for the <see cref="QueryVisitor" /> type.
 /// </summary>
-/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-public sealed partial class FluentSqlBuilder<TRecordset>
+internal sealed partial class QueryVisitor
 {
     private void Append(string value)
     {
