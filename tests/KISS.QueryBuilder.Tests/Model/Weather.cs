@@ -1,6 +1,6 @@
 namespace KISS.QueryBuilder.Tests.Model;
 
-public class Weather
+public class Weather : IEntityBuilder
 {
     [Name("id")] public required Guid Id { get; init; }
 
