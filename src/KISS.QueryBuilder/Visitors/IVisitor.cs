@@ -22,6 +22,12 @@ internal interface IVisitor
     /// <summary>
     ///     Visit methods for <paramref name="element" />.
     /// </summary>
+    /// <param name="element">The SelectFromComponent.</param>
+    void Visit(SelectFromComponent element);
+
+    /// <summary>
+    ///     Visit methods for <paramref name="element" />.
+    /// </summary>
     /// <param name="element">The JoinComponent.</param>
     void Visit(JoinComponent element);
 
@@ -30,4 +36,10 @@ internal interface IVisitor
     /// </summary>
     /// <param name="element">The WhereComponent.</param>
     void Visit(WhereComponent element);
+
+    /// <summary>
+    ///     Visit methods for <paramref name="element" />.
+    /// </summary>
+    /// <param name="element">The GroupByComponent.</param>
+    void Visit(GroupByComponent element);
 }

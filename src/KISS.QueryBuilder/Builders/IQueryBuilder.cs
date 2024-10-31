@@ -13,4 +13,5 @@ public interface IQueryBuilder<TRecordset> :
     IGroupByBuilder<TRecordset>,
     IOrderByBuilder<TRecordset>,
     ILimitBuilder<TRecordset>,
-    IOffsetBuilder<TRecordset>;
+    IOffsetBuilder<TRecordset>
+    where TRecordset : IEntityBuilder;

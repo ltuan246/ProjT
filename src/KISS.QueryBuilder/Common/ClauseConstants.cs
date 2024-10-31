@@ -59,4 +59,9 @@ internal static class ClauseConstants
     ///     The <c>ON</c> text.
     /// </summary>
     internal const string OnSeparator = "ON";
+
+    /// <summary>
+    ///     The <c>GROUP BY</c> text.
+    /// </summary>
+    internal const string GroupBy = "GROUP BY";
 }

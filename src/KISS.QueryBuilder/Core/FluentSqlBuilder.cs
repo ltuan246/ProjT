@@ -6,13 +6,15 @@ namespace KISS.QueryBuilder.Core;
 /// <param name="Connection">The connection to a database.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQueryBuilder<TRecordset>
+    where TRecordset : IEntityBuilder
 {
     /// <summary>
     ///     Stores the query components categorized by clauses.
     /// </summary>
-    private Dictionary<ClauseAction, List<IQueryComponent>> QueryComponents { get; } = new()
+    private Dictionary<ClauseAction, List<IQueryComponent>> QueryComponents { get; init; } = new()
     {
         { ClauseAction.Select, [new SelectComponent()] },
+        { ClauseAction.SelectFrom, [new SelectFromComponent(typeof(TRecordset))] },
         { ClauseAction.Join, [] },
         { ClauseAction.Where, [] },
         { ClauseAction.GroupBy, [] },
@@ -40,10 +42,11 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
 
     /// <inheritdoc/>
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
-        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TRelation?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
         where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder
     {
         JoinComponent component = new(typeof(TRelation), mapSelector.Body, leftKeySelector.Body, rightKeySelector.Body);
         QueryComponents[ClauseAction.Join].Add(component);
@@ -52,10 +55,11 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
 
     /// <inheritdoc/>
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
-        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, List<TRelation>?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
         where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder
     {
         JoinComponent component = new(typeof(TRelation), mapSelector.Body, leftKeySelector.Body, rightKeySelector.Body);
         QueryComponents[ClauseAction.Join].Add(component);
@@ -65,19 +69,21 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
     /// <inheritdoc/>
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         bool condition,
-        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TRelation?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
         where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder
         => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
 
     /// <inheritdoc/>
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         bool condition,
-        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, List<TRelation>?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
         where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder
         => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
 
     /// <inheritdoc/>
@@ -93,13 +99,24 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         => condition ? Where(predicate) : this;
 
     /// <inheritdoc/>
-    public IGroupByBuilder<TRecordset> GroupBy()
+    public IGroupByBuilder<TMap> GroupBy<TKey, TMap>(
+        Expression<Func<TRecordset, TKey>> keySelector,
+        Expression<Func<TKey, List<TRecordset>, TMap>> mapSelector)
+        where TKey : IComparable<TKey>
+        where TMap : IEntityBuilder
     {
-        return this;
+        SelectComponent selectComponent = new(mapSelector.Body);
+        QueryComponents[ClauseAction.Select] = [selectComponent];
+
+        GroupByComponent groupByComponent = new(keySelector.Body);
+        QueryComponents[ClauseAction.GroupBy] = [groupByComponent];
+
+        IGroupByBuilder<TMap> builder = new FluentSqlBuilder<TMap>(Connection) { QueryComponents = QueryComponents };
+        return builder;
     }
 
     /// <inheritdoc/>
-    public IGroupByBuilder<TRecordset> GroupBy(bool condition)
+    public IAggregateBuilder<TRecordset> Aggregate()
     {
         return this;
     }

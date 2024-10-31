@@ -7,16 +7,11 @@
 /// <param name="recordset">The type representing the database record set.</param>
 internal sealed partial class QueryVisitor(Type recordset) : ISqlBuilder
 {
-    private Type RootTable { get; } = recordset;
-
     private StringBuilder SqlBuilder { get; } = new();
 
     private SqlFormatter SqlFormat { get; } = new();
 
-    private Dictionary<Type, string> TableAliasesMap { get; } = new()
-    {
-        { recordset, $"{ClauseConstants.DefaultTableAlias}{0}" }
-    };
+    private Dictionary<Type, string> TableAliasesMap { get; } = [];
 
     private ParameterExpression ReturnParam { get; } =
         Expression.Variable(recordset, "currentRecordset");

@@ -12,14 +12,15 @@ public interface IJoinBuilder<TRecordset> : IWhereBuilder<TRecordset>
     /// <param name="mapSelector">The results of the joined tables to be mapped back into the selector.</param>
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
-    /// <typeparam name="TRelation">The type of table that want to join.</typeparam>
+    /// <typeparam name="TRelation">The type of join table.</typeparam>
     /// <typeparam name="TKey">The compare keys.</typeparam>
     /// <returns>The <see cref="IJoinBuilder{TRecordset}" /> instance.</returns>
     IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
-        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TRelation?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>;
+        where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder;
 
     /// <summary>
     ///     Appends the <c>JOIN</c> clause to the query.
@@ -27,14 +28,15 @@ public interface IJoinBuilder<TRecordset> : IWhereBuilder<TRecordset>
     /// <param name="mapSelector">The results of the joined tables to be mapped back into the selector.</param>
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
-    /// <typeparam name="TRelation">The type of table that want to join.</typeparam>
+    /// <typeparam name="TRelation">The type of join table.</typeparam>
     /// <typeparam name="TKey">The compare keys.</typeparam>
     /// <returns>The <see cref="IJoinBuilder{TRecordset}" /> instance.</returns>
     IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
-        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, List<TRelation>?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>;
+        where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder;
 
     /// <summary>
     ///     Appends the <c>JOIN</c> clause to the query with a condition.
@@ -43,15 +45,16 @@ public interface IJoinBuilder<TRecordset> : IWhereBuilder<TRecordset>
     /// <param name="mapSelector">The results of the joined tables to be mapped back into the selector.</param>
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
-    /// <typeparam name="TRelation">The type of table that want to join.</typeparam>
+    /// <typeparam name="TRelation">The type of join table.</typeparam>
     /// <typeparam name="TKey">The compare keys.</typeparam>
     /// <returns>The <see cref="IJoinBuilder{TRecordset}" /> instance.</returns>
     IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         bool condition,
-        Expression<Func<TRecordset, TRelation>> mapSelector,
+        Expression<Func<TRecordset, TRelation?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>;
+        where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder;
 
     /// <summary>
     ///     Appends the <c>JOIN</c> clause to the query with a condition.
@@ -60,13 +63,14 @@ public interface IJoinBuilder<TRecordset> : IWhereBuilder<TRecordset>
     /// <param name="mapSelector">The results of the joined tables to be mapped back into the selector.</param>
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
-    /// <typeparam name="TRelation">The type of table that want to join.</typeparam>
+    /// <typeparam name="TRelation">The type of join table.</typeparam>
     /// <typeparam name="TKey">The compare keys.</typeparam>
     /// <returns>The <see cref="IJoinBuilder{TRecordset}" /> instance.</returns>
     IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         bool condition,
-        Expression<Func<TRecordset, List<TRelation>>> mapSelector,
+        Expression<Func<TRecordset, List<TRelation>?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
         Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>;
+        where TKey : IComparable<TKey>
+        where TRelation : IEntityBuilder;
 }

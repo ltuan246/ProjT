@@ -53,6 +53,10 @@ internal sealed partial class QueryVisitor
                 Translate(newExpression);
                 break;
 
+            case MemberInitExpression memberInitExpression:
+                Translate(memberInitExpression);
+                break;
+
             case MethodCallExpression methodCallExpression:
                 Translate(methodCallExpression);
                 break;
@@ -254,6 +258,33 @@ internal sealed partial class QueryVisitor
             .ToArray();
 
         Append(string.Join(ClauseConstants.Comma, selectList));
+    }
+
+    /// <summary>
+    ///     Visits the children of the MemberInitExpression.
+    /// </summary>
+    /// <param name="memberInitExpression">The nodes to visit.</param>
+    private void Translate(MemberInitExpression memberInitExpression)
+    {
+        foreach (var binding in memberInitExpression.Bindings)
+        {
+            switch (binding)
+            {
+                case MemberAssignment memberAssignment:
+                    switch (memberAssignment.Expression)
+                    {
+                        case ParameterExpression parameterExpression:
+                            _ = parameterExpression;
+                            break;
+
+                        case MethodCallExpression methodCallExpression:
+                            _ = methodCallExpression;
+                            break;
+                    }
+
+                    break;
+            }
+        }
     }
 
     /// <summary>

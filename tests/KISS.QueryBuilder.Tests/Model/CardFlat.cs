@@ -1,6 +1,6 @@
 ﻿namespace KISS.QueryBuilder.Tests.Model;
 
-public class CardFlat
+public class CardFlat : IEntityBuilder
 {
     [Name("id")] public required string Id { get; set; }
     [Name("player_class")] public required string PlayerClass { get; set; }

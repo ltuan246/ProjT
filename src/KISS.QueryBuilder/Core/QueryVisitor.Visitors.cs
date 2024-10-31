@@ -24,12 +24,13 @@ internal sealed partial class QueryVisitor : IVisitor
                 Translate(newExpression);
                 break;
 
+            case MemberInitExpression memberInitExpression:
+                Translate(memberInitExpression);
+                break;
+
             default:
                 throw new NotSupportedException("Expression not supported.");
         }
-
-        Append(ClauseConstants.From);
-        AppendTableAlias(RootTable);
     }
 
     /// <inheritdoc />
@@ -50,9 +51,13 @@ internal sealed partial class QueryVisitor : IVisitor
             default:
                 throw new NotSupportedException("Expression not supported.");
         }
+    }
 
+    /// <inheritdoc />
+    public void Visit(SelectFromComponent element)
+    {
         Append(ClauseConstants.From);
-        AppendTableAlias(RootTable);
+        AppendTableAlias(element.Recordset);
     }
 
     /// <inheritdoc />
@@ -62,39 +67,33 @@ internal sealed partial class QueryVisitor : IVisitor
         {
             case MemberExpression memberExpression:
                 {
-                    var memberType = memberExpression.Type;
-                    var isGenericList = memberType
-                        .GetInterfaces()
-                        .Any(i => i.IsGenericType
-                                  && (i.GetGenericTypeDefinition() == typeof(IEnumerable<>)
-                                      || i.GetGenericTypeDefinition() == typeof(IList<>)));
+                    var relationParam = Expression.Parameter(element.Relation, GetTableAlias(element.Relation));
+                    var currentProperty = Expression.Property(ReturnParam, memberExpression.Member.Name);
 
+                    var memberType = memberExpression.Type;
                     var isList = memberType != typeof(string)
-                                 && (typeof(IEnumerable<>).IsAssignableFrom(memberType) || isGenericList);
+                                 && memberType.IsGenericType
+                                 && memberType.GetGenericTypeDefinition() == typeof(List<>);
                     if (isList)
                     {
-                        var relationParam = Expression.Parameter(element.Relation, GetTableAlias(element.Relation));
-                        var currentProperty = Expression.Property(ReturnParam, memberExpression.Member.Name);
-
-                        var itemType = memberType.GetGenericArguments()[0];
-                        var listType = typeof(List<>).MakeGenericType(itemType);
+                        var listType = typeof(List<>).MakeGenericType(element.Relation);
                         var newList = Expression.IfThen(
                             Expression.Equal(currentProperty, Expression.Constant(null)),
                             Expression.Assign(currentProperty, Expression.New(listType)));
 
                         // Add relation to mapSelector if it exists
-                        var addToList = Expression.IfThen(
-                            Expression.NotEqual(relationParam, Expression.Constant(null)),
-                            Expression.Block(
-                                newList,
-                                Expression.Call(currentProperty, "Add", null, relationParam)));
+                        var addToList = Expression.Block(
+                            newList,
+                            Expression.Call(currentProperty, "Add", null, relationParam));
 
-                        BlockMapSequence.Add((relationParam, addToList));
+                        var ifExists = Expression.IfThen(
+                            Expression.NotEqual(relationParam, Expression.Constant(null)),
+                            addToList);
+
+                        BlockMapSequence.Add((relationParam, ifExists));
                     }
                     else
                     {
-                        var relationParam = Expression.Parameter(element.Relation, GetTableAlias(element.Relation));
-                        var currentProperty = Expression.Property(ReturnParam, memberExpression.Member.Name);
                         var assignExpression = Expression.Assign(currentProperty, relationParam);
                         BlockMapSequence.Add((relationParam, assignExpression));
                     }
@@ -129,5 +128,12 @@ internal sealed partial class QueryVisitor : IVisitor
         }
 
         Translate(element.Predicate);
+    }
+
+    /// <inheritdoc />
+    public void Visit(GroupByComponent element)
+    {
+        Append(ClauseConstants.GroupBy);
+        Translate(element.KeySelector);
     }
 }

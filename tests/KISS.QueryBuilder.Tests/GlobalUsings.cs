@@ -11,6 +11,7 @@ global using Microsoft.EntityFrameworkCore;
 global using CsvHelper.Configuration.Attributes;
 global using KISS.Misc.DataAccess;
 global using KISS.QueryBuilder.Core;
+global using KISS.QueryBuilder.Builders;
 global using KISS.QueryBuilder.Tests.Model;
 global using KISS.QueryBuilder.Tests.DataSeeding;
 global using KISS.QueryBuilder.Tests.Sqlite;

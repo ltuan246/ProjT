@@ -4,4 +4,4 @@ namespace KISS.QueryBuilder.Builders.GroupByBuilders;
 ///     An interface for building SQL GROUP BY clauses.
 /// </summary>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-public interface IGroupByBuilder<TRecordset> : IHavingBuilder<TRecordset>;
+public interface IGroupByBuilder<TRecordset> : IAggregateBuilder<TRecordset>;

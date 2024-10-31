@@ -195,8 +195,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         var cards = Connection.Retrieve<Card>()
             .InnerJoin(e => e.CardFlat, // Map one-to-one relationship
                 e => e.Id,
-                r => r!.Id)
-            .InnerJoin(e => e.DustCost!, // Map one-to-many relationship
+                r => r.Id)
+            .InnerJoin(e => e.DustCost, // Map one-to-many relationship
                 e => e.Id,
                 r => r.CardId)
             .Where(w => w.Id == exId)
@@ -220,5 +220,25 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                     dc => Assert.Equal("DISENCHANT_NORMAL", dc.Action),
                     dc => Assert.Equal("DISENCHANT_GOLDEN", dc.Action));
             });
+    }
+
+    [Fact]
+    public void GroupBy_FluentBuilder_ReturnsExpectedCards()
+    {
+        // Arrange
+        const string exId = "BRM_010t2";
+
+        // Act
+        var cards = Connection.Retrieve<Card>()
+            .InnerJoin(e => e.CardFlat, // Map one-to-one relationship
+                e => e.Id,
+                r => r.Id)
+            .InnerJoin(e => e.DustCost, // Map one-to-many relationship
+                e => e.Id,
+                r => r.CardId)
+            .Where(w => w.Id == exId)
+            .GroupBy(w => w.Id, (k, w) =>
+                new CardGroup { Id = k, Cost = w.Sum(c => c.DustCost!.Sum(dc => dc.Cost)) })
+            .ToList();
     }
 }

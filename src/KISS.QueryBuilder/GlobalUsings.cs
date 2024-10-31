@@ -15,6 +15,7 @@ global using KISS.QueryBuilder.Builders.SelectBuilders;
 global using KISS.QueryBuilder.Builders.JoinBuilders;
 global using KISS.QueryBuilder.Builders.WhereBuilders;
 global using KISS.QueryBuilder.Builders.GroupByBuilders;
+global using KISS.QueryBuilder.Builders.AggregateBuilders;
 global using KISS.QueryBuilder.Builders.HavingBuilders;
 global using KISS.QueryBuilder.Builders.OrderByBuilders;
 global using KISS.QueryBuilder.Builders.LimitBuilders;

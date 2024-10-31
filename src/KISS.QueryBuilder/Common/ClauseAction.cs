@@ -6,6 +6,7 @@
 internal enum ClauseAction
 {
     Select,
+    SelectFrom,
     Join,
     Where,
     GroupBy,
