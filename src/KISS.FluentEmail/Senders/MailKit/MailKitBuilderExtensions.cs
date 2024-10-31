@@ -11,10 +11,7 @@ public static class MailKitBuilderExtensions
     /// <param name="services">The service container.</param>
     /// <param name="configuration">The configuration.</param>
     /// <param name="sectionName">The Section name.</param>
-    public static void ConfigureMailKitOptions(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string sectionName = "MailKitOptions")
+    public static void ConfigureMailKitOptions(this IServiceCollection services, IConfiguration configuration, string sectionName = "MailKitOptions")
     {
         ArgumentNullException.ThrowIfNull(configuration);
 

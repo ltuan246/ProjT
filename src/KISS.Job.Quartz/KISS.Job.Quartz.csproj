@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <ItemGroup>
         <PackageReference Include="Quartz"/>
         <PackageReference Include="Quartz.AspNetCore"/>
         <PackageReference Include="Quartz.Plugins.TimeZoneConverter"/>
     </ItemGroup>
-
 </Project>

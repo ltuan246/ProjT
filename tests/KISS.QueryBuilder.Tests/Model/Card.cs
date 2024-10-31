@@ -1,19 +1,10 @@
 namespace KISS.QueryBuilder.Tests.Model;
 
-public class Card : IEntityBuilder
+public class Card
 {
     [Name("id")] public required string Id { get; set; }
     [Name("playerClass")] public required string PlayerClass { get; set; }
     [Name("type")] public required string Type { get; set; }
     [Name("name")] public required string Name { get; set; }
     [Name("cost")] public int? Cost { get; set; }
-
-    [Ignore, NotMapped] public CardFlat? CardFlat { get; set; }
-    [Ignore, NotMapped] public List<DustCost>? DustCost { get; set; }
-}
-
-public class CardGroup : IEntityBuilder
-{
-    public required string Id { get; set; }
-    public int Cost { get; set; }
 }

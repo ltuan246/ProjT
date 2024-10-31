@@ -1,12 +1,12 @@
 namespace KISS.GuardClauses;
 
 /// <summary>
-///     A collection of common guard clauses, implemented as extensions.
+/// A collection of common guard clauses, implemented as extensions.
 /// </summary>
 public static class GuardAgainstNullExtensions
 {
     /// <summary>
-    ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
+    /// Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
     /// </summary>
     /// <param name="guard">The Guard Clauses.</param>
     /// <param name="input">The value.</param>
@@ -30,7 +30,7 @@ public static class GuardAgainstNullExtensions
     }
 
     /// <summary>
-    ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
+    /// Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
     /// </summary>
     /// <param name="guard">The Guard Clauses.</param>
     /// <param name="input">The value.</param>
@@ -55,7 +55,7 @@ public static class GuardAgainstNullExtensions
     }
 
     /// <summary>
-    ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
+    /// Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
     /// </summary>
     /// <param name="guard">The Guard Clauses.</param>
     /// <param name="input">The value.</param>
@@ -79,7 +79,7 @@ public static class GuardAgainstNullExtensions
     }
 
     /// <summary>
-    ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
+    /// Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
     /// </summary>
     /// <param name="guard">The Guard Clauses.</param>
     /// <param name="input">The value.</param>
@@ -103,7 +103,7 @@ public static class GuardAgainstNullExtensions
     }
 
     /// <summary>
-    ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
+    /// Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
     /// </summary>
     /// <param name="guard">The Guard Clauses.</param>
     /// <param name="input">The value.</param>
@@ -126,7 +126,7 @@ public static class GuardAgainstNullExtensions
     }
 
     /// <summary>
-    ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
+    /// Throws an <see cref="ArgumentNullException" /> if <paramref name="input" /> is null.
     /// </summary>
     /// <param name="guard">The Guard Clauses.</param>
     /// <param name="input">The value.</param>
