@@ -1,12 +1,12 @@
 namespace KISS.GuardClauses;
 
 /// <summary>
-///     A collection of common guard clauses, implemented as extensions.
+/// A collection of common guard clauses, implemented as extensions.
 /// </summary>
 public static class Ensure
 {
     /// <summary>
-    ///     The method used to check whether the value is null.
+    /// The method used to check whether the value is null.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <typeparam name="T">Must be a value type.</typeparam>
@@ -16,7 +16,7 @@ public static class Ensure
         => value.HasValue is false;
 
     /// <summary>
-    ///     The method used to check whether the value is null.
+    /// The method used to check whether the value is null.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <typeparam name="T">Must be a value type.</typeparam>
@@ -25,7 +25,7 @@ public static class Ensure
         => value is null;
 
     /// <summary>
-    ///     The method used to check whether the value is null or empty.
+    /// The method used to check whether the value is null or empty.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>True if the current object has no value; false if the current object has a value.</returns>
@@ -33,7 +33,7 @@ public static class Ensure
         => string.IsNullOrEmpty(value);
 
     /// <summary>
-    ///     The method used to check whether the value is null or WhiteSpace.
+    /// The method used to check whether the value is null or WhiteSpace.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>True if the current object has no value; false if the current object has a value.</returns>
@@ -41,7 +41,7 @@ public static class Ensure
         => string.IsNullOrWhiteSpace(value);
 
     /// <summary>
-    ///     The method used to check whether the value is null or empty.
+    /// The method used to check whether the value is null or empty.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>True if the current object has no value; false if the current object has a value.</returns>
@@ -49,7 +49,7 @@ public static class Ensure
         => value is null || IsEqualTo(value, Guid.Empty);
 
     /// <summary>
-    ///     The method used to check whether the value is null or empty.
+    /// The method used to check whether the value is null or empty.
     /// </summary>
     /// <param name="values">The value.</param>
     /// <typeparam name="T">Must be a value type.</typeparam>
@@ -60,11 +60,11 @@ public static class Ensure
             null => true,
             Array and { Length: 0 } => true,
             ICollection<T> and { Count: 0 } => true,
-            _ => values.TryGetNonEnumeratedCount(out var count) && count == 0
+            _ => values.TryGetNonEnumeratedCount(out int count) && count == 0
         };
 
     /// <summary>
-    ///     The method used to check whether the value is not null.
+    /// The method used to check whether the value is not null.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <typeparam name="T">Must be a value type.</typeparam>
@@ -73,7 +73,7 @@ public static class Ensure
         => value is not null;
 
     /// <summary>
-    ///     The method used to check whether the value is not null or empty.
+    /// The method used to check whether the value is not null or empty.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>True if the current object has a value; false if the current object has no value.</returns>
@@ -81,7 +81,7 @@ public static class Ensure
         => !string.IsNullOrEmpty(value);
 
     /// <summary>
-    ///     The method used to check whether the value is not null or empty.
+    /// The method used to check whether the value is not null or empty.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>True if the current object has a value; false if the current object has no value.</returns>
@@ -89,7 +89,7 @@ public static class Ensure
         => value.HasValue && !IsEqualTo(value, Guid.Empty);
 
     /// <summary>
-    ///     The method used to check whether the value is not null or WhiteSpace.
+    /// The method used to check whether the value is not null or WhiteSpace.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>True if the current object has a value; false if the current object has no value.</returns>
@@ -97,7 +97,7 @@ public static class Ensure
         => !string.IsNullOrWhiteSpace(value);
 
     /// <summary>
-    ///     The method used to check whether the value is not null or empty.
+    /// The method used to check whether the value is not null or empty.
     /// </summary>
     /// <param name="values">The value.</param>
     /// <typeparam name="T">Must be a value type.</typeparam>
@@ -106,7 +106,7 @@ public static class Ensure
         => !IsNullOrEmpty(values);
 
     /// <summary>
-    ///     The method used to check whether the value is not null.
+    /// The method used to check whether the value is not null.
     /// </summary>
     /// <param name="values">The value.</param>
     /// <typeparam name="T">Must be a value type.</typeparam>
@@ -117,13 +117,13 @@ public static class Ensure
             null => false,
             Array and { Length: 0 } => false,
             ICollection<T> and { Count: 0 } => false,
-            _ => values.TryGetNonEnumeratedCount(out var count)
+            _ => values.TryGetNonEnumeratedCount(out int count)
                  && count > 0
                  && values.All(val => val is not null)
         };
 
     /// <summary>
-    ///     The method used to check whether the value is equal to the comparand.
+    /// The method used to check whether the value is equal to the comparand.
     /// </summary>
     /// <param name="value">The current object.</param>
     /// <param name="comparand">The object to compare with the current object.</param>
@@ -133,7 +133,7 @@ public static class Ensure
         => value?.Equals(comparand) is true;
 
     /// <summary>
-    ///     The method used to check whether the value is between the comparand.
+    /// The method used to check whether the value is between the comparand.
     /// </summary>
     /// <param name="value">The current object.</param>
     /// <param name="min">The begin.</param>
@@ -145,7 +145,7 @@ public static class Ensure
         => value.CompareTo(min) > 0 && value.CompareTo(max) < 0;
 
     /// <summary>
-    ///     The method used to check whether the value is greater than the comparand.
+    /// The method used to check whether the value is greater than the comparand.
     /// </summary>
     /// <param name="value">The current object.</param>
     /// <param name="comparand">The object to compare with the current object.</param>
@@ -156,7 +156,7 @@ public static class Ensure
         => value.CompareTo(comparand) > 0;
 
     /// <summary>
-    ///     The method used to check whether the value is greater than or equal to the comparand.
+    /// The method used to check whether the value is greater than or equal to the comparand.
     /// </summary>
     /// <param name="value">The current object.</param>
     /// <param name="comparand">The object to compare with the current object.</param>
@@ -167,7 +167,7 @@ public static class Ensure
         => value.CompareTo(comparand) >= 0;
 
     /// <summary>
-    ///     The method used to check whether the value is less than the comparand.
+    /// The method used to check whether the value is less than the comparand.
     /// </summary>
     /// <param name="value">The current object.</param>
     /// <param name="comparand">The object to compare with the current object.</param>
@@ -178,7 +178,7 @@ public static class Ensure
         => value.CompareTo(comparand) < 0;
 
     /// <summary>
-    ///     The method used to check whether the value is less than or equal to the comparand.
+    /// The method used to check whether the value is less than or equal to the comparand.
     /// </summary>
     /// <param name="value">The current object.</param>
     /// <param name="comparand">The object to compare with the current object.</param>
@@ -189,8 +189,7 @@ public static class Ensure
         => value.CompareTo(comparand) <= 0;
 
     /// <summary>
-    ///     The method used to check whether a given integral value, or its name as a string, exists in a specified
-    ///     enumeration.
+    /// The method used to check whether a given integral value, or its name as a string, exists in a specified enumeration.
     /// </summary>
     /// <param name="value">The current object.</param>
     /// <typeparam name="T">Must be a value type.</typeparam>
@@ -200,7 +199,7 @@ public static class Ensure
         => Enum.IsDefined(typeof(T), value);
 
     /// <summary>
-    ///     The method used to check whether the Dictionary contains an element with the specified key.
+    /// The method used to check whether the Dictionary contains an element with the specified key.
     /// </summary>
     /// <param name="dic">The current Dictionary.</param>
     /// <param name="key">The key to locate in the Dictionary.</param>

@@ -11,10 +11,7 @@ public static class SmtpBuilderExtensions
     /// <param name="services">The service container.</param>
     /// <param name="configuration">The configuration.</param>
     /// <param name="sectionName">The Section name.</param>
-    public static void ConfigureSmtpClientOptions(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        string sectionName = "SmtpClientOptions")
+    public static void ConfigureSmtpClientOptions(this IServiceCollection services, IConfiguration configuration, string sectionName = "SmtpClientOptions")
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
