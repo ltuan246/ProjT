@@ -13,7 +13,10 @@ public static class MailtrapBuilderExtensions
     /// <param name="services">The service container.</param>
     /// <param name="configuration">The configuration.</param>
     /// <param name="sectionName">The Section name.</param>
-    public static void ConfigureMailtrapOptions(this IServiceCollection services, IConfiguration configuration, string sectionName = "MailtrapOptions")
+    public static void ConfigureMailtrapOptions(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string sectionName = "MailtrapOptions")
     {
         ArgumentNullException.ThrowIfNull(configuration);
 

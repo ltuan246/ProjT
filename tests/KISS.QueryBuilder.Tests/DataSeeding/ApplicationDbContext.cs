@@ -4,6 +4,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<Weather> Weathers { get; set; }
     public DbSet<Card> Cards { get; set; }
+    public DbSet<CardFlat> CardFlats { get; set; }
     public DbSet<DustCost> DustCosts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -13,14 +14,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         const string weatherFile = "Assets/Weather.csv";
         const string cardsFile = "Assets/HearthstoneCards/cards.csv";
+        const string cardsFlatFile = "Assets/HearthstoneCards/cards_flat.csv";
         const string dustCostsFile = "Assets/HearthstoneCards/dust_costs.csv";
 
         var weathers = CsvAssists.FromCsv<Weather>(weatherFile);
         var cards = CsvAssists.FromCsv<Card>(cardsFile);
+        var cardsFlat = CsvAssists.FromCsv<CardFlat>(cardsFlatFile);
         var dustCosts = CsvAssists.FromCsv<DustCost>(dustCostsFile);
 
         modelBuilder.Entity<Weather>().HasData(weathers);
         modelBuilder.Entity<Card>().HasData(cards);
+        modelBuilder.Entity<CardFlat>().HasData(cardsFlat);
         modelBuilder.Entity<DustCost>().HasData(dustCosts);
     }
 }
