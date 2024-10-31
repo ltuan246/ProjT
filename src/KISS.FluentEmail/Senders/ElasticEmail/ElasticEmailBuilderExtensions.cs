@@ -13,7 +13,10 @@ public static class ElasticEmailBuilderExtensions
     /// <param name="services">The service container.</param>
     /// <param name="configuration">The configuration.</param>
     /// <param name="sectionName">The Section name.</param>
-    public static void ConfigureElasticEmailOptions(this IServiceCollection services, IConfiguration configuration, string sectionName = "ElasticEmailOptions")
+    public static void ConfigureElasticEmailOptions(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string sectionName = "ElasticEmailOptions")
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
