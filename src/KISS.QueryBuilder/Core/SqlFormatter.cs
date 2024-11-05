@@ -1,38 +1,32 @@
 ﻿namespace KISS.QueryBuilder.Core;
 
 /// <summary>
-///     Implements <see cref="IFormatProvider" /> interfaces and <see cref="ICustomFormatter" /> interfaces,
-///     which returns string information for supplied objects based on custom criteria.
+///     Implements <see cref="IFormatProvider" /> and <see cref="ICustomFormatter" />
+///     to provide custom string formatting for SQL queries.
 /// </summary>
 internal sealed class SqlFormatter : IFormatProvider, ICustomFormatter
 {
-    private const string DefaultDatabaseParameterNameTemplate = "p";
-    private const string DefaultDatabaseParameterPrefix = "@";
-
     /// <summary>
-    ///     A dynamic object that can be passed to the Query method instead of normal parameters.
+    ///     A collection of dynamic parameters that can be used in SQL queries.
     /// </summary>
     public DynamicParameters Parameters { get; } = new();
 
+    /// <summary>
+    ///     Keeps track of the number of parameters added.
+    /// </summary>
     private int ParamCount { get; set; }
 
     /// <inheritdoc />
     public string Format(string? format, object? arg, IFormatProvider? formatProvider)
-        => AddValueToParameters(arg);
+    {
+        const string defaultParameterName = "p";
+        const string defaultParameterPrefix = "@";
+
+        var parameterName = $"{defaultParameterName}{ParamCount++}";
+        Parameters.Add(parameterName, arg, direction: ParameterDirection.Input);
+        return $"{defaultParameterPrefix}{parameterName}";
+    }
 
     /// <inheritdoc />
     public object GetFormat(Type? formatType) => this;
-
-    private string GetNextParameterName()
-        => $"{DefaultDatabaseParameterNameTemplate}{ParamCount++}";
-
-    private string AppendParameterPrefix(string parameterName)
-        => $"{DefaultDatabaseParameterPrefix}{parameterName}";
-
-    private string AddValueToParameters<T>(T value)
-    {
-        var parameterName = GetNextParameterName();
-        Parameters.Add(parameterName, value, direction: ParameterDirection.Input);
-        return AppendParameterPrefix(parameterName);
-    }
 }

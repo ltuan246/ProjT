@@ -27,8 +27,9 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
     /// <inheritdoc/>
     public ISelectBuilder<TRecordset> Select(Expression<Func<TRecordset, object>> selector)
     {
-        SelectComponent component = new(selector.Body);
-        QueryComponents[ClauseAction.Select] = [component];
+        SelectComponent selectComponent = new();
+        selectComponent.Selectors.Add(selector.Body);
+        QueryComponents[ClauseAction.Select] = [selectComponent];
         return this;
     }
 
@@ -105,7 +106,8 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         where TKey : IComparable<TKey>
         where TMap : IEntityBuilder
     {
-        SelectComponent selectComponent = new(mapSelector.Body);
+        SelectComponent selectComponent = new();
+        selectComponent.Selectors.Add(mapSelector.Body);
         QueryComponents[ClauseAction.Select] = [selectComponent];
 
         GroupByComponent groupByComponent = new(keySelector.Body);

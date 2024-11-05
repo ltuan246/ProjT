@@ -10,26 +10,32 @@ internal sealed partial class QueryVisitor : IVisitor
     {
         Append(ClauseConstants.Select);
 
-        switch (element.Selector)
+        if (element.Selectors.Count != 0)
         {
-            case null:
-                Append("*");
-                break;
+            foreach (var selector in element.Selectors)
+            {
+                switch (selector)
+                {
+                    case MemberExpression memberExpression:
+                        Translate(memberExpression);
+                        break;
 
-            case MemberExpression memberExpression:
-                Translate(memberExpression);
-                break;
+                    case NewExpression newExpression:
+                        Translate(newExpression);
+                        break;
 
-            case NewExpression newExpression:
-                Translate(newExpression);
-                break;
+                    case MemberInitExpression memberInitExpression:
+                        Translate(memberInitExpression);
+                        break;
 
-            case MemberInitExpression memberInitExpression:
-                Translate(memberInitExpression);
-                break;
-
-            default:
-                throw new NotSupportedException("Expression not supported.");
+                    default:
+                        throw new NotSupportedException("Expression not supported.");
+                }
+            }
+        }
+        else
+        {
+            Append("*");
         }
     }
 

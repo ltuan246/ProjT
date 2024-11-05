@@ -40,7 +40,7 @@ internal sealed partial class QueryVisitor : ExpressionVisitor
         {
             // The only way to get a void-returning expression within an expression tree is as part of a BlockExpression
             // other expression types cannot contain a void-returning expression
-            case not null when node.Type == typeof(void):
+            case { Type: var type } when type == typeof(void):
                 foreach (var x in ExpressionStack)
                 {
                     // BlockExpressions may have a value even though one of the statements is a void-returning expression
