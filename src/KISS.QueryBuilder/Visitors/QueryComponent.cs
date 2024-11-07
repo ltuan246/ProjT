@@ -1,77 +1,40 @@
 ﻿namespace KISS.QueryBuilder.Visitors;
 
 /// <summary>
-///     Declares operations for the <see cref="QueryVisitor" /> type.
+///     The core <see cref="QueryComponent" /> partial class.
 /// </summary>
-internal abstract partial class QueryComponent
+internal abstract partial record QueryComponent
 {
     /// <summary>
-    ///     Dispatches the expression to one of the more specialized visit methods in this class.
+    ///     Use to custom string formatting for SQL queries.
     /// </summary>
-    /// <param name="expression">The nodes to visit.</param>
-    protected void Translate(Expression expression)
+    public abstract SqlFormatter SqlFormat { get; init; }
+
+    /// <summary>
+    ///     A collection specifically for table aliases.
+    /// </summary>
+    public abstract Dictionary<Type, string> TableAliases { get; init; }
+
+    /// <summary>
+    ///     Retrieves the alias mapped to the specified <see cref="Type" /> in the query context,
+    ///     or creates a new alias if none exists.
+    /// </summary>
+    /// <param name="type">The <see cref="Type" /> for which to retrieve or generate a table alias.</param>
+    /// <returns>
+    ///     A <see cref="string" /> representing the alias associated with the specified <paramref name="type" />.
+    /// </returns>
+    protected string GetAliasMapping(Type type)
     {
-        switch (expression)
+        if (!TableAliases.TryGetValue(type, out var tableAlias))
         {
-            case BinaryExpression binaryExpression:
-                Translate(binaryExpression);
-                break;
+            // Generate a new alias based on the default alias prefix and current alias count.
+            tableAlias = $"{ClauseConstants.DefaultTableAlias}{TableAliases.Count}";
 
-            case MemberExpression memberExpression:
-                Translate(memberExpression);
-                break;
-
-            case ConstantExpression constantExpression:
-                Translate(constantExpression);
-                break;
-
-            case NewExpression newExpression:
-                Translate(newExpression);
-                break;
-
-            case MemberInitExpression memberInitExpression:
-                Translate(memberInitExpression);
-                break;
-
-            case MethodCallExpression methodCallExpression:
-                Translate(methodCallExpression);
-                break;
+            // Store the new alias in the dictionary for future reference.
+            TableAliases.Add(type, tableAlias);
         }
+
+        // Return the alias (existing or newly created) for the specified type.
+        return tableAlias;
     }
-
-    /// <summary>
-    ///     Visits the children of the BinaryExpression.
-    /// </summary>
-    /// <param name="binaryExpression">The nodes to visit.</param>
-    protected virtual void Translate(BinaryExpression binaryExpression) { }
-
-    /// <summary>
-    ///     Visits the children of the MemberExpression.
-    /// </summary>
-    /// <param name="memberExpression">The nodes to visit.</param>
-    protected virtual void Translate(MemberExpression memberExpression) { }
-
-    /// <summary>
-    ///     Visits the children of the ConstantExpression.
-    /// </summary>
-    /// <param name="constantExpression">The nodes to visit.</param>
-    protected virtual void Translate(ConstantExpression constantExpression) { }
-
-    /// <summary>
-    ///     Visits the children of the NewExpression.
-    /// </summary>
-    /// <param name="newExpression">The nodes to visit.</param>
-    protected virtual void Translate(NewExpression newExpression) { }
-
-    /// <summary>
-    ///     Visits the children of the MemberInitExpression.
-    /// </summary>
-    /// <param name="memberInitExpression">The nodes to visit.</param>
-    protected virtual void Translate(MemberInitExpression memberInitExpression) { }
-
-    /// <summary>
-    ///     Visits the children of the MethodCallExpression.
-    /// </summary>
-    /// <param name="methodCallExpression">The nodes to visit.</param>
-    protected virtual void Translate(MethodCallExpression methodCallExpression) { }
 }

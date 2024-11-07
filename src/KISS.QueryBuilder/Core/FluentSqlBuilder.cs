@@ -8,12 +8,16 @@ namespace KISS.QueryBuilder.Core;
 public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQueryBuilder<TRecordset>
     where TRecordset : IEntityBuilder
 {
+    private SqlFormatter SqlFormat { get; } = new();
+
+    private Dictionary<Type, string> AliasMapping { get; } = [];
+
     /// <summary>
     ///     Stores the query components categorized by clauses.
     /// </summary>
     private Dictionary<ClauseAction, List<IQueryComponent>> QueryComponents { get; init; } = new()
     {
-        { ClauseAction.Select, [new SelectComponent()] },
+        { ClauseAction.Select, [new SelectComponent(new(), [])] },
         { ClauseAction.SelectFrom, [new SelectFromComponent(typeof(TRecordset))] },
         { ClauseAction.Join, [] },
         { ClauseAction.Where, [] },
@@ -27,7 +31,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
     /// <inheritdoc/>
     public ISelectBuilder<TRecordset> Select(Expression<Func<TRecordset, object>> selector)
     {
-        SelectComponent selectComponent = new();
+        SelectComponent selectComponent = new(SqlFormat, AliasMapping);
         selectComponent.Selectors.Add(selector.Body);
         QueryComponents[ClauseAction.Select] = [selectComponent];
         return this;
@@ -106,7 +110,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         where TKey : IComparable<TKey>
         where TMap : IEntityBuilder
     {
-        SelectComponent selectComponent = new();
+        SelectComponent selectComponent = new(SqlFormat, AliasMapping);
         selectComponent.Selectors.Add(mapSelector.Body);
         QueryComponents[ClauseAction.Select] = [selectComponent];
 
@@ -162,7 +166,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
     /// <inheritdoc/>
     public List<TRecordset> ToList()
     {
-        QueryVisitor visitor = new(typeof(TRecordset));
+        QueryVisitor visitor = new();
 
         foreach (var components in QueryComponents.Values)
         {
@@ -172,26 +176,26 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
             }
         }
 
-        if (QueryComponents[ClauseAction.Join].Count != 0)
-        {
-            Dictionary<string, TRecordset> dict = [];
-            var map = visitor.BuildMapRecordset(dict);
-            var query = visitor.CreatingQuery<TRecordset>();
-            _ = query.Invoke(null, [
-                Connection,
-                visitor.Sql, // SQL query string
-                map, // Mapping function
-                visitor.Parameters, // Dapper DynamicParameters
-                null, // IDbTransaction, set to null
-                true, // Buffered, true by default
-                "Id", // SplitOn, default to "Id"
-                null, // CommandTimeout, null
-                null // CommandType, null
-            ]);
+        // if (QueryComponents[ClauseAction.Join].Count != 0)
+        // {
+        //     Dictionary<string, TRecordset> dict = [];
+        //     var map = visitor.BuildMapRecordset(dict);
+        //     var query = visitor.CreatingQuery<TRecordset>();
+        //     _ = query.Invoke(null, [
+        //         Connection,
+        //         visitor.Sql, // SQL query string
+        //         map, // Mapping function
+        //         visitor.Parameters, // Dapper DynamicParameters
+        //         null, // IDbTransaction, set to null
+        //         true, // Buffered, true by default
+        //         "Id", // SplitOn, default to "Id"
+        //         null, // CommandTimeout, null
+        //         null // CommandType, null
+        //     ]);
+        //
+        //     return dict.Values.ToList();
+        // }
 
-            return dict.Values.ToList();
-        }
-
-        return Connection.Query<TRecordset>(visitor.Sql, visitor.Parameters).ToList();
+        return Connection.Query<TRecordset>(visitor.Sql, SqlFormat.Parameters).ToList();
     }
 }

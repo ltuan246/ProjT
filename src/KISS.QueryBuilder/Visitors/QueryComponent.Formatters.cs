@@ -3,14 +3,12 @@
 /// <summary>
 ///     Implements the Formatter for the <see cref="QueryComponent" /> type.
 /// </summary>
-internal abstract partial class QueryComponent
+internal abstract partial record QueryComponent
 {
-    private SqlFormatter SqlFormat { get; } = new();
-
     /// <summary>
     ///     Gets the generated the SQL.
     /// </summary>
-    public abstract StringBuilder SqlBuilder { get; }
+    public StringBuilder SqlBuilder { get; } = new();
 
     /// <summary>
     ///     Appends a formatted string to the <see cref="SqlBuilder" />.
@@ -42,7 +40,7 @@ internal abstract partial class QueryComponent
     /// </param>
     /// <remarks>
     ///     This method formats and appends a SQL statement to the underlying <see cref="SqlBuilder" /> by using
-    ///     the <see cref="SqlFormat" /> as a format provider. The <see cref="FormattableString.Format" /> and
+    ///     the <see cref="SqlFormatter" /> as a format provider. The <see cref="FormattableString.Format" /> and
     ///     <see cref="FormattableString.GetArguments" /> methods are used to parse the format string and its arguments
     ///     before appending the formatted result to <see cref="SqlBuilder" />.
     ///     Example usage:
@@ -50,7 +48,7 @@ internal abstract partial class QueryComponent
     ///     AppendFormat($"SELECT * FROM Orders WHERE OrderId = {orderId}");
     ///     </code>
     ///     This example will append a SQL statement with a placeholder for <c>OrderId</c>,
-    ///     formatted by <see cref="SqlFormat" />.
+    ///     formatted by <see cref="SqlFormatter" />.
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="formatString" /> is <c>null</c>.</exception>
     protected void AppendFormat(FormattableString formatString)
