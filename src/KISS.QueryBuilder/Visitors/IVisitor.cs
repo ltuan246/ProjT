@@ -16,12 +16,6 @@ internal interface IVisitor
     /// <summary>
     ///     Visit methods for <paramref name="element" />.
     /// </summary>
-    /// <param name="element">The SelectDistinctComponent.</param>
-    void Visit(SelectDistinctComponent element);
-
-    /// <summary>
-    ///     Visit methods for <paramref name="element" />.
-    /// </summary>
     /// <param name="element">The SelectFromComponent.</param>
     void Visit(SelectFromComponent element);
 

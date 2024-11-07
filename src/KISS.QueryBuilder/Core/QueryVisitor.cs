@@ -2,9 +2,8 @@
 
 /// <summary>
 ///     A class that defines the fluent SQL builder type.
-///     The core <see cref="QueryVisitor" /> partial class.
 /// </summary>
-internal sealed partial class QueryVisitor
+internal sealed record QueryVisitor : IVisitor
 {
     /// <summary>
     ///     Gets the generated the SQL.
@@ -13,4 +12,30 @@ internal sealed partial class QueryVisitor
         => SqlBuilder.ToString();
 
     private StringBuilder SqlBuilder { get; } = new();
+
+    /// <inheritdoc />
+    public void Visit(SelectComponent element)
+    {
+        SqlBuilder.Append(element.SqlBuilder);
+    }
+
+    /// <inheritdoc />
+    public void Visit(SelectFromComponent element)
+    {
+    }
+
+    /// <inheritdoc />
+    public void Visit(JoinComponent element)
+    {
+    }
+
+    /// <inheritdoc />
+    public void Visit(WhereComponent element)
+    {
+    }
+
+    /// <inheritdoc />
+    public void Visit(GroupByComponent element)
+    {
+    }
 }

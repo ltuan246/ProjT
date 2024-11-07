@@ -40,8 +40,9 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
     /// <inheritdoc/>
     public ISelectBuilder<TRecordset> SelectDistinct(Expression<Func<TRecordset, object>> selector)
     {
-        SelectDistinctComponent component = new(selector.Body);
-        QueryComponents[ClauseAction.Select] = [component];
+        SelectComponent selectComponent = new(SqlFormat, AliasMapping, true);
+        selectComponent.Selectors.Add(selector.Body);
+        QueryComponents[ClauseAction.Select] = [selectComponent];
         return Select(selector);
     }
 
