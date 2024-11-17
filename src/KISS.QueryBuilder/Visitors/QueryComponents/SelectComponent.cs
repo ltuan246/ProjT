@@ -3,30 +3,51 @@
 /// <summary>
 ///     A builder for a <c>SELECT</c> clause.
 /// </summary>
-/// <param name="SqlFormat">Use to custom string formatting for SQL queries.</param>
-/// <param name="TableAliases">A collection specifically for table aliases.</param>
-/// <param name="HasDistinct">Use checks to know when to use <c>SELECT DISTINCT</c> clause.</param>
-internal sealed record SelectComponent(
-    SqlFormatter SqlFormat,
-    Dictionary<Type, string> TableAliases,
-    bool HasDistinct = false)
-    : QueryComponent, IQueryComponent
+/// <param name="sqlFormat">Use to custom string formatting for SQL queries.</param>
+/// <param name="tableAliases">A collection specifically for table aliases.</param>
+/// <param name="hasDistinct">Use checks to know when to use <c>SELECT DISTINCT</c> clause.</param>
+internal sealed class SelectComponent(
+    SqlFormatter sqlFormat,
+    Dictionary<Type, string> tableAliases,
+    bool hasDistinct = false) : QueryComponent
 {
+    /// <summary>
+    ///     Use to custom string formatting for SQL queries.
+    /// </summary>
+    protected override SqlFormatter SqlFormat { get; } = sqlFormat;
+
+    /// <summary>
+    ///     A collection specifically for table aliases.
+    /// </summary>
+    protected override Dictionary<Type, string> TableAliases { get; } = tableAliases;
+
     /// <summary>
     ///     The table columns.
     /// </summary>
     public List<Expression> Selectors { get; } = [];
 
     /// <inheritdoc />
-    public void Accept(IVisitor visitor)
+    public override void Accept(IVisitor visitor)
     {
-        Append(HasDistinct ? "SELECT" : "SELECT DISTINCT");
+        Append(hasDistinct ? "SELECT DISTINCT" : "SELECT");
         AppendLine(true);
 
-        foreach (var selector in Selectors)
+        using var enumerator = Selectors.GetEnumerator();
+        if (enumerator.MoveNext())
         {
-            Translate(selector);
+            Translate(enumerator.Current);
+            while (enumerator.MoveNext())
+            {
+                Append(", ");
+                Translate(enumerator.Current);
+            }
         }
+        else
+        {
+            Append("*");
+        }
+
+        AppendLine();
 
         visitor.Visit(this);
     }
@@ -66,7 +87,16 @@ internal sealed record SelectComponent(
             // Accessing a field/property of a constant object
             case ConstantExpression constantExpression:
                 {
-                    _ = constantExpression;
+                    var (evaluated, value) = GetValue(memberExpression);
+                    if (evaluated)
+                    {
+                        AppendFormat(value);
+                    }
+                    else
+                    {
+                        Translate(constantExpression);
+                    }
+
                     break;
                 }
 
@@ -88,5 +118,27 @@ internal sealed record SelectComponent(
                     break;
                 }
         }
+    }
+
+    /// <inheritdoc />
+    protected override void Translate(NewExpression newExpression)
+    {
+        var selectList = newExpression.Members!
+            .Select(m => m.Name)
+            .Zip(newExpression.Arguments, (name, arg) =>
+            {
+                if (arg is MemberExpression memberExpression)
+                {
+                    string tableAlias = GetAliasMapping(memberExpression.Member.DeclaringType!);
+                    return $"{tableAlias}." + (name == memberExpression.Member.Name
+                        ? memberExpression.Member.Name
+                        : $"{memberExpression.Member.Name} AS {name}");
+                }
+
+                return name;
+            })
+            .ToArray();
+
+        Append(string.Join(", ", selectList));
     }
 }

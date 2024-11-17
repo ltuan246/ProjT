@@ -22,6 +22,7 @@ internal sealed record QueryVisitor : IVisitor
     /// <inheritdoc />
     public void Visit(SelectFromComponent element)
     {
+        SqlBuilder.Append(element.SqlBuilder);
     }
 
     /// <inheritdoc />
@@ -32,6 +33,7 @@ internal sealed record QueryVisitor : IVisitor
     /// <inheritdoc />
     public void Visit(WhereComponent element)
     {
+        SqlBuilder.Append(element.SqlBuilder);
     }
 
     /// <inheritdoc />

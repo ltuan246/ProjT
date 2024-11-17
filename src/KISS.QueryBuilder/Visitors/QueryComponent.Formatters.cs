@@ -3,7 +3,7 @@
 /// <summary>
 ///     Implements the Formatter for the <see cref="QueryComponent" /> type.
 /// </summary>
-internal abstract partial record QueryComponent
+internal abstract partial class QueryComponent
 {
     /// <summary>
     ///     Gets the generated the SQL.

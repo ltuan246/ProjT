@@ -3,17 +3,48 @@
 /// <summary>
 ///     The core <see cref="QueryComponent" /> partial class.
 /// </summary>
-internal abstract partial record QueryComponent
+internal abstract partial class QueryComponent : IQueryComponent
 {
     /// <summary>
     ///     Use to custom string formatting for SQL queries.
     /// </summary>
-    public abstract SqlFormatter SqlFormat { get; init; }
+    protected virtual SqlFormatter SqlFormat { get; } = new();
 
     /// <summary>
     ///     A collection specifically for table aliases.
     /// </summary>
-    public abstract Dictionary<Type, string> TableAliases { get; init; }
+    protected virtual Dictionary<Type, string> TableAliases { get; } = [];
+
+    /// <summary>
+    ///     Use checks to know when to use Close Parenthesis.
+    /// </summary>
+    private bool HasOpenParentheses { get; set; }
+
+    /// <inheritdoc />
+    public abstract void Accept(IVisitor visitor);
+
+    /// <summary>
+    ///     Use to Open Parenthesis.
+    /// </summary>
+    protected void OpenParentheses()
+    {
+        HasOpenParentheses = true;
+        SqlBuilder.Append(ClauseConstants.OpenParenthesis);
+    }
+
+    /// <summary>
+    ///     Use to Close Parenthesis.
+    /// </summary>
+    protected void CloseParentheses()
+    {
+        if (!HasOpenParentheses)
+        {
+            return;
+        }
+
+        HasOpenParentheses = false;
+        SqlBuilder.Append(ClauseConstants.CloseParenthesis);
+    }
 
     /// <summary>
     ///     Retrieves the alias mapped to the specified <see cref="Type" /> in the query context,

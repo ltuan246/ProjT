@@ -3,21 +3,37 @@ namespace KISS.QueryBuilder.Core;
 /// <summary>
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
-/// <param name="Connection">The connection to a database.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQueryBuilder<TRecordset>
+public sealed record FluentSqlBuilder<TRecordset> : IQueryBuilder<TRecordset>
     where TRecordset : IEntityBuilder
 {
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="FluentSqlBuilder{TRecordset}" /> class.
+    /// </summary>
+    /// <param name="connection">
+    ///     The <see cref="DbConnection" /> instance to be used for executing SQL queries.
+    ///     This connection should be open and managed externally to ensure proper lifecycle handling.
+    /// </param>
+    public FluentSqlBuilder(DbConnection connection)
+    {
+        Connection = connection;
+
+        SelectComponent selectComponent = new(SqlFormat, AliasMapping);
+        QueryComponents[ClauseAction.Select] = [selectComponent];
+    }
+
     private SqlFormatter SqlFormat { get; } = new();
 
     private Dictionary<Type, string> AliasMapping { get; } = [];
+
+    private DbConnection Connection { get; }
 
     /// <summary>
     ///     Stores the query components categorized by clauses.
     /// </summary>
     private Dictionary<ClauseAction, List<IQueryComponent>> QueryComponents { get; init; } = new()
     {
-        { ClauseAction.Select, [new SelectComponent(new(), [])] },
+        { ClauseAction.Select, [] },
         { ClauseAction.SelectFrom, [new SelectFromComponent(typeof(TRecordset))] },
         { ClauseAction.Join, [] },
         { ClauseAction.Where, [] },
@@ -28,7 +44,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         { ClauseAction.Offset, [] }
     };
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public ISelectBuilder<TRecordset> Select(Expression<Func<TRecordset, object>> selector)
     {
         SelectComponent selectComponent = new(SqlFormat, AliasMapping);
@@ -37,7 +53,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         return this;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public ISelectBuilder<TRecordset> SelectDistinct(Expression<Func<TRecordset, object>> selector)
     {
         SelectComponent selectComponent = new(SqlFormat, AliasMapping, true);
@@ -46,7 +62,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         return Select(selector);
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         Expression<Func<TRecordset, TRelation?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
@@ -59,7 +75,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         return this;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         Expression<Func<TRecordset, List<TRelation>?>> mapSelector,
         Expression<Func<TRecordset, TKey>> leftKeySelector,
@@ -72,7 +88,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         return this;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         bool condition,
         Expression<Func<TRecordset, TRelation?>> mapSelector,
@@ -82,7 +98,7 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         where TRelation : IEntityBuilder
         => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IJoinBuilder<TRecordset> InnerJoin<TRelation, TKey>(
         bool condition,
         Expression<Func<TRecordset, List<TRelation>?>> mapSelector,
@@ -92,19 +108,19 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         where TRelation : IEntityBuilder
         => condition ? InnerJoin(mapSelector, leftKeySelector, rightKeySelector) : this;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IWhereBuilder<TRecordset> Where(Expression<Func<TRecordset, bool>> predicate)
     {
-        WhereComponent component = new(predicate.Body);
+        WhereComponent component = new(SqlFormat, AliasMapping, predicate.Body);
         QueryComponents[ClauseAction.Where].Add(component);
         return this;
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IWhereBuilder<TRecordset> Where(bool condition, Expression<Func<TRecordset, bool>> predicate)
         => condition ? Where(predicate) : this;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public IGroupByBuilder<TMap> GroupBy<TKey, TMap>(
         Expression<Func<TRecordset, TKey>> keySelector,
         Expression<Func<TKey, List<TRecordset>, TMap>> mapSelector)
@@ -122,49 +138,28 @@ public sealed record FluentSqlBuilder<TRecordset>(DbConnection Connection) : IQu
         return builder;
     }
 
-    /// <inheritdoc/>
-    public IAggregateBuilder<TRecordset> Aggregate()
-    {
-        return this;
-    }
+    /// <inheritdoc />
+    public IAggregateBuilder<TRecordset> Aggregate() => this;
 
-    /// <inheritdoc/>
-    public IHavingBuilder<TRecordset> Having()
-    {
-        return this;
-    }
+    /// <inheritdoc />
+    public IHavingBuilder<TRecordset> Having() => this;
 
-    /// <inheritdoc/>
-    public IHavingBuilder<TRecordset> Having(bool condition)
-    {
-        return this;
-    }
+    /// <inheritdoc />
+    public IHavingBuilder<TRecordset> Having(bool condition) => this;
 
-    /// <inheritdoc/>
-    public IOrderByBuilder<TRecordset> OrderBy(Expression<Func<TRecordset, object>> selector)
-    {
-        return this;
-    }
+    /// <inheritdoc />
+    public IOrderByBuilder<TRecordset> OrderBy(Expression<Func<TRecordset, object>> selector) => this;
 
-    /// <inheritdoc/>
-    public IOrderByBuilder<TRecordset> OrderBy(bool condition)
-    {
-        return this;
-    }
+    /// <inheritdoc />
+    public IOrderByBuilder<TRecordset> OrderBy(bool condition) => this;
 
-    /// <inheritdoc/>
-    public IOffsetBuilder<TRecordset> Limit(int rows)
-    {
-        return this;
-    }
+    /// <inheritdoc />
+    public IOffsetBuilder<TRecordset> Limit(int rows) => this;
 
-    /// <inheritdoc/>
-    public IFluentSqlBuilder<TRecordset> Offset(int offset)
-    {
-        return this;
-    }
+    /// <inheritdoc />
+    public IFluentSqlBuilder<TRecordset> Offset(int offset) => this;
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public List<TRecordset> ToList()
     {
         QueryVisitor visitor = new();

@@ -3,7 +3,7 @@
 /// <summary>
 ///     Declares operations for the <see cref="QueryVisitor" /> type.
 /// </summary>
-internal abstract partial record QueryComponent
+internal abstract partial class QueryComponent
 {
     /// <summary>
     ///     Dispatches the expression to one of the more specialized visit methods in this class.
