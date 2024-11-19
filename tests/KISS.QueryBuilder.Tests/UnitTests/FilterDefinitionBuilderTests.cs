@@ -193,6 +193,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         var cards = Connection.Retrieve<Card>()
+            .Select(c => c.Id)
             .InnerJoin(e => e.CardFlat, // Map one-to-one relationship
                 e => e.Id,
                 r => r.Id)

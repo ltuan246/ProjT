@@ -17,7 +17,7 @@ public interface IGroupByBuilderEntry<TRecordset> : IFluentSqlBuilder<TRecordset
     /// <typeparam name="TKey">The type of the key to group by, which must be comparable.</typeparam>
     /// <typeparam name="TMap">The results of the grouped tables to be mapped back into the selector.</typeparam>
     /// <returns>The <see cref="IGroupByBuilder{TRecordset}" /> instance for further query construction.</returns>
-    IGroupByBuilder<TMap> GroupBy<TKey, TMap>(
+    IGroupByBuilder<TRecordset> GroupBy<TKey, TMap>(
         Expression<Func<TRecordset, TKey>> keySelector,
         Expression<Func<TKey, List<TRecordset>, TMap>> mapSelector)
         where TKey : IComparable<TKey>

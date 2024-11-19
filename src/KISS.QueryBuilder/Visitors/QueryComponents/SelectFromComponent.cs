@@ -3,12 +3,17 @@
 /// <summary>
 ///     A builder for a <c>FROM</c> clause.
 /// </summary>
-/// <param name="Recordset">The type representing the database record set.</param>
-internal sealed record SelectFromComponent(Type Recordset) : IQueryComponent
+/// <param name="recordset">The type representing the database record set.</param>
+internal sealed class SelectFromComponent(MemberInfo recordset) : QueryComponent
 {
-    /// <summary>
-    ///     Let the visitor know the class of the component it works with.
-    /// </summary>
-    /// <param name="visitor">The Visitor declares a set of visiting methods that correspond to component classes.</param>
-    public void Accept(IVisitor visitor) => visitor.Visit(this);
+    /// <inheritdoc />
+    public override void Accept(IVisitor visitor)
+    {
+        Append("FROM");
+        AppendLine(true);
+        Append($"{recordset.Name}s {ClauseConstants.DefaultTableAlias}{0}");
+        AppendLine();
+
+        visitor.Visit(this);
+    }
 }

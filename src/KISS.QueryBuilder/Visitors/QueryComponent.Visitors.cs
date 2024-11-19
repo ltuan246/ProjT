@@ -1,11 +1,11 @@
-﻿namespace KISS.QueryBuilder.Core;
+﻿namespace KISS.QueryBuilder.Visitors;
 
 /// <summary>
-///     Implements <see cref="ExpressionVisitor" /> for the <see cref="FluentSqlBuilder{TRecordset}" /> type.
+///     Implements <see cref="ExpressionVisitor" /> for the <see cref="FluentSqlBuilder{TEntity}" /> type.
 ///     Traversing and analyzing LINQ expression trees and determining which parts of the expression tree
 ///     are evaluable at runtime (i.e., whether the expression can be simplified to a value).
 /// </summary>
-internal sealed partial class QueryVisitor : ExpressionVisitor
+internal abstract partial class QueryComponent : ExpressionVisitor
 {
     /// <summary>
     ///     A stack that holds expressions during the traversal process. This is used to track where we are in the tree.
@@ -28,10 +28,7 @@ internal sealed partial class QueryVisitor : ExpressionVisitor
     /// </returns>
     public override Expression? Visit(Expression? node)
     {
-        if (node is null)
-        {
-            return null;
-        }
+        if (node is null) { return null; }
 
         // pushes the current expression onto the ExpressionStack and performs different actions based on the type of expression (node).
         ExpressionStack.Push(node);
@@ -44,10 +41,7 @@ internal sealed partial class QueryVisitor : ExpressionVisitor
                 foreach (var x in ExpressionStack)
                 {
                     // BlockExpressions may have a value even though one of the statements is a void-returning expression
-                    if (x is BlockExpression && node != x)
-                    {
-                        break;
-                    }
+                    if (x is BlockExpression && node != x) { break; }
 
                     Evaluable[x] = false;
                 }
@@ -76,10 +70,7 @@ internal sealed partial class QueryVisitor : ExpressionVisitor
             case GotoExpression:
                 foreach (var x in ExpressionStack)
                 {
-                    if (Evaluable.ContainsKey(x))
-                    {
-                        break;
-                    }
+                    if (Evaluable.ContainsKey(x)) { break; }
 
                     // LambdaExpression's value is the same as LambdaExpression.Body
                     // BlockExpression's value is the same as the last expression in the block
@@ -110,21 +101,13 @@ internal sealed partial class QueryVisitor : ExpressionVisitor
     ///     A tuple of a boolean (Evaluated) indicating whether the expression was evaluable,
     ///     and the evaluated result (Value) as a FormatString.
     /// </returns>
-    private (bool Evaluated, FormattableString Value) GetValue(Expression node)
+    protected (bool Evaluated, FormattableString Value) GetValue(Expression node)
     {
         if (!Evaluable.TryGetValue(node, out var canEvaluate))
         {
             Visit(node);
             Evaluable.TryGetValue(node, out canEvaluate);
         }
-
-        /*
-         Understanding canReduce/canEvaluate:
-         - CanReduce = true: The expression can be simplified or transformed to another expression that is semantically equivalent but simpler or more direct.
-            If an expression involves a function call or any computation that requires execution to determine the final result, it as reducible.
-         - CanReduce = false: The expression is already in its simplest form, or simplification would not yield a valid expression.
-            If an expression is a basic data type and does not require any further computation, it as non-reducible.
-         */
 
         if (!canEvaluate)
         {

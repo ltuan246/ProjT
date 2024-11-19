@@ -16,12 +16,6 @@ internal interface IVisitor
     /// <summary>
     ///     Visit methods for <paramref name="element" />.
     /// </summary>
-    /// <param name="element">The SelectDistinctComponent.</param>
-    void Visit(SelectDistinctComponent element);
-
-    /// <summary>
-    ///     Visit methods for <paramref name="element" />.
-    /// </summary>
     /// <param name="element">The SelectFromComponent.</param>
     void Visit(SelectFromComponent element);
 
@@ -42,4 +36,22 @@ internal interface IVisitor
     /// </summary>
     /// <param name="element">The GroupByComponent.</param>
     void Visit(GroupByComponent element);
+
+    /// <summary>
+    ///     Visit methods for <paramref name="element" />.
+    /// </summary>
+    /// <param name="element">The OrderByComponent.</param>
+    void Visit(OrderByComponent element);
+
+    /// <summary>
+    ///     Visit methods for <paramref name="element" />.
+    /// </summary>
+    /// <param name="element">The LimitComponent.</param>
+    void Visit(LimitComponent element);
+
+    /// <summary>
+    ///     Visit methods for <paramref name="element" />.
+    /// </summary>
+    /// <param name="element">The OffsetComponent.</param>
+    void Visit(OffsetComponent element);
 }
