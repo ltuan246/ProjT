@@ -17,6 +17,10 @@ internal abstract partial class QueryComponent
                 Translate(binaryExpression);
                 break;
 
+            case UnaryExpression unaryExpression:
+                Translate(unaryExpression);
+                break;
+
             case MemberExpression memberExpression:
                 Translate(memberExpression);
                 break;
@@ -44,6 +48,12 @@ internal abstract partial class QueryComponent
     /// </summary>
     /// <param name="binaryExpression">The nodes to visit.</param>
     protected virtual void Translate(BinaryExpression binaryExpression) { }
+
+    /// <summary>
+    ///     Visits the children of the UnaryExpression.
+    /// </summary>
+    /// <param name="unaryExpression">The nodes to visit.</param>
+    protected virtual void Translate(UnaryExpression unaryExpression) { }
 
     /// <summary>
     ///     Visits the children of the MemberExpression.

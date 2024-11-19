@@ -28,6 +28,7 @@ internal sealed record QueryVisitor : IVisitor
     /// <inheritdoc />
     public void Visit(JoinComponent element)
     {
+        SqlBuilder.Append(element.SqlBuilder);
     }
 
     /// <inheritdoc />
@@ -39,5 +40,23 @@ internal sealed record QueryVisitor : IVisitor
     /// <inheritdoc />
     public void Visit(GroupByComponent element)
     {
+    }
+
+    /// <inheritdoc />
+    public void Visit(OrderByComponent element)
+    {
+        SqlBuilder.Append(element.SqlBuilder);
+    }
+
+    /// <inheritdoc />
+    public void Visit(LimitComponent element)
+    {
+        SqlBuilder.Append(element.SqlBuilder);
+    }
+
+    /// <inheritdoc />
+    public void Visit(OffsetComponent element)
+    {
+        SqlBuilder.Append(element.SqlBuilder);
     }
 }

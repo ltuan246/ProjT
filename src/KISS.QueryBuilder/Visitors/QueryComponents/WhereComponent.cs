@@ -3,21 +3,18 @@
 /// <summary>
 ///     A builder for a <c>WHERE</c> clause.
 /// </summary>
-/// <param name="predicate">Filters a sequence of values based on a predicate.</param>
-internal sealed class WhereComponent(
-    SqlFormatter sqlFormat,
-    Dictionary<Type, string> tableAliases,
-    Expression predicate) : QueryComponent
+internal sealed class WhereComponent(SqlFormatter sqlFormat, Dictionary<Type, string> tableAliases) : QueryComponent
 {
-    /// <summary>
-    ///     Use to custom string formatting for SQL queries.
-    /// </summary>
+    /// <inheritdoc />
     protected override SqlFormatter SqlFormat { get; } = sqlFormat;
 
-    /// <summary>
-    ///     A collection specifically for table aliases.
-    /// </summary>
+    /// <inheritdoc />
     protected override Dictionary<Type, string> TableAliases { get; } = tableAliases;
+
+    /// <summary>
+    ///     Filters a sequence of values based on a predicate.
+    /// </summary>
+    public List<Expression> Predicate { get; } = [];
 
     private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
     {
@@ -46,12 +43,21 @@ internal sealed class WhereComponent(
     /// <inheritdoc />
     public override void Accept(IVisitor visitor)
     {
-        Append("WHERE");
-        AppendLine(true);
+        using var enumerator = Predicate.GetEnumerator();
+        if (enumerator.MoveNext())
+        {
+            Append("WHERE");
+            AppendLine(true);
 
-        Translate(predicate);
+            Translate(enumerator.Current);
+            while (enumerator.MoveNext())
+            {
+                Append("AND ");
+                Translate(enumerator.Current);
+            }
 
-        AppendLine();
+            AppendLine();
+        }
 
         visitor.Visit(this);
     }

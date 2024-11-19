@@ -5,7 +5,7 @@ public class ProjectionDefinitionBuilderTests(SqliteTestsFixture fixture)
 {
     private SqliteConnection Connection { get; init; } = fixture.Connection;
 
-    [Fact(Skip = "Doesn't work at the moment")]
+    [Fact]
     public void LimitClause_FluentBuilder_ReturnsSpecifyTheNumberOfRecordsInTheResultSet()
     {
         // Arrange

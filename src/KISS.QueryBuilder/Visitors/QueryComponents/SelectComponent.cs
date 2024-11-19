@@ -5,21 +5,18 @@
 /// </summary>
 /// <param name="sqlFormat">Use to custom string formatting for SQL queries.</param>
 /// <param name="tableAliases">A collection specifically for table aliases.</param>
-/// <param name="hasDistinct">Use checks to know when to use <c>SELECT DISTINCT</c> clause.</param>
-internal sealed class SelectComponent(
-    SqlFormatter sqlFormat,
-    Dictionary<Type, string> tableAliases,
-    bool hasDistinct = false) : QueryComponent
+internal sealed class SelectComponent(SqlFormatter sqlFormat, Dictionary<Type, string> tableAliases) : QueryComponent
 {
-    /// <summary>
-    ///     Use to custom string formatting for SQL queries.
-    /// </summary>
+    /// <inheritdoc />
     protected override SqlFormatter SqlFormat { get; } = sqlFormat;
 
-    /// <summary>
-    ///     A collection specifically for table aliases.
-    /// </summary>
+    /// <inheritdoc />
     protected override Dictionary<Type, string> TableAliases { get; } = tableAliases;
+
+    /// <summary>
+    ///     Use checks to know when to use <c>SELECT DISTINCT</c> clause.
+    /// </summary>
+    public bool HasDistinct { get; set; }
 
     /// <summary>
     ///     The table columns.
@@ -29,7 +26,7 @@ internal sealed class SelectComponent(
     /// <inheritdoc />
     public override void Accept(IVisitor visitor)
     {
-        Append(hasDistinct ? "SELECT DISTINCT" : "SELECT");
+        Append(HasDistinct ? "SELECT DISTINCT" : "SELECT");
         AppendLine(true);
 
         using var enumerator = Selectors.GetEnumerator();
@@ -140,5 +137,11 @@ internal sealed class SelectComponent(
             .ToArray();
 
         Append(string.Join(", ", selectList));
+    }
+
+    /// <inheritdoc />
+    protected override void Translate(ConstantExpression constantExpression)
+    {
+        Append($"{constantExpression.Value}");
     }
 }
