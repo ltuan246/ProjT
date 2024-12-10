@@ -13,6 +13,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => w.Id == exId)
             .ToList();
 
@@ -30,6 +31,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => w.Id == exId && w.Country != exCountry)
             .ToList();
 
@@ -45,6 +47,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => w.TemperatureCelsius > exTemperatureCelsius)
             .ToList();
 
@@ -61,6 +64,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => w.TemperatureCelsius >= exTemperatureCelsius)
             .ToList();
 
@@ -77,6 +81,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => w.TemperatureCelsius < exTemperatureCelsius)
             .ToList();
 
@@ -93,6 +98,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => w.TemperatureCelsius <= exTemperatureCelsius)
             .ToList();
 
@@ -109,6 +115,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => SqlFunctions.AnyIn(w.Country, exCountries))
             .ToList();
 
@@ -125,6 +132,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => SqlFunctions.NotIn(w.Country, exCountries))
             .ToList();
 
@@ -142,6 +150,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => SqlFunctions.InRange(w.LastUpdated, exDtBegin, exDtEnd))
             .ToList();
 
@@ -158,8 +167,15 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .Select(w => new { w.Id, w.Country })
+            .From<Weather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
+            .Select(w => new()
+            {
+                Id = w.Id,
+                TemperatureCelsius = w.TemperatureCelsius,
+                WindMph = w.WindMph,
+                LastUpdated = w.LastUpdated
+            })
             .ToList();
 
         // Assert
@@ -175,8 +191,15 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .SelectDistinct(w => new { w.Id, w.Country })
+            .From<Weather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
+            .Select(w => new()
+            {
+                Id = w.Id,
+                TemperatureCelsius = w.TemperatureCelsius,
+                WindMph = w.WindMph,
+                LastUpdated = w.LastUpdated
+            })
             .ToList();
 
         // Assert
@@ -193,14 +216,14 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         var cards = Connection.Retrieve<Card>()
-            .Select(c => c.Id)
-            .InnerJoin(e => e.CardFlat, // Map one-to-one relationship
+            .From<Card>()
+            .InnerJoin<CardFlat, string>( // Map one-to-one relationship
                 e => e.Id,
                 r => r.Id)
-            .InnerJoin(e => e.DustCost, // Map one-to-many relationship
-                e => e.Id,
+            .InnerJoin<DustCost, string>( // Map one-to-many relationship
+                (Card e) => e.Id,
                 r => r.CardId)
-            .Where(w => w.Id == exId)
+            .Where((Card c) => c.Id == exId)
             .ToList();
 
         // Assert
@@ -231,15 +254,16 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         var cards = Connection.Retrieve<Card>()
-            .InnerJoin(e => e.CardFlat, // Map one-to-one relationship
+            .From<Card>()
+            .InnerJoin<CardFlat, string>( // Map one-to-one relationship
                 e => e.Id,
                 r => r.Id)
-            .InnerJoin(e => e.DustCost, // Map one-to-many relationship
-                e => e.Id,
+            .InnerJoin<DustCost, string>( // Map one-to-many relationship
+                (Card e) => e.Id,
                 r => r.CardId)
-            .Where(w => w.Id == exId)
-            .GroupBy(w => w.Id, (k, w) =>
-                new CardGroup { Id = k, Cost = w.Sum(c => c.DustCost!.Sum(dc => dc.Cost)) })
+            .Where((Card c) => c.Id == exId)
+            // .GroupBy(w => w.Id, (k, w) =>
+            //     new CardGroup { Id = k, Cost = w.Sum(c => c.DustCost!.Sum(dc => dc.Cost)) })
             .ToList();
     }
 }

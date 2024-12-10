@@ -14,6 +14,7 @@ public class ProjectionDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
+            .From<Weather>()
             .Where(w => w.TemperatureCelsius == exTemperatureCelsius && w.WindMph < exWindMph)
             .OrderBy(w => w.Id)
             .Limit(3)

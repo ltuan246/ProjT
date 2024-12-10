@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\KISS.QueryBuilder\KISS.QueryBuilder.csproj" />
+        <ProjectReference Include="..\..\src\KISS.FluentSqlBuilder\KISS.FluentSqlBuilder.csproj" />
         <ProjectReference Include="..\..\src\KISS.Misc\KISS.Misc.csproj" />
     </ItemGroup>
 
