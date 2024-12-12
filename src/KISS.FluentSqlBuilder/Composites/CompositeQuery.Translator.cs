@@ -10,22 +10,40 @@ public sealed partial class CompositeQuery
         Append("SELECT");
         AppendLine(true);
 
-        using var enumerator = SelectComponents.GetEnumerator();
-        if (enumerator.MoveNext())
+        using var selectEnumerator = SelectComponents.GetEnumerator();
+        if (selectEnumerator.MoveNext())
         {
             SelectTranslator translator = new(this);
-            translator.Translate(enumerator.Current);
+            translator.Translate(selectEnumerator.Current);
 
-            while (enumerator.MoveNext())
+            while (selectEnumerator.MoveNext())
             {
+                AppendLine(true);
                 Append(", ");
-                translator.Translate(enumerator.Current);
+                translator.Translate(selectEnumerator.Current);
             }
         }
         else
         {
-            Append("Extend0.*");
+            Append("*");
         }
+
+        // using var selectAsAliasEnumerator = SelectAsAliasComponents.GetEnumerator();
+        // if (selectAsAliasEnumerator.MoveNext())
+        // {
+        //     AppendLine(true);
+        //     Append(", ");
+        //
+        //     SelectTranslator translator = new(this, true);
+        //     translator.Translate(selectAsAliasEnumerator.Current);
+        //
+        //     while (selectAsAliasEnumerator.MoveNext())
+        //     {
+        //         AppendLine(true);
+        //         Append(", ");
+        //         translator.Translate(selectAsAliasEnumerator.Current);
+        //     }
+        // }
 
         AppendLine();
     }

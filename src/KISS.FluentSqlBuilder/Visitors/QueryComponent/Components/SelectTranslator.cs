@@ -4,7 +4,8 @@
 ///     A builder for a <c>SELECT</c> clause.
 /// </summary>
 /// <param name="Composite">The structure of the fluent SQL builder.</param>
-public sealed record SelectTranslator(CompositeQuery Composite) : ExpressionTranslator
+/// <param name="UseAlias">Use an alias in the <c>SELECT</c> clause.</param>
+public sealed record SelectTranslator(CompositeQuery Composite, bool UseAlias = false) : ExpressionTranslator
 {
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)
@@ -36,6 +37,14 @@ public sealed record SelectTranslator(CompositeQuery Composite) : ExpressionTran
                 {
                     Composite.Append(
                         $"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
+
+                    if (UseAlias)
+                    {
+                        string alias = $"{parameterExpression.Type.Name}{memberExpression.Member.Name}";
+                        Composite.ColumnAliases.Add(alias);
+                        Composite.Append($" AS {alias}");
+                    }
+
                     break;
                 }
 

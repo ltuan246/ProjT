@@ -9,6 +9,7 @@ public sealed record SelectFromTranslator(CompositeQuery Composite) : Expression
     /// <inheritdoc />
     protected override void Translate(ConstantExpression constantExpression)
     {
-        Composite.Append($"{((Type)constantExpression.Value!).Name}s {Composite.GetAliasMapping((Type)constantExpression.Value)}");
+        Composite.Append(
+            $"{((Type)constantExpression.Value!).Name}s {Composite.GetAliasMapping((Type)constantExpression.Value)}");
     }
 }

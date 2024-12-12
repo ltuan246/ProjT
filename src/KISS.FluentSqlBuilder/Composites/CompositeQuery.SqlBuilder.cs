@@ -33,6 +33,17 @@ public sealed partial class CompositeQuery
     private Dictionary<Type, string> TableAliases { get; } = [];
 
     /// <summary>
+    ///     A collection specifically for column aliases.
+    /// </summary>
+    public List<string> ColumnAliases { get; } = [];
+
+    /// <summary>
+    ///     A collection specifically for key relation aliases.
+    /// </summary>
+    public string SplitOn
+        => string.Join(',', ColumnAliases);
+
+    /// <summary>
     ///     Use checks to know when to use Close Parenthesis.
     /// </summary>
     private bool HasOpenParentheses { get; set; }

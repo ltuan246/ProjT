@@ -29,11 +29,25 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite,
     IQueryBuilder<TRecordset, TReturn>
 {
     /// <inheritdoc />
-    public IJoinBuilder<TRecordset, TRelation, TReturn> InnerJoin<TRelation, TKey>(
-        Expression<Func<TRecordset, TKey>> leftKeySelector,
-        Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>
+    public IJoinBuilder<TRecordset, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TRecordset, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector,
+        Expression<Func<TReturn, TRelation?>> mapSelector)
     {
+        Composite.SelectAsAliasComponents.Add(leftKeySelector.Body);
+        Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
+        Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
+        return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite, Connection);
+    }
+
+    /// <inheritdoc />
+    public IJoinBuilder<TRecordset, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TRecordset, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector,
+        Expression<Func<TReturn, List<TRelation>?>> mapSelector)
+    {
+        Composite.SelectAsAliasComponents.Add(leftKeySelector.Body);
+        Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
         Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite, Connection);
     }
@@ -96,21 +110,21 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
     IQueryBuilder<TFirst, TSecond, TReturn>
 {
     /// <inheritdoc />
-    public IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation, TKey>(
-        Expression<Func<TFirst, TKey>> leftKeySelector,
-        Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>
+    public IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TFirst, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector)
     {
+        Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
         Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite, Connection);
     }
 
     /// <inheritdoc />
-    public IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation, TKey>(
-        Expression<Func<TSecond, TKey>> leftKeySelector,
-        Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>
+    public IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TSecond, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector)
     {
+        Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
         Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite, Connection);
     }
@@ -234,16 +248,39 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
         return this;
     }
 
+    private Func<TFirst, TReturn> CreateMap()
+    {
+        var sourceParameter = Expression.Parameter(typeof(TFirst), "source");
+        var targetProperties = typeof(TReturn).GetProperties().Where(p => p.CanWrite).ToList();
+        var bindings = new List<MemberBinding>();
+
+        foreach (var targetProperty in targetProperties)
+        {
+            var sourceProperty = typeof(TFirst).GetProperty(targetProperty.Name);
+            if (sourceProperty != null && sourceProperty.PropertyType == targetProperty.PropertyType)
+            {
+                var sourceValue = Expression.Property(sourceParameter, sourceProperty);
+                var binding = Expression.Bind(targetProperty, sourceValue);
+                bindings.Add(binding);
+            }
+        }
+
+        var initializer = Expression.MemberInit(Expression.New(typeof(TReturn)), bindings);
+        var lambda = Expression.Lambda<Func<TFirst, TReturn>>(initializer, sourceParameter);
+        return lambda.Compile();
+    }
+
     /// <inheritdoc />
     public List<TReturn> ToList()
     {
+        var map = CreateMap();
+
         Composite.SetQueries();
         return Connection
-            .Query<TReturn, TSecond, TThird, TReturn>(
+            .Query<TFirst, TSecond, TThird, TReturn>(
                 Composite.Sql,
-                (order, customer, product) => order,
-                Composite.Parameters,
-                splitOn: "Id,Id,Id")
+                (first, second, third) => map(first),
+                Composite.Parameters)
             .ToList();
     }
 }

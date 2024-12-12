@@ -12,13 +12,26 @@ public interface IJoinBuilder<TRecordset, TReturn> : IWhereBuilder<TRecordset, T
     /// </summary>
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
+    /// <param name="mapSelector">The combined type to return.</param>
     /// <typeparam name="TRelation">The type of join table.</typeparam>
-    /// <typeparam name="TKey">The compare keys.</typeparam>
     /// <returns>The <see cref="IJoinBuilder{TFirst, TSecond, TReturn}" /> instance.</returns>
-    IJoinBuilder<TRecordset, TRelation, TReturn> InnerJoin<TRelation, TKey>(
-        Expression<Func<TRecordset, TKey>> leftKeySelector,
-        Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>;
+    IJoinBuilder<TRecordset, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TRecordset, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector,
+        Expression<Func<TReturn, TRelation?>> mapSelector);
+
+    /// <summary>
+    ///     Appends the <c>JOIN</c> clause to the query.
+    /// </summary>
+    /// <param name="leftKeySelector">The table as the left key.</param>
+    /// <param name="rightKeySelector">The table as the right key.</param>
+    /// <param name="mapSelector">The combined type to return.</param>
+    /// <typeparam name="TRelation">The type of join table.</typeparam>
+    /// <returns>The <see cref="IJoinBuilder{TFirst, TSecond, TReturn}" /> instance.</returns>
+    IJoinBuilder<TRecordset, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TRecordset, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector,
+        Expression<Func<TReturn, List<TRelation>?>> mapSelector);
 }
 
 /// <summary>
@@ -35,12 +48,10 @@ public interface IJoinBuilder<TFirst, TSecond, TReturn> : IWhereBuilder<TFirst, 
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
     /// <typeparam name="TRelation">The type of join table.</typeparam>
-    /// <typeparam name="TKey">The compare keys.</typeparam>
     /// <returns>The <see cref="IJoinBuilder{TFirst, TSecond, TThird, TReturn}" /> instance.</returns>
-    IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation, TKey>(
-        Expression<Func<TFirst, TKey>> leftKeySelector,
-        Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>;
+    IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TFirst, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector);
 
     /// <summary>
     ///     Appends the <c>JOIN</c> clause to the query.
@@ -48,12 +59,10 @@ public interface IJoinBuilder<TFirst, TSecond, TReturn> : IWhereBuilder<TFirst, 
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
     /// <typeparam name="TRelation">The type of join table.</typeparam>
-    /// <typeparam name="TKey">The compare keys.</typeparam>
     /// <returns>The <see cref="IJoinBuilder{TFirst, TSecond, TThird, TReturn}" /> instance.</returns>
-    IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation, TKey>(
-        Expression<Func<TSecond, TKey>> leftKeySelector,
-        Expression<Func<TRelation, TKey>> rightKeySelector)
-        where TKey : IComparable<TKey>;
+    IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TSecond, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector);
 }
 
 /// <summary>

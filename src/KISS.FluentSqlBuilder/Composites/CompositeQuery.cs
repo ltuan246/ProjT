@@ -13,6 +13,11 @@ public sealed partial class CompositeQuery
     /// <summary>
     ///     Stores the query components categorized by clauses.
     /// </summary>
+    public List<Expression> SelectAsAliasComponents { get; } = [];
+
+    /// <summary>
+    ///     Stores the query components categorized by clauses.
+    /// </summary>
     public List<Expression> SelectFromComponents { get; } = [];
 
     /// <summary>
