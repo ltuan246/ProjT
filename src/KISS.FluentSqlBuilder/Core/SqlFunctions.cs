@@ -13,7 +13,7 @@ public static class SqlFunctions
     /// <typeparam name="TEntity">The type of the record.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
     public static QueryBuilder<TEntity> Retrieve<TEntity>(this DbConnection dbConnection)
-        => new(new(), dbConnection);
+        => new(dbConnection);
 
     /// <summary>
     ///     Appends the <c>BETWEEN</c> clause and the interpolated string to the builder.
