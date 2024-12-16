@@ -212,7 +212,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     {
         // Arrange
         const string exId = "BRM_010t2";
-        // const string exCardFlatType = "MINION";
+        const string exCardFlatType = "MINION";
 
         // Act
         var cards = Connection.Retrieve<CardModel>()
@@ -222,8 +222,9 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 r => r.Id,
                 e => e.CardFlat)
             .InnerJoin<DustCost>( // Map one-to-many relationship
-                (Card e) => e.Id,
-                r => r.CardId)
+                e => e.Id,
+                r => r.CardId,
+                e => e.DustCost)
             .Where((Card c) => c.Id == exId)
             .ToList();
 
@@ -234,16 +235,16 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
             {
                 Assert.Equal(exId, c.Id);
 
-                // Assert.NotNull(c.CardFlat);
-                // Assert.Equal(exCardFlatType, c.CardFlat.Type);
-                //
-                // Assert.NotNull(c.DustCost);
-                // Assert.Equal(4, c.DustCost.Count);
-                // Assert.Collection(c.DustCost,
-                //     dc => Assert.Equal("CRAFTING_NORMAL", dc.Action),
-                //     dc => Assert.Equal("CRAFTING_GOLDEN", dc.Action),
-                //     dc => Assert.Equal("DISENCHANT_NORMAL", dc.Action),
-                //     dc => Assert.Equal("DISENCHANT_GOLDEN", dc.Action));
+                Assert.NotNull(c.CardFlat);
+                Assert.Equal(exCardFlatType, c.CardFlat.Type);
+
+                Assert.NotNull(c.DustCost);
+                Assert.Equal(4, c.DustCost.Count);
+                Assert.Collection(c.DustCost,
+                    dc => Assert.Equal("CRAFTING_NORMAL", dc.Action),
+                    dc => Assert.Equal("CRAFTING_GOLDEN", dc.Action),
+                    dc => Assert.Equal("DISENCHANT_NORMAL", dc.Action),
+                    dc => Assert.Equal("DISENCHANT_GOLDEN", dc.Action));
             });
     }
 
@@ -262,7 +263,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 e => e.CardFlat)
             .InnerJoin<DustCost>( // Map one-to-many relationship
                 (Card e) => e.Id,
-                r => r.CardId)
+                r => r.CardId,
+                e => e.DustCost)
             .Where((Card c) => c.Id == exId)
             // .GroupBy(w => w.Id, (k, w) =>
             //     new CardGroup { Id = k, Cost = w.Sum(c => c.DustCost!.Sum(dc => dc.Cost)) })

@@ -3,30 +3,38 @@
 /// <summary>
 ///     A class that defines the fluent SQL builder type.
 /// </summary>
-public sealed partial class CompositeQuery
+/// <remarks>
+///     Initializes a new instance of the <see cref="CompositeQuery" /> class.
+/// </remarks>
+/// <param name="connection">The database connections.</param>
+/// <param name="sourceEntity">The type representing the database record set.</param>
+/// <param name="retrieveEntity">The combined type to return.</param>
+public sealed partial class CompositeQuery(DbConnection connection, Type sourceEntity, Type retrieveEntity)
 {
     /// <summary>
-    ///     The type representing the database record set.
+    ///     The database connections.
     /// </summary>
-    public required Type SourceEntity { get; init; }
+    private DbConnection Connection { get; } = connection;
 
     /// <summary>
     ///     The type representing the database record set.
     /// </summary>
-    public required ParameterExpression SourceParameter { get; init; }
+    private Type SourceEntity { get; } = sourceEntity;
 
     /// <summary>
-    ///     The type of the record.
+    ///     Used to represent an instance of the source entity in the expression tree.
     /// </summary>
-    public required Type RetrieveEntity { get; init; }
+    private ParameterExpression SourceParameter { get; } = Expression.Parameter(sourceEntity, "source");
 
     /// <summary>
-    ///     The type of the record.
+    ///     The combined type to return.
     /// </summary>
-    public required ParameterExpression RetrieveParameter { get; init; }
+    private Type RetrieveEntity { get; } = retrieveEntity;
 
-    private List<PropertyInfo> TargetProperties
-        => RetrieveEntity.GetProperties().Where(p => p.CanWrite).ToList();
+    /// <summary>
+    ///      Used to store the constructed target entity during the execution of the expression tree.
+    /// </summary>
+    private ParameterExpression RetrieveParameter { get; } = Expression.Variable(retrieveEntity, "retrieve");
 
     /// <summary>
     ///     The expressions are both ordered and intended for use in an Expression.Block.
@@ -182,7 +190,8 @@ public sealed partial class CompositeQuery
     /// </returns>
     private IEnumerable<MemberBinding> CreateBindings()
     {
-        foreach (var targetProperty in TargetProperties)
+        var targetProperties = RetrieveEntity.GetProperties().Where(p => p.CanWrite).ToList();
+        foreach (var targetProperty in targetProperties)
         {
             var sourceProperty = SourceEntity.GetProperty(targetProperty.Name);
             if (sourceProperty != null && sourceProperty.PropertyType == targetProperty.PropertyType)
@@ -195,34 +204,14 @@ public sealed partial class CompositeQuery
     }
 
     /// <summary>
-    ///     Creates a mapping function that transforms an instance of <typeparamref name="TRecordset" />
-    ///     into an instance of <typeparamref name="TReturn" />.
-    ///     This is useful for dynamically mapping database record sets to strongly typed objects.
-    /// </summary>
-    /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-    /// <typeparam name="TReturn">The combined type to return.</typeparam>
-    /// <returns>
-    ///     A function that accepts a single <typeparamref name="TRecordset" /> instance and returns
-    ///     a transformed <typeparamref name="TReturn" /> instance.
-    /// </returns>
-    public Func<TRecordset, TReturn> CreateMap<TRecordset, TReturn>()
-    {
-        var bindings = CreateBindings();
-        var initializer = Expression.MemberInit(Expression.New(RetrieveEntity), bindings);
-        var lambda = Expression.Lambda<Func<TRecordset, TReturn>>(initializer, SourceParameter);
-        return lambda.Compile();
-    }
-
-    /// <summary>
     ///     Executes the SQL query and returns the results as a list.
     /// </summary>
-    /// <param name="connection">The database connections.</param>
     /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
     /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
     /// <typeparam name="TThird">The third type in the recordset.</typeparam>
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public List<TReturn> ToList<TFirst, TSecond, TThird, TReturn>(DbConnection connection)
+    public List<TReturn> ToList<TFirst, TSecond, TThird, TReturn>()
     {
         Dictionary<string, TReturn> dict = [];
 
@@ -232,30 +221,14 @@ public sealed partial class CompositeQuery
         // Create a constant expression representing the dictionary, so it can be used in the expression tree
         var dictConst = Expression.Constant(dict);
 
-        var sourceParameter = Expression.Parameter(typeof(TFirst), "source");
-        // var retrieveParameter = Expression.Variable(typeof(TReturn), "retrieve");
-
         // Create a call to the dictionary's TryGetValue method to check if a record exists by its Id property
         var tryGetCall = Expression.Call(
             dictConst,
             dictType.GetMethod("TryGetValue")!,
-            Expression.Property(sourceParameter, "Id"),
+            Expression.Property(SourceParameter, "Id"),
             RetrieveParameter);
 
-        var bindings = new List<MemberBinding>();
-
-        foreach (var targetProperty in TargetProperties)
-        {
-            var sourceProperty = typeof(TFirst).GetProperty(targetProperty.Name);
-            if (sourceProperty != null && sourceProperty.PropertyType == targetProperty.PropertyType)
-            {
-                var sourceValue = Expression.Property(sourceParameter, sourceProperty);
-                var binding = Expression.Bind(targetProperty, sourceValue);
-                bindings.Add(binding);
-            }
-        }
-
-        var initializer = Expression.MemberInit(Expression.New(RetrieveEntity), bindings);
+        var initializer = Expression.MemberInit(Expression.New(RetrieveEntity), CreateBindings());
 
         // Define a block to add a new record to the dictionary if TryGetValue fails
         var addNewToDictBlock = Expression.Block(
@@ -263,7 +236,7 @@ public sealed partial class CompositeQuery
             Expression.Call(
                 dictConst,
                 dictType.GetMethod("Add")!,
-                Expression.Property(sourceParameter, "Id"),
+                Expression.Property(SourceParameter, "Id"),
                 RetrieveParameter));
 
         // If the record is not in the dictionary (TryGetValue returns false), add it using the block defined above
@@ -271,6 +244,7 @@ public sealed partial class CompositeQuery
 
         // Define parameters for the lambda expression
         var parameters = BlockMapSequence.Select(e => e.Parameter).ToList();
+        var entities = parameters.Select(e => e.Type).ToList();
 
         // Define multiple expressions (Access method).
         var methods = BlockMapSequence.Select(e => e.Expr).ToList();
@@ -279,17 +253,49 @@ public sealed partial class CompositeQuery
         var block = Expression.Block([RetrieveParameter], [ifNotInDict, ..methods, RetrieveParameter]);
 
         // Create the lambda expression
-        var lambda = Expression.Lambda<Func<TFirst, TSecond, TReturn>>(block, [sourceParameter, ..parameters]);
+        // var lambda = Expression.Lambda<Func<TFirst, TSecond, TThird, TReturn>>(block, [SourceParameter, ..parameters]);
+        // var map = lambda.Compile();
 
+        // Create a list of parameter types for the query method
+        List<Type> types = [SourceEntity, ..entities, RetrieveEntity];
+
+        // Dynamically constructs the corresponding Func type using reflection.
+        var funcType = typeof(Func<>).Assembly
+            .GetType($"System.Func`{types.Count}")! // Func type has an additional return type
+            .MakeGenericType([.. types]);
+
+        // Create the lambda expression
+        var lambda = Expression.Lambda(funcType, block, [SourceParameter, .. parameters]);
         var map = lambda.Compile();
 
+        // Find a generic method named "Query" in SqlMapper with the correct number of generic arguments
+        var queryMethod = typeof(SqlMapper)
+            .GetMethods()
+            .First(m => m is { Name: "Query", IsGenericMethod: true }
+                        && m.GetGenericArguments().Length == types.Count);
+
+        // Create a specialized generic method by applying types as generic parameters
+        var query = queryMethod.MakeGenericMethod([.. types]);
+
         SetQueries();
-        _ = connection
-            .Query<TFirst, TSecond, TThird, TReturn>(
-                Sql,
-                (first, second, third) => map(first, second),
-                Parameters)
-            .ToList();
+        _ = query.Invoke(null, [
+            Connection,
+            Sql, // SQL query string
+            map, // Mapping function
+            Parameters, // Dapper DynamicParameters
+            null, // IDbTransaction, set to null
+            true, // Buffered, true by default
+            "Id", // SplitOn, default to "Id"
+            null, // CommandTimeout, null
+            null // CommandType, null
+        ]);
+
+        // _ = Connection
+        //     .Query<TFirst, TSecond, TThird, TReturn>(
+        //         Sql,
+        //         (first, second, third) => map(first, second, third),
+        //         Parameters)
+        //     .ToList();
 
         return [.. dict.Values];
     }

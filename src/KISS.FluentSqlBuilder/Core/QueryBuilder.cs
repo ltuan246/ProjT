@@ -10,17 +10,10 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
     /// <inheritdoc />
     public IJoinBuilder<TRecordset, TReturn> From<TRecordset>()
     {
-        CompositeQuery composite = new()
-        {
-            SourceEntity = typeof(TRecordset),
-            SourceParameter = Expression.Parameter(typeof(TRecordset), "source"),
-            RetrieveEntity = typeof(TReturn),
-            RetrieveParameter = Expression.Variable(typeof(TReturn), "retrieve")
-        };
-
         ConstantExpression constantExpression = Expression.Constant(typeof(TRecordset));
+        CompositeQuery composite = new(Connection, typeof(TRecordset), typeof(TReturn));
         composite.SelectFromComponents.Add(constantExpression);
-        return new QueryBuilder<TRecordset, TReturn>(composite, Connection);
+        return new QueryBuilder<TRecordset, TReturn>(composite);
     }
 }
 
@@ -28,10 +21,9 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
 /// <param name="Composite">Combining different queries together.</param>
-/// <param name="Connection">The database connections.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite, DbConnection Connection) :
+public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite) :
     IQueryBuilder<TRecordset, TReturn>
 {
     /// <inheritdoc />
@@ -44,7 +36,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite,
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
         Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
         Composite.SetMap(mapSelector);
-        return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite, Connection);
+        return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite);
     }
 
     /// <inheritdoc />
@@ -57,7 +49,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite,
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
         Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
         Composite.SetMap(mapSelector);
-        return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite, Connection);
+        return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite);
     }
 
     /// <inheritdoc />
@@ -102,7 +94,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite,
     public List<TReturn> ToList()
     {
         Composite.SetQueries();
-        return Connection.Query<TReturn>(Composite.Sql, Composite.Parameters).ToList();
+        return [];
     }
 }
 
@@ -110,21 +102,34 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite,
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
 /// <param name="Composite">Combining different queries together.</param>
-/// <param name="Connection">The database connections.</param>
 /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Composite, DbConnection Connection) :
+public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Composite) :
     IQueryBuilder<TFirst, TSecond, TReturn>
 {
     /// <inheritdoc />
     public IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation>(
         Expression<Func<TFirst, IComparable>> leftKeySelector,
-        Expression<Func<TRelation, IComparable>> rightKeySelector)
+        Expression<Func<TRelation, IComparable>> rightKeySelector,
+        Expression<Func<TReturn, TRelation?>> mapSelector)
     {
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
         Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
-        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite, Connection);
+        Composite.SetMap(mapSelector);
+        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
+    }
+
+    /// <inheritdoc />
+    public IJoinBuilder<TFirst, TSecond, TRelation, TReturn> InnerJoin<TRelation>(
+        Expression<Func<TFirst, IComparable>> leftKeySelector,
+        Expression<Func<TRelation, IComparable>> rightKeySelector,
+        Expression<Func<TReturn, List<TRelation>?>> mapSelector)
+    {
+        Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
+        Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
+        Composite.SetMap(mapSelector);
+        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
     }
 
     /// <inheritdoc />
@@ -134,7 +139,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
     {
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
         Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
-        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite, Connection);
+        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
     }
 
     /// <inheritdoc />
@@ -186,7 +191,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
     public List<TReturn> ToList()
     {
         Composite.SetQueries();
-        return Connection.Query<TReturn>(Composite.Sql, Composite.Parameters).ToList();
+        return [];
     }
 }
 
@@ -194,12 +199,11 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
 /// <param name="Composite">Combining different queries together.</param>
-/// <param name="Connection">The database connections.</param>
 /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TThird">The third type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQuery Composite, DbConnection Connection) :
+public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQuery Composite) :
     IQueryBuilder<TFirst, TSecond, TThird, TReturn>
 {
     /// <inheritdoc />
@@ -258,5 +262,5 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.ToList<TFirst, TSecond, TThird, TReturn>(Connection);
+        => Composite.ToList<TFirst, TSecond, TThird, TReturn>();
 }

@@ -28,23 +28,6 @@ public sealed partial class CompositeQuery
             Append("*");
         }
 
-        // using var selectAsAliasEnumerator = SelectAsAliasComponents.GetEnumerator();
-        // if (selectAsAliasEnumerator.MoveNext())
-        // {
-        //     AppendLine(true);
-        //     Append(", ");
-        //
-        //     SelectTranslator translator = new(this, true);
-        //     translator.Translate(selectAsAliasEnumerator.Current);
-        //
-        //     while (selectAsAliasEnumerator.MoveNext())
-        //     {
-        //         AppendLine(true);
-        //         Append(", ");
-        //         translator.Translate(selectAsAliasEnumerator.Current);
-        //     }
-        // }
-
         AppendLine();
     }
 
