@@ -10,7 +10,34 @@ public sealed partial class CompositeQuery
         Append("SELECT");
         AppendLine(true);
 
+        using var selectGroupByEnumerator = GroupByComponents.GetEnumerator();
+        using var selectAggregationEnumerator = SelectAggregationComponents.GetEnumerator();
         using var selectEnumerator = SelectComponents.GetEnumerator();
+
+        if (selectGroupByEnumerator.MoveNext())
+        {
+            SelectTranslator translator = new(this);
+            translator.Translate(selectGroupByEnumerator.Current);
+
+            while (selectGroupByEnumerator.MoveNext())
+            {
+                AppendLine(true);
+                Append(", ");
+                translator.Translate(selectGroupByEnumerator.Current);
+            }
+
+            while (selectAggregationEnumerator.MoveNext())
+            {
+                AppendLine(true);
+                Append($", {selectAggregationEnumerator.Current.AggregationType}(");
+                translator.Translate(selectAggregationEnumerator.Current.Expr);
+                Append($") AS {selectAggregationEnumerator.Current.Alias}");
+            }
+
+            AppendLine(true);
+            Append(", ");
+        }
+
         if (selectEnumerator.MoveNext())
         {
             SelectTranslator translator = new(this);

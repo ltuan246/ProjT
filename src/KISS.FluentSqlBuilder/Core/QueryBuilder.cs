@@ -60,6 +60,37 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
     }
 
     /// <inheritdoc />
+    public IGroupByBuilder<TRecordset, TReturn> GroupBy(Expression<Func<TRecordset, IComparable>> selector)
+    {
+        Composite.GroupByComponents.Add(selector.Body);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IGroupByBuilder<TRecordset, TReturn> ThenBy(Expression<Func<TRecordset, IComparable>> selector)
+    {
+        Composite.GroupByComponents.Add(selector.Body);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IHavingBuilder<TRecordset, TReturn> Having(Expression<Func<TRecordset, IComparable>> selector)
+    {
+        Composite.HavingComponents.Add(selector.Body);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IGroupSelectBuilder<TRecordset, TReturn> Select(
+        SqlFunctions.AggregationType aggregationType,
+        Expression<Func<TRecordset, IComparable>> selector,
+        string alias)
+    {
+        Composite.SelectAggregationComponents.Add((aggregationType, selector.Body, alias));
+        return this;
+    }
+
+    /// <inheritdoc />
     public ISelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
     {
         Composite.SelectComponents.Add(selector.Body);
@@ -92,10 +123,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-    {
-        Composite.SetQueries();
-        return [];
-    }
+        => Composite.ToList<TReturn>();
 }
 
 /// <summary>
@@ -189,10 +217,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-    {
-        Composite.SetQueries();
-        return [];
-    }
+        => Composite.ToList<TReturn>();
 }
 
 /// <summary>
@@ -262,5 +287,5 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.ToList<TFirst, TSecond, TThird, TReturn>();
+        => Composite.ToList<TReturn>();
 }

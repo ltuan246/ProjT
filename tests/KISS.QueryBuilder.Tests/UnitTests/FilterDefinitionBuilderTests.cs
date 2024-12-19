@@ -248,26 +248,17 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
             });
     }
 
-    [Fact(Skip = "Doesn't work at the moment")]
+    [Fact]
     public void GroupBy_FluentBuilder_ReturnsExpectedCards()
     {
         // Arrange
-        const string exId = "BRM_010t2";
+        // const string exId = "BRM_010t2";
 
         // Act
-        var cards = Connection.Retrieve<CardModel>()
-            .From<Card>()
-            .InnerJoin<CardFlat>( // Map one-to-one relationship
-                e => e.Id,
-                r => r.Id,
-                e => e.CardFlat)
-            .InnerJoin<DustCost>( // Map one-to-many relationship
-                (Card e) => e.Id,
-                r => r.CardId,
-                e => e.DustCost)
-            .Where((Card c) => c.Id == exId)
-            // .GroupBy(w => w.Id, (k, w) =>
-            //     new CardGroup { Id = k, Cost = w.Sum(c => c.DustCost!.Sum(dc => dc.Cost)) })
+        var cards = Connection.Retrieve<DustCost>()
+            .From<DustCost>()
+            .GroupBy(w => w.CardId)
+            .Select(SqlFunctions.AggregationType.Sum, w => w.Cost, "Total")
             .ToList();
     }
 }

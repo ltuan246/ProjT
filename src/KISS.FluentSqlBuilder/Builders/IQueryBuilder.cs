@@ -8,6 +8,8 @@
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IQueryBuilder<TRecordset, TReturn> :
     IJoinBuilder<TRecordset, TReturn>,
+    IGroupByBuilder<TRecordset, TReturn>,
+    IGroupSelectBuilder<TRecordset, TReturn>,
     ISelectBuilder<TRecordset, TReturn>,
     IOrderByBuilder<TRecordset, TReturn>,
     IOffsetBuilder<TRecordset, TReturn>;

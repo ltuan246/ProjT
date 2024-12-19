@@ -54,6 +54,12 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// <summary>
     ///     Stores the query components categorized by clauses.
     /// </summary>
+    public List<(SqlFunctions.AggregationType AggregationType, Expression Expr, string Alias)>
+        SelectAggregationComponents { get; } = [];
+
+    /// <summary>
+    ///     Stores the query components categorized by clauses.
+    /// </summary>
     public List<Expression> SelectFromComponents { get; } = [];
 
     /// <summary>
@@ -94,7 +100,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// <summary>
     ///     Gets the query components.
     /// </summary>
-    public void SetQueries()
+    private void SetQueries()
     {
         SetSelect();
         SetFrom();
@@ -206,12 +212,33 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// <summary>
     ///     Executes the SQL query and returns the results as a list.
     /// </summary>
-    /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
-    /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
-    /// <typeparam name="TThird">The third type in the recordset.</typeparam>
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public List<TReturn> ToList<TFirst, TSecond, TThird, TReturn>()
+    public List<TReturn> ToList<TReturn>()
+    {
+        SetQueries();
+
+        return JoinComponents.Count == 0 ? GetSingleMap<TReturn>() : GetMultiMap<TReturn>();
+    }
+
+    private List<TReturn> GetSingleMap<TReturn>()
+    {
+        if (SelectAggregationComponents.Count != 0)
+        {
+            return Connection
+                .Query<dynamic, TReturn, TReturn>(
+                    Sql,
+                    (fst, scd) => scd,
+                    Parameters)
+                .ToList();
+        }
+
+        return Connection
+            .Query<TReturn>(Sql, Parameters)
+            .ToList();
+    }
+
+    private List<TReturn> GetMultiMap<TReturn>()
     {
         Dictionary<string, TReturn> dict = [];
 
@@ -252,10 +279,6 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
         // Combine expressions into a block: check dictionary, execute additional methods, and return result
         var block = Expression.Block([RetrieveParameter], [ifNotInDict, ..methods, RetrieveParameter]);
 
-        // Create the lambda expression
-        // var lambda = Expression.Lambda<Func<TFirst, TSecond, TThird, TReturn>>(block, [SourceParameter, ..parameters]);
-        // var map = lambda.Compile();
-
         // Create a list of parameter types for the query method
         List<Type> types = [SourceEntity, ..entities, RetrieveEntity];
 
@@ -277,7 +300,6 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
         // Create a specialized generic method by applying types as generic parameters
         var query = queryMethod.MakeGenericMethod([.. types]);
 
-        SetQueries();
         _ = query.Invoke(null, [
             Connection,
             Sql, // SQL query string
@@ -285,17 +307,10 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
             Parameters, // Dapper DynamicParameters
             null, // IDbTransaction, set to null
             true, // Buffered, true by default
-            "Id", // SplitOn, default to "Id"
+            "Id", // SplitOn, default to "Id", tells Dapper where the next object starts
             null, // CommandTimeout, null
             null // CommandType, null
         ]);
-
-        // _ = Connection
-        //     .Query<TFirst, TSecond, TThird, TReturn>(
-        //         Sql,
-        //         (first, second, third) => map(first, second, third),
-        //         Parameters)
-        //     .ToList();
 
         return [.. dict.Values];
     }

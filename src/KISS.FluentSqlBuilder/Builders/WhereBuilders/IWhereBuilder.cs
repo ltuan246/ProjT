@@ -11,6 +11,7 @@ public interface IWhereBuilder;
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IWhereBuilder<TRecordset, TReturn> :
+    IGroupByBuilderEntry<TRecordset, TReturn>,
     ISelectBuilderEntry<TRecordset, TReturn>,
     IOrderByBuilderEntry<TRecordset, TReturn>
 {

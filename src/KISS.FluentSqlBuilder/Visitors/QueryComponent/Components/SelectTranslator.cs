@@ -137,6 +137,24 @@ public sealed record SelectTranslator(CompositeQuery Composite, bool UseAlias = 
     }
 
     /// <inheritdoc />
+    protected override void Translate(UnaryExpression unaryExpression)
+    {
+        switch (unaryExpression.Operand)
+        {
+            // Accessing a property or field of a parameter in a lambda
+            case MemberExpression memberExpression:
+                {
+                    Composite.Append(
+                        $"{Composite.GetAliasMapping(memberExpression.Member.DeclaringType!)}.{memberExpression.Member.Name}");
+                    break;
+                }
+
+            default:
+                throw new NotSupportedException("Expression not supported.");
+        }
+    }
+
+    /// <inheritdoc />
     protected override void Translate(ConstantExpression constantExpression)
     {
         Composite.Append($"{constantExpression.Value}");
