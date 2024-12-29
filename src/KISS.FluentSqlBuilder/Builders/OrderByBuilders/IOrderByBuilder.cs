@@ -31,3 +31,11 @@ public interface IOrderByBuilder<TFirst, TSecond, TReturn>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IOrderByBuilder<TFirst, TSecond, TThird, TReturn>
     : IFetchBuilder, IOffsetRowsBuilder, ILimitBuilder<TFirst, TSecond, TThird, TReturn>;
+
+/// <summary>
+///     An interface for building <c>ORDER BY</c> clauses.
+/// </summary>
+/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
+public interface IGroupOrderByBuilder<TRecordset, TReturn>
+    : IFetchBuilder, IOffsetRowsBuilder, IGroupLimitBuilder<TRecordset, TReturn>;

@@ -5,7 +5,7 @@
 /// </summary>
 /// <param name="Connection">The database connections.</param>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuilderEntry<TReturn>
+public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuilder<TReturn>
 {
     /// <inheritdoc />
     public IJoinBuilder<TRecordset, TReturn> From<TRecordset>()
@@ -63,31 +63,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
     public IGroupByBuilder<TRecordset, TReturn> GroupBy(Expression<Func<TRecordset, IComparable>> selector)
     {
         Composite.GroupByComponents.Add(selector.Body);
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IGroupByBuilder<TRecordset, TReturn> ThenBy(Expression<Func<TRecordset, IComparable>> selector)
-    {
-        Composite.GroupByComponents.Add(selector.Body);
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IHavingBuilder<TRecordset, TReturn> Having(Expression<Func<TRecordset, IComparable>> selector)
-    {
-        Composite.HavingComponents.Add(selector.Body);
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IGroupSelectBuilder<TRecordset, TReturn> Select(
-        SqlFunctions.AggregationType aggregationType,
-        Expression<Func<TRecordset, IComparable>> selector,
-        string alias)
-    {
-        Composite.SelectAggregationComponents.Add((aggregationType, selector.Body, alias));
-        return this;
+        return new GroupQueryBuilder<TRecordset, TReturn>(Composite);
     }
 
     /// <inheritdoc />
@@ -123,7 +99,76 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.ToList<TReturn>();
+        => Composite.GetSingleMap<TReturn>();
+}
+
+/// <summary>
+///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
+/// </summary>
+/// <param name="Composite">Combining different queries together.</param>
+/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
+public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Composite) :
+    IGroupQueryBuilder<TRecordset, TReturn>
+{
+    /// <inheritdoc />
+    public IGroupByBuilder<TRecordset, TReturn> ThenBy(Expression<Func<TRecordset, IComparable>> selector)
+    {
+        Composite.GroupByComponents.Add(selector.Body);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IHavingBuilder<TRecordset, TReturn> Having(Expression<Func<TRecordset, IComparable>> selector)
+    {
+        Composite.HavingComponents.Add(selector.Body);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IGroupSelectBuilder<TRecordset, TReturn> Select(
+        SqlFunctions.AggregationType aggregationType,
+        Expression<Func<TRecordset, IComparable>> selector,
+        string alias)
+    {
+        Composite.SelectAggregationComponents.Add((aggregationType, selector.Body, alias));
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IGroupSelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
+    {
+        Composite.SelectComponents.Add(selector.Body);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IGroupOrderByBuilder<TRecordset, TReturn> OrderBy<TKey>(Expression<Func<TRecordset, TKey>> selector)
+        where TKey : IComparable<TKey>
+    {
+        Composite.OrderByComponents.Add(selector.Body);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IGroupOffsetBuilder<TRecordset, TReturn> Limit(int rows)
+    {
+        ConstantExpression constantExpression = Expression.Constant(rows);
+        Composite.LimitComponents.Add(constantExpression);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IGroupSqlBuilder<TRecordset, TReturn> Offset(int offset)
+    {
+        ConstantExpression constantExpression = Expression.Constant(offset);
+        Composite.OffsetComponents.Add(constantExpression);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public List<TReturn> ToGroupList()
+        => Composite.GetGroupMap<TReturn>();
 }
 
 /// <summary>
@@ -217,7 +262,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.ToList<TReturn>();
+        => Composite.GetMultiMap<TReturn>();
 }
 
 /// <summary>
@@ -287,5 +332,5 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.ToList<TReturn>();
+        => Composite.GetMultiMap<TReturn>();
 }

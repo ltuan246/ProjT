@@ -24,26 +24,6 @@ public interface ISelectBuilderEntry<TRecordset, TReturn> :
 /// <summary>
 ///     An interface for adding a <c>SELECT</c> clause to the query.
 /// </summary>
-/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
-public interface IGroupSelectBuilderEntry<TRecordset, TReturn>
-{
-    /// <summary>
-    ///     Appends the <c>SELECT</c> clause to the builder.
-    /// </summary>
-    /// <param name="aggregationType">The aggregation types used in queries for calculating summary statistics.</param>
-    /// <param name="selector">The table columns.</param>
-    /// <param name="alias">The alias columns.</param>
-    /// <returns>The <see cref="IGroupSelectBuilder{TRecordset, TReturn}" /> instance.</returns>
-    IGroupSelectBuilder<TRecordset, TReturn> Select(
-        SqlFunctions.AggregationType aggregationType,
-        Expression<Func<TRecordset, IComparable>> selector,
-        string alias);
-}
-
-/// <summary>
-///     An interface for adding a <c>SELECT</c> clause to the query.
-/// </summary>
 /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>

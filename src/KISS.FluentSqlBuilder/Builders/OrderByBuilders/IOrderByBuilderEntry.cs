@@ -62,3 +62,21 @@ public interface IOrderByBuilderEntry<TFirst, TSecond, TThird, TReturn> :
         OrderBy<TKey>(Expression<Func<TFirst, TSecond, TThird, TKey>> selector)
         where TKey : IComparable<TKey>;
 }
+
+/// <summary>
+///     An interface for adding a <c>ORDER BY</c> clause to the query.
+/// </summary>
+/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
+public interface IGroupOrderByBuilderEntry<TRecordset, TReturn> :
+    IGroupSqlBuilder<TRecordset, TReturn>
+{
+    /// <summary>
+    ///     Appends the <c>ORDER BY</c> clause to the query.
+    /// </summary>
+    /// <param name="selector">The table columns.</param>
+    /// <typeparam name="TKey">The order keys.</typeparam>
+    /// <returns>The <see cref="IOrderByBuilder{TRecordset, TReturn}" /> instance.</returns>
+    IGroupOrderByBuilder<TRecordset, TReturn> OrderBy<TKey>(Expression<Func<TRecordset, TKey>> selector)
+        where TKey : IComparable<TKey>;
+}

@@ -11,7 +11,7 @@ public interface IHavingBuilder;
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IHavingBuilder<TRecordset, TReturn> :
-    IGroupSelectBuilderEntry<TRecordset, TReturn>
+    IGroupSelectBuilder<TRecordset, TReturn>
 {
     /// <summary>
     ///     Appends the <c>HAVING</c> clause (or the AND clause, if a HAVING clause is present) to the query.

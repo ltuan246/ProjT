@@ -55,3 +55,19 @@ public interface ILimitBuilder<TFirst, TSecond, TThird, TReturn>
     /// <returns>The <see cref="IOffsetBuilder" /> instance.</returns>
     IOffsetBuilder<TFirst, TSecond, TThird, TReturn> Limit(int rows);
 }
+
+/// <summary>
+///     An interface for building <c>LIMIT</c> clauses.
+/// </summary>
+/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
+public interface IGroupLimitBuilder<TRecordset, TReturn>
+    : IGroupSqlBuilder<TRecordset, TReturn>
+{
+    /// <summary>
+    ///     Appends the <c>LIMIT</c> clause and the <paramref name="rows" /> to the builder.
+    /// </summary>
+    /// <param name="rows">The number of rows to fetch.</param>
+    /// <returns>The <see cref="IOffsetBuilder" /> instance.</returns>
+    IGroupOffsetBuilder<TRecordset, TReturn> Limit(int rows);
+}

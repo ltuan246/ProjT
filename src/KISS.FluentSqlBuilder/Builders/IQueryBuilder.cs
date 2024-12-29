@@ -4,12 +4,17 @@
 ///     An interface that defines the query-building method shared across clauses,
 ///     each corresponding to different SQL clauses.
 /// </summary>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
+public interface IQueryBuilder<TReturn> : ISelectFromBuilder<TReturn>;
+
+/// <summary>
+///     An interface that defines the query-building method shared across clauses,
+///     each corresponding to different SQL clauses.
+/// </summary>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IQueryBuilder<TRecordset, TReturn> :
     IJoinBuilder<TRecordset, TReturn>,
-    IGroupByBuilder<TRecordset, TReturn>,
-    IGroupSelectBuilder<TRecordset, TReturn>,
     ISelectBuilder<TRecordset, TReturn>,
     IOrderByBuilder<TRecordset, TReturn>,
     IOffsetBuilder<TRecordset, TReturn>;
@@ -45,6 +50,9 @@ public interface IQueryBuilder<TFirst, TSecond, TThird, TReturn> :
 ///     An interface that defines the query-building method shared across clauses,
 ///     each corresponding to different SQL clauses.
 /// </summary>
+/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public interface IQueryBuilderEntry<TReturn> :
-    ISelectFromBuilderEntry<TReturn>;
+public interface IGroupQueryBuilder<TRecordset, TReturn> :
+    IGroupByBuilder<TRecordset, TReturn>,
+    IGroupOrderByBuilder<TRecordset, TReturn>,
+    IGroupOffsetBuilder<TRecordset, TReturn>;

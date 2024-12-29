@@ -36,6 +36,7 @@ public sealed record GroupByTranslator(CompositeQuery Composite) : ExpressionTra
                 {
                     Composite.Append(
                         $"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
+                    Composite.GroupKeys.Add(memberExpression.Member.Name);
 
                     break;
                 }

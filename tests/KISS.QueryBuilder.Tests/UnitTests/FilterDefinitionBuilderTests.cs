@@ -257,8 +257,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         // Act
         var cards = Connection.Retrieve<DustCost>()
             .From<DustCost>()
-            .GroupBy(w => w.CardId)
+            .GroupBy(w => w.Action)
             .Select(SqlFunctions.AggregationType.Sum, w => w.Cost, "Total")
-            .ToList();
+            .ToGroupList();
     }
 }

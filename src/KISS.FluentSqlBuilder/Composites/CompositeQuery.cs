@@ -42,6 +42,11 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     private List<(ParameterExpression Parameter, Expression Expr)> BlockMapSequence { get; } = [];
 
     /// <summary>
+    ///     Stores the group key.
+    /// </summary>
+    public List<string> GroupKeys { get; } = [];
+
+    /// <summary>
     ///     Stores the query components categorized by clauses.
     /// </summary>
     public List<Expression> SelectComponents { get; } = [];
@@ -214,32 +219,68 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// </summary>
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public List<TReturn> ToList<TReturn>()
+    public List<TReturn> GetGroupMap<TReturn>()
     {
         SetQueries();
 
-        return JoinComponents.Count == 0 ? GetSingleMap<TReturn>() : GetMultiMap<TReturn>();
+        var result = new List<(dynamic Key, List<TReturn> Values)>();
+
+        var res = Connection
+            .Query<dynamic, TReturn, TReturn>(
+                Sql,
+                (fst, scd) =>
+                {
+                    var dict1 = (IDictionary<string, object>)fst;
+                    var group = result.FirstOrDefault(g =>
+                    {
+                        var dict2 = (IDictionary<string, object>)g.Key;
+
+                        return dict1.Count == dict2.Count &&
+                               dict1.All(kvp => dict2.TryGetValue(kvp.Key, out var value) && Equals(value, kvp.Value));
+                    });
+
+                    if (group.Key == null)
+                    {
+                        // Add a new group if not exists
+                        result.Add((fst, new List<TReturn> { scd }));
+                    }
+                    else
+                    {
+                        // Append to the existing group
+                        group.Values.Add(scd);
+                    }
+
+                    return scd;
+                },
+                Parameters)
+            .ToList();
+
+        return [];
     }
 
-    private List<TReturn> GetSingleMap<TReturn>()
+    /// <summary>
+    ///     Executes the SQL query and returns the results as a list.
+    /// </summary>
+    /// <typeparam name="TReturn">The combined type to return.</typeparam>
+    /// <returns>Retrieve the data based on conditions.</returns>
+    public List<TReturn> GetSingleMap<TReturn>()
     {
-        if (SelectAggregationComponents.Count != 0)
-        {
-            return Connection
-                .Query<dynamic, TReturn, TReturn>(
-                    Sql,
-                    (fst, scd) => scd,
-                    Parameters)
-                .ToList();
-        }
+        SetQueries();
 
         return Connection
             .Query<TReturn>(Sql, Parameters)
             .ToList();
     }
 
-    private List<TReturn> GetMultiMap<TReturn>()
+    /// <summary>
+    ///     Executes the SQL query and returns the results as a list.
+    /// </summary>
+    /// <typeparam name="TReturn">The combined type to return.</typeparam>
+    /// <returns>Retrieve the data based on conditions.</returns>
+    public List<TReturn> GetMultiMap<TReturn>()
     {
+        SetQueries();
+
         Dictionary<string, TReturn> dict = [];
 
         // Get the type of the dictionary parameter to use in reflection
