@@ -255,10 +255,18 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         // const string exId = "BRM_010t2";
 
         // Act
-        var cards = Connection.Retrieve<DustCost>()
-            .From<DustCost>()
-            .GroupBy(w => w.Action)
-            .Select(SqlFunctions.AggregationType.Sum, w => w.Cost, "Total")
-            .ToGroupList();
+        var cards = Connection.Retrieve<CardModel>()
+                    .From<Card>()
+                    .InnerJoin<CardFlat>( // Map one-to-one relationship
+                        e => e.Id,
+                        r => r.Id,
+                        e => e.CardFlat)
+                    .InnerJoin<DustCost>( // Map one-to-many relationship
+                        e => e.Id,
+                        r => r.CardId,
+                        e => e.DustCost)
+                    .GroupBy(w => w.Type!)
+                    // .Select(SqlFunctions.AggregationType.Sum, w => w.Cost!, "Total")
+                    .ToGroupList();
     }
 }

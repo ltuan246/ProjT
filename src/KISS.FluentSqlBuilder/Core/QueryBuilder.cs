@@ -10,8 +10,10 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
     /// <inheritdoc />
     public IJoinBuilder<TRecordset, TReturn> From<TRecordset>()
     {
-        ConstantExpression constantExpression = Expression.Constant(typeof(TRecordset));
-        CompositeQuery composite = new(Connection, typeof(TRecordset), typeof(TReturn));
+        var recordset = typeof(TRecordset);
+        ConstantExpression constantExpression = Expression.Constant(recordset);
+        CompositeQuery composite = new(Connection, recordset, typeof(TReturn));
+        composite.CreateMapProfile(recordset);
         composite.SelectFromComponents.Add(constantExpression);
         return new QueryBuilder<TRecordset, TReturn>(composite);
     }
@@ -32,9 +34,11 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
+        var relation = typeof(TRelation);
+        Composite.CreateMapProfile(relation);
         Composite.SelectAsAliasComponents.Add(leftKeySelector.Body);
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
-        Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
+        Composite.JoinComponents.Add((relation, leftKeySelector.Body, rightKeySelector.Body));
         Composite.SetMap(mapSelector);
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite);
     }
@@ -45,9 +49,11 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
+        var relation = typeof(TRelation);
+        Composite.CreateMapProfile(relation);
         Composite.SelectAsAliasComponents.Add(leftKeySelector.Body);
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
-        Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
+        Composite.JoinComponents.Add((relation, leftKeySelector.Body, rightKeySelector.Body));
         Composite.SetMap(mapSelector);
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite);
     }
@@ -187,8 +193,10 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
+        var relation = typeof(TRelation);
+        Composite.CreateMapProfile(relation);
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
-        Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
+        Composite.JoinComponents.Add((relation, leftKeySelector.Body, rightKeySelector.Body));
         Composite.SetMap(mapSelector);
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
     }
@@ -199,8 +207,10 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
+        var relation = typeof(TRelation);
+        Composite.CreateMapProfile(relation);
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
-        Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
+        Composite.JoinComponents.Add((relation, leftKeySelector.Body, rightKeySelector.Body));
         Composite.SetMap(mapSelector);
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
     }
@@ -210,9 +220,18 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
         Expression<Func<TSecond, IComparable>> leftKeySelector,
         Expression<Func<TRelation, IComparable>> rightKeySelector)
     {
+        var relation = typeof(TRelation);
+        Composite.CreateMapProfile(relation);
         Composite.SelectAsAliasComponents.Add(rightKeySelector.Body);
-        Composite.JoinComponents.Add((typeof(TRelation), leftKeySelector.Body, rightKeySelector.Body));
+        Composite.JoinComponents.Add((relation, leftKeySelector.Body, rightKeySelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
+    }
+
+    /// <inheritdoc />
+    public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
+    {
+        Composite.GroupByComponents.Add(selector.Body);
+        return new GroupQueryBuilder<TFirst, TReturn>(Composite);
     }
 
     /// <inheritdoc />
@@ -276,6 +295,13 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQuery Composite) :
     IQueryBuilder<TFirst, TSecond, TThird, TReturn>
 {
+    /// <inheritdoc />
+    public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
+    {
+        Composite.GroupByComponents.Add(selector.Body);
+        return new GroupQueryBuilder<TFirst, TReturn>(Composite);
+    }
+
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TFirst, bool>> predicate)
     {

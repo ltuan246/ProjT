@@ -118,6 +118,16 @@ public sealed partial class CompositeQuery
     }
 
     /// <summary>
+    ///     Inspects the properties of the type and stores them for use in mapping data.
+    /// </summary>
+    /// <param name="type">The <see cref="Type" /> for which to retrieve or generate a table alias.</param>
+    public void CreateMapProfile(Type type)
+    {
+        // Adds if key doesn’t exist, updates if it does
+        MapProfiles[type] = (GetAliasMapping(type), type.GetProperties());
+    }
+
+    /// <summary>
     ///     Use to Open Parenthesis.
     /// </summary>
     public void OpenParentheses()

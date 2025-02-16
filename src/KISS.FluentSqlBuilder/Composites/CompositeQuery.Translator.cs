@@ -10,37 +10,11 @@ public sealed partial class CompositeQuery
         Append("SELECT");
         AppendLine(true);
 
-        using var selectGroupByEnumerator = GroupByComponents.GetEnumerator();
-        using var selectAggregationEnumerator = SelectAggregationComponents.GetEnumerator();
         using var selectEnumerator = SelectComponents.GetEnumerator();
-
-        if (selectGroupByEnumerator.MoveNext())
-        {
-            SelectTranslator translator = new(this);
-            translator.Translate(selectGroupByEnumerator.Current);
-
-            while (selectGroupByEnumerator.MoveNext())
-            {
-                AppendLine(true);
-                Append(", ");
-                translator.Translate(selectGroupByEnumerator.Current);
-            }
-
-            while (selectAggregationEnumerator.MoveNext())
-            {
-                AppendLine(true);
-                Append($", {selectAggregationEnumerator.Current.AggregationType}(");
-                translator.Translate(selectAggregationEnumerator.Current.Expr);
-                Append($") AS {selectAggregationEnumerator.Current.Alias}");
-            }
-
-            AppendLine(true);
-            Append(", ");
-        }
+        SelectTranslator translator = new(this);
 
         if (selectEnumerator.MoveNext())
         {
-            SelectTranslator translator = new(this);
             translator.Translate(selectEnumerator.Current);
 
             while (selectEnumerator.MoveNext())
@@ -52,7 +26,52 @@ public sealed partial class CompositeQuery
         }
         else
         {
-            Append("*");
+            if (GroupByComponents.Count != 0)
+            {
+                using var profilesEnumerator = MapProfiles.Values.AsEnumerable().GetEnumerator();
+                if (profilesEnumerator.MoveNext())
+                {
+                    var (alias, columns) = profilesEnumerator.Current;
+                    using var colsEnumerator = columns.AsEnumerable().GetEnumerator();
+
+                    if (colsEnumerator.MoveNext())
+                    {
+                        Append($"{alias}.{colsEnumerator.Current.Name} AS {alias}_{colsEnumerator.Current.Name}");
+
+                        while (colsEnumerator.MoveNext())
+                        {
+                            AppendLine(true);
+                            Append(", ");
+                            Append($"{alias}.{colsEnumerator.Current.Name} AS {alias}_{colsEnumerator.Current.Name}");
+                        }
+                    }
+
+                    while (profilesEnumerator.MoveNext())
+                    {
+                        AppendLine(true);
+                        Append(", ");
+
+                        var (aliasNext, columnsNext) = profilesEnumerator.Current;
+                        using var colsNextEnumerator = columnsNext.AsEnumerable().GetEnumerator();
+
+                        if (colsNextEnumerator.MoveNext())
+                        {
+                            Append($"{aliasNext}.{colsNextEnumerator.Current.Name} AS {aliasNext}_{colsNextEnumerator.Current.Name}");
+
+                            while (colsNextEnumerator.MoveNext())
+                            {
+                                AppendLine(true);
+                                Append(", ");
+                                Append($"{aliasNext}.{colsNextEnumerator.Current.Name} AS {aliasNext}_{colsNextEnumerator.Current.Name}");
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Append("*");
+            }
         }
 
         AppendLine();
@@ -126,40 +145,80 @@ public sealed partial class CompositeQuery
 
     private void SetGroupBy()
     {
-        using var enumerator = GroupByComponents.GetEnumerator();
-        if (enumerator.MoveNext())
+        using var selectGroupByEnumerator = GroupByComponents.GetEnumerator();
+        using var selectAggregationEnumerator = SelectAggregationComponents.GetEnumerator();
+        if (selectGroupByEnumerator.MoveNext())
         {
-            Append("GROUP BY");
-            AppendLine(true);
+            SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
+            Append(")");
+            AppendLine();
 
             GroupByTranslator translator = new(this);
-            translator.Translate(enumerator.Current);
+            translator.Translate(selectGroupByEnumerator.Current);
 
-            AppendLine();
-        }
-    }
-
-    private void SetHaving()
-    {
-        using var enumerator = HavingComponents.GetEnumerator();
-        if (enumerator.MoveNext())
-        {
-            Append("HAVING");
-            AppendLine(true);
-
-            HavingTranslator translator = new(this);
-            translator.Translate(enumerator.Current);
-
-            while (enumerator.MoveNext())
+            while (selectGroupByEnumerator.MoveNext())
             {
-                AppendLine(true);
-                Append("AND");
-                translator.Translate(enumerator.Current);
+                translator.Translate(selectGroupByEnumerator.Current);
             }
 
+            var gBy = string.Join(", ", GroupKeys.Select(k => k.GroupKey));
+            var pBy = string.Join(", ", GroupKeys.Select(k => $"GP.{k.GroupKey}"));
+            var onKeys = string.Join(" AND ", GroupKeys.Select(k => $"CTE.{k.GroupKey} = GP.{k.GroupKey}"));
+            var selectAggregation = string.Join(", ", SelectAggregationComponents.Select(a => $"GP.{a.Alias}"));
+            var aggregation = string.Join(", ", SelectAggregationComponents.Select((a, i) => $"{a.AggregationType}({{{i}}}) AS {a.Alias}"));
+
+            if (selectAggregationEnumerator.MoveNext())
+            {
+                selectAggregation += ",";
+                GroupKeys.Clear();
+                translator.Translate(selectAggregationEnumerator.Current.Expr);
+
+                while (selectAggregationEnumerator.MoveNext())
+                {
+                    translator.Translate(selectAggregationEnumerator.Current.Expr);
+                }
+
+                aggregation = $", {string.Format(aggregation, [.. GroupKeys.Select(k => k.GroupKey)])}";
+            }
+
+            Append($@"
+                SELECT 
+                    ROW_NUMBER() OVER (PARTITION BY {pBy} ORDER BY {pBy} DESC) AS RowNum,
+                    {selectAggregation}
+                    CTE.*
+                FROM CommonTableExpression CTE
+                JOIN (
+                    SELECT 
+                        {gBy}
+                        {aggregation}
+                    FROM CommonTableExpression
+                    GROUP BY {gBy}
+                ) GP
+                ON {onKeys};
+            ");
+
             AppendLine();
         }
     }
+
+    // private void SetHaving()
+    // {
+    //     using var enumerator = HavingComponents.GetEnumerator();
+    //     if (enumerator.MoveNext())
+    //     {
+    //         Append("HAVING");
+    //         AppendLine(true);
+    //         HavingTranslator translator = new(this);
+    //         translator.Translate(enumerator.Current);
+    //         while (enumerator.MoveNext())
+    //         {
+    //             AppendLine(true);
+    //             Append("AND");
+    //             translator.Translate(enumerator.Current);
+    //         }
+    //         AppendLine();
+    //     }
+    // }
 
     private void SetOrderBy()
     {

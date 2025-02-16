@@ -42,9 +42,14 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     private List<(ParameterExpression Parameter, Expression Expr)> BlockMapSequence { get; } = [];
 
     /// <summary>
+    ///     Stores the mapping of properties.
+    /// </summary>
+    public Dictionary<Type, (string, PropertyInfo[])> MapProfiles { get; } = [];
+
+    /// <summary>
     ///     Stores the group key.
     /// </summary>
-    public List<string> GroupKeys { get; } = [];
+    public List<(string Alias, string Key, string GroupKey)> GroupKeys { get; } = [];
 
     /// <summary>
     ///     Stores the query components categorized by clauses.
@@ -102,6 +107,10 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// </summary>
     public List<Expression> OffsetComponents { get; } = [];
 
+    private static Type DtRowType { get; } = typeof(IDictionary<string, object>);
+
+    private static ParameterExpression DtRowParam { get; } = Expression.Parameter(DtRowType, "dict");
+
     /// <summary>
     ///     Gets the query components.
     /// </summary>
@@ -112,7 +121,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
         SetJoin();
         SetWhere();
         SetGroupBy();
-        SetHaving();
+        // SetHaving();
         SetOrderBy();
         SetLimit();
         SetOffset();
@@ -192,11 +201,11 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     }
 
     /// <summary>
-    ///     Creates a collection of <see cref="System.Linq.Expressions.MemberBinding" /> instances
+    ///     Creates a collection of <see cref="MemberBinding" /> instances
     ///     that map properties from the source type to the target type.
     /// </summary>
     /// <returns>
-    ///     An enumerable collection of <see cref="System.Linq.Expressions.MemberBinding" /> objects,
+    ///     An enumerable collection of <see cref="MemberBinding" /> objects,
     ///     where each binding represents the assignment of a source property value to a target property.
     /// </returns>
     private IEnumerable<MemberBinding> CreateBindings()
@@ -214,6 +223,74 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
         }
     }
 
+    private IEnumerable<MemberBinding> GroupCreateBindings(string alias, PropertyInfo[] targetProperties)
+    {
+        foreach (var targetProperty in targetProperties)
+        {
+            var sourceValue = Expression.Property(DtRowParam, "Item", Expression.Constant($"{alias}_{targetProperty.Name}"));
+
+            // If the target type is nullable (e.g., Nullable<T>), retrieve its underlying non-nullable type (T).
+            // This is necessary because Expression.Convert cannot directly convert a non-nullable value to a nullable type.
+            // By first converting to the underlying type, we ensure compatibility before handling the nullable conversion.
+            var nonNullableType = Nullable.GetUnderlyingType(targetProperty.PropertyType);
+
+            // Nullable.GetUnderlyingType(typeof(int?))  // returns typeof(int)
+            // Nullable.GetUnderlyingType(typeof(int))   // returns null
+            if (nonNullableType is null)
+            {
+                // Ensure proper conversion from object to the target type
+                var changeTypeCall = Expression.Call(
+                    typeof(Convert),
+                    nameof(Convert.ChangeType),
+                    Type.EmptyTypes,
+                    sourceValue,
+                    Expression.Constant(targetProperty.PropertyType));
+
+                var convertedValue = Expression.ConvertChecked(changeTypeCall, targetProperty.PropertyType);
+
+                yield return Expression.Bind(targetProperty, convertedValue);
+            }
+            else
+            {
+                var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
+
+                var defaultValue = Expression.Convert(
+                    Expression.Call(typeof(Activator), nameof(Activator.CreateInstance), Type.EmptyTypes, Expression.Constant(nonNullableType)),
+                    nonNullableType);
+
+                var changeTypeCall = Expression.Call(
+                    typeof(Convert),
+                    nameof(Convert.ChangeType),
+                    Type.EmptyTypes,
+                    sourceValue,
+                    Expression.Constant(nonNullableType));
+
+                // Use Convert.ChangeType to dynamically convert the value
+                var conversion = Expression.ConvertChecked(
+                    changeTypeCall,
+                    nonNullableType);
+
+                // Use a conditional expression: if (value == null) default(T) else Convert.ChangeType(...)
+                var fallbackDefaultValue = Expression.Condition(
+                    isNullCheck,
+                    defaultValue,  // Use default value if null
+                    conversion);     // Otherwise, use the converted value
+
+                var convertedValue = Expression.Convert(fallbackDefaultValue, targetProperty.PropertyType);
+
+                yield return Expression.Bind(targetProperty, convertedValue);
+            }
+        }
+    }
+
+    private IEnumerable<MemberInitExpression> GroupCreateMemberInit()
+    {
+        foreach (var (retrieve, (alias, props)) in MapProfiles)
+        {
+            yield return Expression.MemberInit(Expression.New(retrieve), GroupCreateBindings(alias, props));
+        }
+    }
+
     /// <summary>
     ///     Executes the SQL query and returns the results as a list.
     /// </summary>
@@ -222,38 +299,89 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     public List<TReturn> GetGroupMap<TReturn>()
     {
         SetQueries();
-
-        var result = new List<(dynamic Key, List<TReturn> Values)>();
-
-        var res = Connection
-            .Query<dynamic, TReturn, TReturn>(
-                Sql,
-                (fst, scd) =>
-                {
-                    var dict1 = (IDictionary<string, object>)fst;
-                    var group = result.FirstOrDefault(g =>
-                    {
-                        var dict2 = (IDictionary<string, object>)g.Key;
-
-                        return dict1.Count == dict2.Count &&
-                               dict1.All(kvp => dict2.TryGetValue(kvp.Key, out var value) && Equals(value, kvp.Value));
-                    });
-
-                    if (group.Key == null)
-                    {
-                        // Add a new group if not exists
-                        result.Add((fst, new List<TReturn> { scd }));
-                    }
-                    else
-                    {
-                        // Append to the existing group
-                        group.Values.Add(scd);
-                    }
-
-                    return scd;
-                },
-                Parameters)
+        var dtRows = Connection.Query(Sql, Parameters)
+            .Cast<IDictionary<string, object>>()
             .ToList();
+
+        Type[] targetTypes = [DtRowType, .. MapProfiles.Keys];
+
+        // Generate ValueTuple type dynamically
+        Type tupleType = Type.GetType($"{typeof(ValueTuple).FullName}`{targetTypes.Length}")!.MakeGenericType(targetTypes);
+
+        // Construct tuple
+        ConstructorInfo tupleConstructor = tupleType.GetConstructor(targetTypes)!;
+        var tupleCreation = Expression.New(tupleConstructor, [DtRowParam, .. GroupCreateMemberInit()]);
+
+        var transformLambda = Expression.Lambda(
+            typeof(Func<,>).MakeGenericType(DtRowType, tupleType),
+            tupleCreation,
+            DtRowParam);
+
+        var tupleParam = Expression.Parameter(tupleType, "rec");
+        var fields = tupleType.GetFields();
+
+        var dictAccess = Expression.Field(tupleParam, fields[0]);
+
+        var exDictKeys = GroupKeys.Select(k => Expression.Property(dictAccess, "Item", Expression.Constant(k.GroupKey))).ToList();
+        Type[] dictKeyTypes = [.. Enumerable.Repeat(typeof(object), exDictKeys.Count)];
+        var dictKeyValueTuple = Type.GetType($"{typeof(ValueTuple).FullName}`{exDictKeys.Count}")!.MakeGenericType(dictKeyTypes);
+        ConstructorInfo dictKeyConstructor = dictKeyValueTuple.GetConstructor(dictKeyTypes)!;
+        var dictKeyCreation = Expression.New(dictKeyConstructor, exDictKeys);
+
+        var firstObjectAccess = Expression.Field(tupleParam, fields[1]);
+
+        // Create the dictionary with dynamic ValueTuple as the key
+        Type dictType = typeof(Dictionary<,>).MakeGenericType(dictKeyValueTuple, typeof(List<object>));
+        var returnDict = Activator.CreateInstance(dictType)!;
+        var resDict = Expression.Constant(returnDict);
+        var containsKeyMethod = returnDict.GetType().GetMethod("ContainsKey")!;
+        var addToDictMethod = returnDict.GetType().GetMethod("Add")!;
+        var addToListMethod = typeof(List<object>).GetMethod("Add")!;
+
+        var createList = Expression.IfThen(
+            Expression.Not(Expression.Call(resDict, containsKeyMethod, dictKeyCreation)),
+            Expression.Call(resDict, addToDictMethod, dictKeyCreation, Expression.New(typeof(List<object>))));
+
+        var addToList = Expression.Call(Expression.Property(resDict, "Item", dictKeyCreation), addToListMethod, firstObjectAccess);
+
+        var bodyBlock = Expression.Block(createList, addToList, firstObjectAccess);
+
+        var selectLambda = Expression.Lambda(
+            typeof(Func<,>).MakeGenericType(tupleType, typeof(object)),
+            bodyBlock,
+            tupleParam);
+
+        // Create parameter for the list of dictionaries
+        var listParam = Expression.Parameter(typeof(List<IDictionary<string, object>>), "list");
+
+        // Call Enumerable.Select(list, transformLambda)
+        var selectTransform = Expression.Call(
+            typeof(Enumerable),
+            "Select",
+            [DtRowType, tupleType],
+            listParam,
+            transformLambda);
+
+        // Call Enumerable.Select(selectTransform, selectLambda)
+        var selectFinal = Expression.Call(
+            typeof(Enumerable),
+            "Select",
+            [tupleType, typeof(object)],
+            selectTransform,
+            selectLambda);
+
+        // Call Enumerable.ToList(selectFinal)
+        var toListCall = Expression.Call(
+            typeof(Enumerable),
+            "ToList",
+            [typeof(object)],
+            selectFinal);
+
+        // Compile the entire pipeline
+        var queryPipeline = Expression.Lambda<Func<List<IDictionary<string, object>>, List<object>>>(toListCall, listParam).Compile();
+
+        // Execute transformation pipeline
+        _ = queryPipeline(dtRows);
 
         return [];
     }
@@ -266,10 +394,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     public List<TReturn> GetSingleMap<TReturn>()
     {
         SetQueries();
-
-        return Connection
-            .Query<TReturn>(Sql, Parameters)
-            .ToList();
+        return [.. Connection.Query<TReturn>(Sql, Parameters)];
     }
 
     /// <summary>
@@ -318,10 +443,10 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
         var methods = BlockMapSequence.Select(e => e.Expr).ToList();
 
         // Combine expressions into a block: check dictionary, execute additional methods, and return result
-        var block = Expression.Block([RetrieveParameter], [ifNotInDict, ..methods, RetrieveParameter]);
+        var block = Expression.Block([RetrieveParameter], [ifNotInDict, .. methods, RetrieveParameter]);
 
         // Create a list of parameter types for the query method
-        List<Type> types = [SourceEntity, ..entities, RetrieveEntity];
+        List<Type> types = [SourceEntity, .. entities, RetrieveEntity];
 
         // Dynamically constructs the corresponding Func type using reflection.
         var funcType = typeof(Func<>).Assembly

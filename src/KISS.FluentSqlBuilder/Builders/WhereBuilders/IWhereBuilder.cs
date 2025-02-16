@@ -30,6 +30,7 @@ public interface IWhereBuilder<TRecordset, TReturn> :
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IWhereBuilder<TFirst, TSecond, TReturn> :
+    IGroupByBuilderEntry<TFirst, TSecond, TReturn>,
     ISelectBuilderEntry<TFirst, TSecond, TReturn>,
     IOrderByBuilderEntry<TFirst, TSecond, TReturn>
 {
@@ -56,6 +57,7 @@ public interface IWhereBuilder<TFirst, TSecond, TReturn> :
 /// <typeparam name="TThird">The third type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IWhereBuilder<TFirst, TSecond, TThird, TReturn> :
+    IGroupByBuilderEntry<TFirst, TSecond, TThird, TReturn>,
     ISelectBuilderEntry<TFirst, TSecond, TThird, TReturn>,
     IOrderByBuilderEntry<TFirst, TSecond, TThird, TReturn>
 {

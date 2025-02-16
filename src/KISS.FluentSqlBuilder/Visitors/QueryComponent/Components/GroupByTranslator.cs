@@ -11,69 +11,20 @@ public sealed record GroupByTranslator(CompositeQuery Composite) : ExpressionTra
     {
         switch (memberExpression.Expression)
         {
-            // Accessing a static member (constant or static field)
-            case null:
-                {
-                    switch (memberExpression.Member)
-                    {
-                        // Accessing a static field, get its type and value using reflection
-                        case FieldInfo fieldInfo:
-                            var fieldType = fieldInfo.GetType();
-                            Composite.AppendFormat($"{fieldInfo.GetValue(fieldType)}");
-                            break;
-                        // Accessing a static property, get its type and value using reflection
-                        case PropertyInfo propertyInfo:
-                            var propType = propertyInfo.GetType();
-                            Composite.AppendFormat($"{propertyInfo.GetValue(propType)}");
-                            break;
-                    }
-
-                    break;
-                }
-
             // Accessing a property or field of a parameter in a lambda
             case ParameterExpression parameterExpression:
                 {
-                    Composite.Append(
-                        $"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
-                    Composite.GroupKeys.Add(memberExpression.Member.Name);
+                    (string alias, _) = Composite.MapProfiles[parameterExpression.Type];
+                    string key = memberExpression.Member.Name;
+                    string groupKey = $"{alias}_{memberExpression.Member.Name}";
+                    Composite.GroupKeys.Add((alias, key, groupKey));
 
                     break;
                 }
 
-            // Accessing a field/property of a constant object
-            case ConstantExpression constantExpression:
-                {
-                    var (evaluated, value) = Composite.GetValue(memberExpression);
-                    if (evaluated)
-                    {
-                        Composite.AppendFormat(value);
-                    }
-                    else
-                    {
-                        Translate(constantExpression);
-                    }
-
-                    break;
-                }
-
-            // Accessing an object creation, method invocation, or method call (e.g., new Object().Property, obj.Method().Property)
-            case NewExpression:
-            case InvocationExpression:
-            case MethodCallExpression:
-                {
-                    // Accessing the property or field (memberExpression.Member.Name) on the object or result of the method (memberExpression.Expression).
-                    var member = Expression.Property(memberExpression.Expression, memberExpression.Member.Name);
-                    var value = Expression.Lambda(member).Compile().DynamicInvoke();
-                    Composite.AppendFormat($"{value}");
-                    break;
-                }
-
+            case null:
             default:
-                {
-                    Translate(memberExpression.Expression);
-                    break;
-                }
+                throw new NotSupportedException("Expression not supported.");
         }
     }
 
@@ -85,8 +36,11 @@ public sealed record GroupByTranslator(CompositeQuery Composite) : ExpressionTra
             // Accessing a property or field of a parameter in a lambda
             case MemberExpression memberExpression:
                 {
-                    Composite.Append(
-                        $"{Composite.GetAliasMapping(memberExpression.Member.DeclaringType!)}.{memberExpression.Member.Name}");
+                    (string alias, _) = Composite.MapProfiles[memberExpression.Member.DeclaringType!];
+                    string key = memberExpression.Member.Name;
+                    string groupKey = $"{alias}_{memberExpression.Member.Name}";
+                    Composite.GroupKeys.Add((alias, key, groupKey));
+
                     break;
                 }
 
