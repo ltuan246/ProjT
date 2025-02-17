@@ -9,7 +9,7 @@
 /// <param name="connection">The database connections.</param>
 /// <param name="sourceEntity">The type representing the database record set.</param>
 /// <param name="retrieveEntity">The combined type to return.</param>
-public sealed partial class CompositeQuery(DbConnection connection, Type sourceEntity, Type retrieveEntity)
+public sealed partial class CompositeQuery(DbConnection connection, Type sourceEntity, Type retrieveEntity) : IDataRetrieval
 {
     /// <summary>
     ///     The database connections.
@@ -65,7 +65,8 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     ///     Stores the query components categorized by clauses.
     /// </summary>
     public List<(SqlFunctions.AggregationType AggregationType, Expression Expr, string Alias)>
-        SelectAggregationComponents { get; } = [];
+        SelectAggregationComponents
+    { get; } = [];
 
     /// <summary>
     ///     Stores the query components categorized by clauses.
@@ -114,7 +115,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// <summary>
     ///     Gets the query components.
     /// </summary>
-    private void SetQueries()
+    public void SetQueries()
     {
         SetSelect();
         SetFrom();
@@ -298,63 +299,85 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// <returns>Retrieve the data based on conditions.</returns>
     public List<TReturn> GetGroupMap<TReturn>()
     {
-        SetQueries();
-        var dtRows = Connection.Query(Sql, Parameters)
-            .Cast<IDictionary<string, object>>()
-            .ToList();
-
+        // Define the target types for the ValueTuple, combining the row type and mapping profile keys.
         Type[] targetTypes = [DtRowType, .. MapProfiles.Keys];
 
-        // Generate ValueTuple type dynamically
+        // Dynamically create a ValueTuple type that will store grouped values.
         Type tupleType = Type.GetType($"{typeof(ValueTuple).FullName}`{targetTypes.Length}")!.MakeGenericType(targetTypes);
 
-        // Construct tuple
+        // Retrieve the constructor for the dynamically generated ValueTuple.
         ConstructorInfo tupleConstructor = tupleType.GetConstructor(targetTypes)!;
+
+        // Construct a new ValueTuple instance for each row, initializing it with row data and group mappings.
         var tupleCreation = Expression.New(tupleConstructor, [DtRowParam, .. GroupCreateMemberInit()]);
 
+        // Define a lambda function: (row) => new ValueTuple<>(row, group values).
         var transformLambda = Expression.Lambda(
-            typeof(Func<,>).MakeGenericType(DtRowType, tupleType),
+            typeof(Func<,>).MakeGenericType([DtRowType, tupleType]),
             tupleCreation,
             DtRowParam);
 
+        // Create a parameter expression representing a record in the tuple.
         var tupleParam = Expression.Parameter(tupleType, "rec");
+
+        // Extract the fields from the dynamically created tuple.
         var fields = tupleType.GetFields();
 
+        // Access the dictionary-like data from the first field in the tuple.
         var dictAccess = Expression.Field(tupleParam, fields[0]);
 
-        var exDictKeys = GroupKeys.Select(k => Expression.Property(dictAccess, "Item", Expression.Constant(k.GroupKey))).ToList();
+        // Generate expressions for extracting dictionary keys from grouped data.
+        var exDictKeys = GroupKeys
+            .Select(k => Expression.Property(dictAccess, "Item", Expression.Constant(k.GroupKey)))
+            .ToList();
+
+        // Dynamically create a ValueTuple type to store dictionary keys.
         Type[] dictKeyTypes = [.. Enumerable.Repeat(typeof(object), exDictKeys.Count)];
         var dictKeyValueTuple = Type.GetType($"{typeof(ValueTuple).FullName}`{exDictKeys.Count}")!.MakeGenericType(dictKeyTypes);
+
+        // Retrieve the constructor for the dictionary key tuple.
         ConstructorInfo dictKeyConstructor = dictKeyValueTuple.GetConstructor(dictKeyTypes)!;
+
+        // Construct the dictionary key tuple dynamically.
         var dictKeyCreation = Expression.New(dictKeyConstructor, exDictKeys);
 
+        // Extract the primary object from the second field in the tuple.
         var firstObjectAccess = Expression.Field(tupleParam, fields[1]);
 
-        // Create the dictionary with dynamic ValueTuple as the key
+        // Dynamically create a dictionary type: Dictionary<(key tuple), List<object>>.
         Type dictType = typeof(Dictionary<,>).MakeGenericType(dictKeyValueTuple, typeof(List<object>));
+
+        // Instantiate the dictionary at runtime.
         var returnDict = Activator.CreateInstance(dictType)!;
         var resDict = Expression.Constant(returnDict);
-        var containsKeyMethod = returnDict.GetType().GetMethod("ContainsKey")!;
-        var addToDictMethod = returnDict.GetType().GetMethod("Add")!;
+
+        // Retrieve dictionary methods for operations.
+        var containsKeyMethod = dictType.GetMethod("ContainsKey")!;
+        var addToDictMethod = dictType.GetMethod("Add")!;
         var addToListMethod = typeof(List<object>).GetMethod("Add")!;
 
+        // If the dictionary does not contain the generated key, initialize a new list.
         var createList = Expression.IfThen(
             Expression.Not(Expression.Call(resDict, containsKeyMethod, dictKeyCreation)),
             Expression.Call(resDict, addToDictMethod, dictKeyCreation, Expression.New(typeof(List<object>))));
 
-        var addToList = Expression.Call(Expression.Property(resDict, "Item", dictKeyCreation), addToListMethod, firstObjectAccess);
+        // Access the list corresponding to the generated key and add the primary object.
+        var itemDict = Expression.Property(resDict, "Item", dictKeyCreation);
+        var addToList = Expression.Call(itemDict, addToListMethod, firstObjectAccess);
 
+        // Combine dictionary initialization and object addition into a single expression block.
         var bodyBlock = Expression.Block(createList, addToList, firstObjectAccess);
 
+        // Define the lambda for processing each tuple: (tuple) => { add to dictionary }.
         var selectLambda = Expression.Lambda(
             typeof(Func<,>).MakeGenericType(tupleType, typeof(object)),
             bodyBlock,
             tupleParam);
 
-        // Create parameter for the list of dictionaries
+        // Define a parameter for the list of dictionaries (result set).
         var listParam = Expression.Parameter(typeof(List<IDictionary<string, object>>), "list");
 
-        // Call Enumerable.Select(list, transformLambda)
+        // Apply transformation: Select(list, transformLambda).
         var selectTransform = Expression.Call(
             typeof(Enumerable),
             "Select",
@@ -362,7 +385,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
             listParam,
             transformLambda);
 
-        // Call Enumerable.Select(selectTransform, selectLambda)
+        // Apply second transformation: Select(selectTransform, selectLambda).
         var selectFinal = Expression.Call(
             typeof(Enumerable),
             "Select",
@@ -370,19 +393,25 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
             selectTransform,
             selectLambda);
 
-        // Call Enumerable.ToList(selectFinal)
+        // Convert the result to a list.
         var toListCall = Expression.Call(
             typeof(Enumerable),
             "ToList",
             [typeof(object)],
             selectFinal);
 
-        // Compile the entire pipeline
+        // Compile the full transformation pipeline into an executable delegate.
         var queryPipeline = Expression.Lambda<Func<List<IDictionary<string, object>>, List<object>>>(toListCall, listParam).Compile();
 
-        // Execute transformation pipeline
+        // Retrieve data from the database, casting each row to IDictionary<string, object>.
+        var dtRows = Connection.Query(Sql, Parameters)
+            .Cast<IDictionary<string, object>>()
+            .ToList();
+
+        // Execute the transformation pipeline on the retrieved rows.
         _ = queryPipeline(dtRows);
 
+        // Return an empty list as placeholder (if you intend to return results, modify this).
         return [];
     }
 
@@ -392,10 +421,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
     public List<TReturn> GetSingleMap<TReturn>()
-    {
-        SetQueries();
-        return [.. Connection.Query<TReturn>(Sql, Parameters)];
-    }
+        => [.. Connection.Query<TReturn>(Sql, Parameters)];
 
     /// <summary>
     ///     Executes the SQL query and returns the results as a list.
@@ -404,8 +430,6 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// <returns>Retrieve the data based on conditions.</returns>
     public List<TReturn> GetMultiMap<TReturn>()
     {
-        SetQueries();
-
         Dictionary<string, TReturn> dict = [];
 
         // Get the type of the dictionary parameter to use in reflection

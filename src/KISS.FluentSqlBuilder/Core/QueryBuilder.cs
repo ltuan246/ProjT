@@ -105,7 +105,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.GetSingleMap<TReturn>();
+        => new DataRetrievalDispatchProxy().Create(Composite).GetSingleMap<TReturn>();
 }
 
 /// <summary>
@@ -174,7 +174,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Compo
 
     /// <inheritdoc />
     public List<TReturn> ToGroupList()
-        => Composite.GetGroupMap<TReturn>();
+        => new DataRetrievalDispatchProxy().Create(Composite).GetGroupMap<TReturn>();
 }
 
 /// <summary>
@@ -281,7 +281,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.GetMultiMap<TReturn>();
+        => new DataRetrievalDispatchProxy().Create(Composite).GetMultiMap<TReturn>();
 }
 
 /// <summary>
@@ -358,5 +358,5 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => Composite.GetMultiMap<TReturn>();
+        => new DataRetrievalDispatchProxy().Create(Composite).GetMultiMap<TReturn>();
 }
