@@ -5,7 +5,9 @@
 ///     Traversing and analyzing LINQ expression trees and determining which parts of the expression tree
 ///     are evaluable at runtime (i.e., whether the expression can be simplified to a value).
 /// </summary>
-public sealed partial class CompositeQuery : ExpressionVisitor
+/// <typeparam name="TSource">The type representing the database record set.</param>
+/// <typeparam name="TReturn">The combined type to return.</param>
+public sealed partial class CompositeQuery<TSource, TReturn> : ExpressionVisitor
 {
     /// <summary>
     ///     A stack that holds expressions during the traversal process. This is used to track where we are in the tree.

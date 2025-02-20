@@ -12,7 +12,7 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
     {
         var recordset = typeof(TRecordset);
         ConstantExpression constantExpression = Expression.Constant(recordset);
-        CompositeQuery composite = new(Connection, recordset, typeof(TReturn));
+        var composite = new CompositeQuery<TRecordset, TReturn>(Connection);
         composite.CreateMapProfile(recordset);
         composite.SelectFromComponents.Add(constantExpression);
         return new QueryBuilder<TRecordset, TReturn>(composite);
@@ -25,7 +25,7 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
 /// <param name="Composite">Combining different queries together.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite) :
+public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery<TRecordset, TReturn> Composite) :
     IQueryBuilder<TRecordset, TReturn>
 {
     /// <inheritdoc />
@@ -105,7 +105,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new DataRetrievalDispatchProxy().Create(Composite).GetSingleMap<TReturn>();
+        => new DataRetrievalDispatchProxy<TReturn>().Create(Composite).GetSingleMap();
 }
 
 /// <summary>
@@ -114,7 +114,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
 /// <param name="Composite">Combining different queries together.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Composite) :
+public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery<TRecordset, TReturn> Composite) :
     IGroupQueryBuilder<TRecordset, TReturn>
 {
     /// <inheritdoc />
@@ -174,7 +174,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Compo
 
     /// <inheritdoc />
     public List<TReturn> ToGroupList()
-        => new DataRetrievalDispatchProxy().Create(Composite).GetGroupMap<TReturn>();
+        => new DataRetrievalDispatchProxy<TReturn>().Create(Composite).GetGroupMap();
 }
 
 /// <summary>
@@ -184,7 +184,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Compo
 /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Composite) :
+public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery<TFirst, TReturn> Composite) :
     IQueryBuilder<TFirst, TSecond, TReturn>
 {
     /// <inheritdoc />
@@ -281,7 +281,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new DataRetrievalDispatchProxy().Create(Composite).GetMultiMap<TReturn>();
+        => new DataRetrievalDispatchProxy<TReturn>().Create(Composite).GetMultiMap();
 }
 
 /// <summary>
@@ -292,7 +292,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TThird">The third type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQuery Composite) :
+public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQuery<TFirst, TReturn> Composite) :
     IQueryBuilder<TFirst, TSecond, TThird, TReturn>
 {
     /// <inheritdoc />
@@ -358,5 +358,5 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new DataRetrievalDispatchProxy().Create(Composite).GetMultiMap<TReturn>();
+        => new DataRetrievalDispatchProxy<TReturn>().Create(Composite).GetMultiMap();
 }

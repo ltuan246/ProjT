@@ -6,7 +6,8 @@ namespace KISS.FluentSqlBuilder.Builders;
 ///     through methods that apply common query setup logic and return
 ///     the results in different formats.
 /// </summary>
-public interface IDataRetrieval
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
+public interface IDataRetrieval<TReturn>
 {
     /// <summary>
     ///     Setup the query components.
@@ -16,21 +17,18 @@ public interface IDataRetrieval
     /// <summary>
     ///     Executes the SQL query and returns the results as a list.
     /// </summary>
-    /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    List<TReturn> GetGroupMap<TReturn>();
+    List<TReturn> GetGroupMap();
 
     /// <summary>
     ///     Executes the SQL query and returns the results as a list.
     /// </summary>
-    /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    List<TReturn> GetSingleMap<TReturn>();
+    List<TReturn> GetSingleMap();
 
     /// <summary>
     ///     Executes the SQL query and returns the results as a list.
     /// </summary>
-    /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    List<TReturn> GetMultiMap<TReturn>();
+    List<TReturn> GetMultiMap();
 }

@@ -4,7 +4,7 @@
 ///     A builder for a <c>JOIN</c> clause.
 /// </summary>
 /// <param name="Composite">The structure of the fluent SQL builder.</param>
-public sealed record JoinTranslator(CompositeQuery Composite) : ExpressionTranslator
+public sealed record JoinTranslator(ICompositeQuery Composite) : ExpressionTranslator
 {
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)

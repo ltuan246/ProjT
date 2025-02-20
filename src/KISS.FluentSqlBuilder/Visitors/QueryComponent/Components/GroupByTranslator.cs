@@ -4,7 +4,7 @@
 ///     A builder for a <c>GROUP BY</c> clause, grouping records by a specified key.
 /// </summary>
 /// <param name="Composite">The structure of the fluent SQL builder.</param>
-public sealed record GroupByTranslator(CompositeQuery Composite) : ExpressionTranslator
+public sealed record GroupByTranslator(ICompositeQuery Composite) : ExpressionTranslator
 {
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)
@@ -18,6 +18,8 @@ public sealed record GroupByTranslator(CompositeQuery Composite) : ExpressionTra
                     string key = memberExpression.Member.Name;
                     string groupKey = $"{alias}_{memberExpression.Member.Name}";
                     Composite.GroupKeys.Add((alias, key, groupKey));
+                    var propertyAssignment = Composite.ChangeType(Expression.Property(Composite.DapperRowVariable, "Item", Expression.Constant(groupKey)), memberExpression.Type);
+                    Composite.GroupingPropertyAssignmentProcessing.Add((memberExpression.Type, propertyAssignment));
 
                     break;
                 }

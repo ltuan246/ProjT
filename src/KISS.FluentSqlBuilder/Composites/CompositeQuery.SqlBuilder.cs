@@ -3,7 +3,9 @@
 /// <summary>
 ///     A class that defines the fluent SQL builder type.
 /// </summary>
-public sealed partial class CompositeQuery
+/// <typeparam name="TSource">The type representing the database record set.</param>
+/// <typeparam name="TReturn">The combined type to return.</param>
+public sealed partial class CompositeQuery<TSource, TReturn>
 {
     /// <summary>
     ///     Gets the generated the SQL.

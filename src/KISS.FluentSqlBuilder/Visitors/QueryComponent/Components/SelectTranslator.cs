@@ -5,7 +5,7 @@
 /// </summary>
 /// <param name="Composite">The structure of the fluent SQL builder.</param>
 /// <param name="UseAlias">Use an alias in the <c>SELECT</c> clause.</param>
-public sealed record SelectTranslator(CompositeQuery Composite, bool UseAlias = false) : ExpressionTranslator
+public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias = false) : ExpressionTranslator
 {
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)

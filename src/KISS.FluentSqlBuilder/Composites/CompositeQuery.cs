@@ -7,34 +7,34 @@
 ///     Initializes a new instance of the <see cref="CompositeQuery" /> class.
 /// </remarks>
 /// <param name="connection">The database connections.</param>
-/// <param name="sourceEntity">The type representing the database record set.</param>
-/// <param name="retrieveEntity">The combined type to return.</param>
-public sealed partial class CompositeQuery(DbConnection connection, Type sourceEntity, Type retrieveEntity) : IDataRetrieval
+/// <typeparam name="TSource">The type representing the database record set.</param>
+/// <typeparam name="TReturn">The combined type to return.</param>
+public sealed partial class CompositeQuery<TSource, TReturn>(DbConnection connection) : ICompositeQuery, IDataRetrieval<TReturn>
 {
+    /// <summary>
+    ///     The type representing the database record set.
+    /// </summary>
+    public Type SourceEntity { get; } = typeof(TSource);
+
+    /// <summary>
+    ///     The combined type to return.
+    /// </summary>
+    public Type RetrieveEntity { get; } = typeof(TReturn);
+
     /// <summary>
     ///     The database connections.
     /// </summary>
     private DbConnection Connection { get; } = connection;
 
     /// <summary>
-    ///     The type representing the database record set.
-    /// </summary>
-    private Type SourceEntity { get; } = sourceEntity;
-
-    /// <summary>
     ///     Used to represent an instance of the source entity in the expression tree.
     /// </summary>
-    private ParameterExpression SourceParameter { get; } = Expression.Parameter(sourceEntity, "source");
-
-    /// <summary>
-    ///     The combined type to return.
-    /// </summary>
-    private Type RetrieveEntity { get; } = retrieveEntity;
+    private ParameterExpression SourceParameter { get; } = Expression.Parameter(typeof(TSource), "source");
 
     /// <summary>
     ///      Used to store the constructed target entity during the execution of the expression tree.
     /// </summary>
-    private ParameterExpression RetrieveParameter { get; } = Expression.Variable(retrieveEntity, "retrieve");
+    private ParameterExpression RetrieveVariable { get; } = Expression.Variable(typeof(TReturn), "retrieve");
 
     /// <summary>
     ///     The expressions are both ordered and intended for use in an Expression.Block.
@@ -113,6 +113,74 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     private static ParameterExpression DtRowParam { get; } = Expression.Parameter(DtRowType, "dict");
 
     /// <summary>
+    ///     Retrieves the MethodInfo for IEnumerator.MoveNext(), which advances the enumerator
+    ///     to the next element in the sequence. Used for controlling iteration in expression trees.
+    /// </summary>
+    private static MethodInfo StreamMoveNextMethod { get; } = typeof(IEnumerator).GetMethod("MoveNext")!;
+
+    /// <summary>
+    ///     A single row in the result set as a dictionary of column names and values.
+    /// </summary>
+    private static Type DapperRowType { get; } = typeof(IDictionary<string, object>);
+
+    /// <summary>
+    ///     A collection of rows, allowing iteration over multiple dictionaries.
+    /// </summary>
+    private static Type DapperRowCollectionType { get; } = typeof(IEnumerable<IDictionary<string, object>>);
+
+    /// <summary>
+    ///     An enumerator for iterating over rows one at a time, typically used for streaming data.
+    /// </summary>
+    private static Type DapperRowStreamType { get; } = typeof(IEnumerator<IDictionary<string, object>>);
+
+    /// <summary>
+    ///     Retrieves the MethodInfo for GetEnumerator() on a Dapper row collection type.
+    ///     This method is used to obtain an enumerator that enables iteration over the query results.
+    /// </summary>
+    private MethodInfo DapperRowStreamMethod { get; } = DapperRowCollectionType.GetMethod("GetEnumerator")!;
+
+    private ParameterExpression DapperRowCollectionParameter { get; } = Expression.Parameter(DapperRowCollectionType, "dataCollection");
+
+    private ParameterExpression GroupingDapperRowParameter { get; } = Expression.Parameter(typeof(Dictionary<ITuple, Dictionary<string, TReturn>>), "retrieves");
+
+    /// <summary>
+    ///     Stores the group key.
+    /// </summary>
+    public ParameterExpression DapperRowVariable { get; } = Expression.Variable(DapperRowType, "dataRow");
+
+    private ParameterExpression DapperRowStreamVariable { get; } = Expression.Variable(DapperRowStreamType, "dataStream");
+
+    /// <summary>
+    ///     Variables that are used within the while-loop to facilitate row handling and processing.
+    /// </summary>
+    // private List<ParameterExpression> SequenceRowHandlingVariables { get; } = [];
+
+    /// <summary>
+    ///     A sequence of stepwise operations for processing each data row inside the while loop.
+    /// </summary>
+    private List<Expression> SequenceDapperRowProcessing { get; } = [];
+
+    /// <summary>
+    ///     Stores the group key.
+    /// </summary>
+    public List<MemberAssignment> RetrievePropertyAssignmentProcessing { get; } = [];
+
+    /// <summary>
+    ///     Stores the group key.
+    /// </summary>
+    public List<(Type GroupingKeyType, Expression PropertyAssignment)> GroupingPropertyAssignmentProcessing { get; } = [];
+
+    /// <summary>
+    ///     Creates an expression that converts a given property expression to a specified target type
+    ///     using Convert.ChangeType(). This ensures dynamic type conversion at runtime within an expression tree.
+    /// </summary>
+    /// <param name="targetProperty">The expression representing the property to convert.</param>
+    /// <param name="targetType">The target type to which the property should be converted.</param>
+    /// <returns>A UnaryExpression that represents the type conversion.</returns>
+    public UnaryExpression ChangeType(Expression targetProperty, Type targetType) =>
+        Expression.Convert(Expression.Call(typeof(Convert), nameof(Convert.ChangeType), [], targetProperty, Expression.Constant(targetType)), targetType);
+
+    /// <summary>
     ///     Gets the query components.
     /// </summary>
     public void SetQueries()
@@ -135,19 +203,18 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     ///     An expression that specifies the property in the parent entity where the collection
     ///     of related entities is stored. This is typically a navigation property.
     /// </param>
-    /// <typeparam name="TReturn">The type of the parent entity.</typeparam>
     /// <typeparam name="TRelation">The type of the related entities in the collection.</typeparam>
     /// <exception cref="NotSupportedException">
     ///     Thrown if the provided <paramref name="mapSelector" /> is not a valid member expression.
     /// </exception>
-    public void SetMap<TReturn, TRelation>(Expression<Func<TReturn, TRelation?>> mapSelector)
+    public void SetMap<TRelation>(Expression<Func<TReturn, TRelation?>> mapSelector)
     {
         switch (mapSelector.Body)
         {
             case MemberExpression memberExpression:
                 {
                     var relationParam = Expression.Parameter(typeof(TRelation), GetAliasMapping(typeof(TRelation)));
-                    var currentProperty = Expression.Property(RetrieveParameter, memberExpression.Member.Name);
+                    var currentProperty = Expression.Property(RetrieveVariable, memberExpression.Member.Name);
                     var assignExpression = Expression.Assign(currentProperty, relationParam);
                     BlockMapSequence.Add((relationParam, assignExpression));
 
@@ -166,19 +233,18 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     ///     An expression that specifies the property in the parent entity where the collection
     ///     of related entities is stored. This is typically a navigation property.
     /// </param>
-    /// <typeparam name="TReturn">The type of the parent entity.</typeparam>
     /// <typeparam name="TRelation">The type of the related entities in the collection.</typeparam>
     /// <exception cref="NotSupportedException">
     ///     Thrown if the provided <paramref name="mapSelector" /> is not a valid member expression.
     /// </exception>
-    public void SetMap<TReturn, TRelation>(Expression<Func<TReturn, List<TRelation>?>> mapSelector)
+    public void SetMap<TRelation>(Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
         switch (mapSelector.Body)
         {
             case MemberExpression memberExpression:
                 {
                     var relationParam = Expression.Parameter(typeof(TRelation), GetAliasMapping(typeof(TRelation)));
-                    var currentProperty = Expression.Property(RetrieveParameter, memberExpression.Member.Name);
+                    var currentProperty = Expression.Property(RetrieveVariable, memberExpression.Member.Name);
 
                     var newList = Expression.IfThen(
                         Expression.Equal(currentProperty, Expression.Constant(null)),
@@ -297,119 +363,77 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// </summary>
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public List<TReturn> GetGroupMap<TReturn>()
+    public List<TReturn> GetGroupMap()
     {
         // Define the target types for the ValueTuple, combining the row type and mapping profile keys.
-        Type[] targetTypes = [DtRowType, .. MapProfiles.Keys];
+        Type[] groupingTargetTypes = [.. GroupingPropertyAssignmentProcessing.Select(i => i.GroupingKeyType)];
+        Expression[] groupingPropertyAssignments = [.. GroupingPropertyAssignmentProcessing.Select(i => i.PropertyAssignment)];
 
         // Dynamically create a ValueTuple type that will store grouped values.
-        Type tupleType = Type.GetType($"{typeof(ValueTuple).FullName}`{targetTypes.Length}")!.MakeGenericType(targetTypes);
+        Type groupingKeyType = Type.GetType($"{typeof(ValueTuple).FullName}`{groupingTargetTypes.Length}")!.MakeGenericType(groupingTargetTypes);
 
         // Retrieve the constructor for the dynamically generated ValueTuple.
-        ConstructorInfo tupleConstructor = tupleType.GetConstructor(targetTypes)!;
+        ConstructorInfo groupingKeyConstructor = groupingKeyType.GetConstructor(groupingTargetTypes)!;
 
         // Construct a new ValueTuple instance for each row, initializing it with row data and group mappings.
-        var tupleCreation = Expression.New(tupleConstructor, [DtRowParam, .. GroupCreateMemberInit()]);
+        UnaryExpression groupingKeyVariable = Expression.Convert(Expression.New(groupingKeyConstructor, groupingPropertyAssignments), typeof(ITuple));
+        IndexExpression groupingKeyIndex = Expression.Property(GroupingDapperRowParameter, "Item", groupingKeyVariable);
 
-        // Define a lambda function: (row) => new ValueTuple<>(row, group values).
-        var transformLambda = Expression.Lambda(
-            typeof(Func<,>).MakeGenericType([DtRowType, tupleType]),
-            tupleCreation,
-            DtRowParam);
+        //
+        UnaryExpression rowNum = ChangeType(Expression.Property(DapperRowVariable, "Item", Expression.Constant("RowNum")), typeof(int));
 
-        // Create a parameter expression representing a record in the tuple.
-        var tupleParam = Expression.Parameter(tupleType, "rec");
+        //
+        ConditionalExpression firstRowProcessing = Expression.IfThen(
+            Expression.Equal(rowNum, Expression.Constant(1)),
+            Expression.Assign(groupingKeyIndex, Expression.New(typeof(Dictionary<string, TReturn>))));
 
-        // Extract the fields from the dynamically created tuple.
-        var fields = tupleType.GetFields();
+        //
+        MemberInitExpression retrieveInit = Expression.MemberInit(Expression.New(typeof(TReturn)), RetrievePropertyAssignmentProcessing);
+        Expression retrieveId = ChangeType(Expression.Property(DapperRowVariable, "Item", Expression.Constant("Extend0_Id")), typeof(string));
 
-        // Access the dictionary-like data from the first field in the tuple.
-        var dictAccess = Expression.Field(tupleParam, fields[0]);
+        //
+        ConditionalExpression tryGetProcessing = Expression.IfThen(
+            Expression.Not(
+                Expression.Call(
+                    groupingKeyIndex,
+                    typeof(Dictionary<string, TReturn>).GetMethod("TryGetValue")!,
+                    retrieveId,
+                    RetrieveVariable)),
+            Expression.Block(
+                Expression.Assign(RetrieveVariable, retrieveInit),
+                Expression.Call(
+                    groupingKeyIndex,
+                    typeof(Dictionary<string, TReturn>).GetMethod("set_Item")!,
+                    retrieveId,
+                    RetrieveVariable)));
 
-        // Generate expressions for extracting dictionary keys from grouped data.
-        var exDictKeys = GroupKeys
-            .Select(k => Expression.Property(dictAccess, "Item", Expression.Constant(k.GroupKey)))
-            .ToList();
+        // Build while-loop
+        MemberExpression currentDapperRow = Expression.Property(DapperRowStreamVariable, "Current");
+        BlockExpression whileBody = Expression.Block(
+            [DapperRowVariable, RetrieveVariable],
+            [Expression.Assign(DapperRowVariable, currentDapperRow), firstRowProcessing, tryGetProcessing, .. SequenceDapperRowProcessing]);
 
-        // Dynamically create a ValueTuple type to store dictionary keys.
-        Type[] dictKeyTypes = [.. Enumerable.Repeat(typeof(object), exDictKeys.Count)];
-        var dictKeyValueTuple = Type.GetType($"{typeof(ValueTuple).FullName}`{exDictKeys.Count}")!.MakeGenericType(dictKeyTypes);
+        LabelTarget breakLabel = Expression.Label();
+        LoopExpression whileLoop = Expression.Loop(
+            Expression.IfThenElse(
+                Expression.Call(DapperRowStreamVariable, StreamMoveNextMethod),
+                whileBody,
+                Expression.Break(breakLabel)),
+            breakLabel);
 
-        // Retrieve the constructor for the dictionary key tuple.
-        ConstructorInfo dictKeyConstructor = dictKeyValueTuple.GetConstructor(dictKeyTypes)!;
+        BlockExpression fullBlock = Expression.Block(
+            [DapperRowStreamVariable],
+            [Expression.Assign(DapperRowStreamVariable, Expression.Call(DapperRowCollectionParameter, DapperRowStreamMethod)), whileLoop]);
 
-        // Construct the dictionary key tuple dynamically.
-        var dictKeyCreation = Expression.New(dictKeyConstructor, exDictKeys);
+        var lambda = Expression.Lambda<Action<IEnumerable<IDictionary<string, object>>, Dictionary<ITuple, Dictionary<string, TReturn>>>>(fullBlock, [DapperRowCollectionParameter, GroupingDapperRowParameter]).Compile();
 
-        // Extract the primary object from the second field in the tuple.
-        var firstObjectAccess = Expression.Field(tupleParam, fields[1]);
+        Dictionary<ITuple, Dictionary<string, TReturn>> res = [];
 
-        // Dynamically create a dictionary type: Dictionary<(key tuple), List<object>>.
-        Type dictType = typeof(Dictionary<,>).MakeGenericType(dictKeyValueTuple, typeof(List<object>));
-
-        // Instantiate the dictionary at runtime.
-        var returnDict = Activator.CreateInstance(dictType)!;
-        var resDict = Expression.Constant(returnDict);
-
-        // Retrieve dictionary methods for operations.
-        var containsKeyMethod = dictType.GetMethod("ContainsKey")!;
-        var addToDictMethod = dictType.GetMethod("Add")!;
-        var addToListMethod = typeof(List<object>).GetMethod("Add")!;
-
-        // If the dictionary does not contain the generated key, initialize a new list.
-        var createList = Expression.IfThen(
-            Expression.Not(Expression.Call(resDict, containsKeyMethod, dictKeyCreation)),
-            Expression.Call(resDict, addToDictMethod, dictKeyCreation, Expression.New(typeof(List<object>))));
-
-        // Access the list corresponding to the generated key and add the primary object.
-        var itemDict = Expression.Property(resDict, "Item", dictKeyCreation);
-        var addToList = Expression.Call(itemDict, addToListMethod, firstObjectAccess);
-
-        // Combine dictionary initialization and object addition into a single expression block.
-        var bodyBlock = Expression.Block(createList, addToList, firstObjectAccess);
-
-        // Define the lambda for processing each tuple: (tuple) => { add to dictionary }.
-        var selectLambda = Expression.Lambda(
-            typeof(Func<,>).MakeGenericType(tupleType, typeof(object)),
-            bodyBlock,
-            tupleParam);
-
-        // Define a parameter for the list of dictionaries (result set).
-        var listParam = Expression.Parameter(typeof(List<IDictionary<string, object>>), "list");
-
-        // Apply transformation: Select(list, transformLambda).
-        var selectTransform = Expression.Call(
-            typeof(Enumerable),
-            "Select",
-            [DtRowType, tupleType],
-            listParam,
-            transformLambda);
-
-        // Apply second transformation: Select(selectTransform, selectLambda).
-        var selectFinal = Expression.Call(
-            typeof(Enumerable),
-            "Select",
-            [tupleType, typeof(object)],
-            selectTransform,
-            selectLambda);
-
-        // Convert the result to a list.
-        var toListCall = Expression.Call(
-            typeof(Enumerable),
-            "ToList",
-            [typeof(object)],
-            selectFinal);
-
-        // Compile the full transformation pipeline into an executable delegate.
-        var queryPipeline = Expression.Lambda<Func<List<IDictionary<string, object>>, List<object>>>(toListCall, listParam).Compile();
-
-        // Retrieve data from the database, casting each row to IDictionary<string, object>.
         var dtRows = Connection.Query(Sql, Parameters)
-            .Cast<IDictionary<string, object>>()
-            .ToList();
+                .Cast<IDictionary<string, object>>()
+                .ToList();
 
-        // Execute the transformation pipeline on the retrieved rows.
-        _ = queryPipeline(dtRows);
+        lambda(dtRows, res);
 
         // Return an empty list as placeholder (if you intend to return results, modify this).
         return [];
@@ -420,7 +444,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// </summary>
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public List<TReturn> GetSingleMap<TReturn>()
+    public List<TReturn> GetSingleMap()
         => [.. Connection.Query<TReturn>(Sql, Parameters)];
 
     /// <summary>
@@ -428,7 +452,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
     /// </summary>
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public List<TReturn> GetMultiMap<TReturn>()
+    public List<TReturn> GetMultiMap()
     {
         Dictionary<string, TReturn> dict = [];
 
@@ -443,18 +467,18 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
             dictConst,
             dictType.GetMethod("TryGetValue")!,
             Expression.Property(SourceParameter, "Id"),
-            RetrieveParameter);
+            RetrieveVariable);
 
         var initializer = Expression.MemberInit(Expression.New(RetrieveEntity), CreateBindings());
 
         // Define a block to add a new record to the dictionary if TryGetValue fails
         var addNewToDictBlock = Expression.Block(
-            Expression.Assign(RetrieveParameter, initializer),
+            Expression.Assign(RetrieveVariable, initializer),
             Expression.Call(
                 dictConst,
                 dictType.GetMethod("Add")!,
                 Expression.Property(SourceParameter, "Id"),
-                RetrieveParameter));
+                RetrieveVariable));
 
         // If the record is not in the dictionary (TryGetValue returns false), add it using the block defined above
         var ifNotInDict = Expression.IfThen(Expression.IsFalse(tryGetCall), addNewToDictBlock);
@@ -467,7 +491,7 @@ public sealed partial class CompositeQuery(DbConnection connection, Type sourceE
         var methods = BlockMapSequence.Select(e => e.Expr).ToList();
 
         // Combine expressions into a block: check dictionary, execute additional methods, and return result
-        var block = Expression.Block([RetrieveParameter], [ifNotInDict, .. methods, RetrieveParameter]);
+        var block = Expression.Block([RetrieveVariable], [ifNotInDict, .. methods, RetrieveVariable]);
 
         // Create a list of parameter types for the query method
         List<Type> types = [SourceEntity, .. entities, RetrieveEntity];

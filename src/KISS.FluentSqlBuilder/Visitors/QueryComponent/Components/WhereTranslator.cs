@@ -4,7 +4,7 @@
 ///     A builder for a <c>WHERE</c> clause.
 /// </summary>
 /// <param name="Composite">The structure of the fluent SQL builder.</param>
-public sealed record WhereTranslator(CompositeQuery Composite) : ExpressionTranslator
+public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTranslator
 {
     private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
     {

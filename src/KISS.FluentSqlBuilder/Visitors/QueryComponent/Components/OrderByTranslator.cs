@@ -4,7 +4,7 @@
 ///     A builder for a <c>ORDER BY</c> clause.
 /// </summary>
 /// <param name="Composite">The structure of the fluent SQL builder.</param>
-public sealed record OrderByTranslator(CompositeQuery Composite) : ExpressionTranslator
+public sealed record OrderByTranslator(ICompositeQuery Composite) : ExpressionTranslator
 {
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)
