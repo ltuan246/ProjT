@@ -1,12 +1,12 @@
 ﻿namespace KISS.FluentSqlBuilder.Composites;
 
 /// <summary>
-///     Implements <see cref="ExpressionVisitor" /> for the <see cref="CompositeQuery" /> type.
+///     Implements <see cref="ExpressionVisitor" /> for the <see cref="CompositeQuery{TSource, TReturn}" /> type.
 ///     Traversing and analyzing LINQ expression trees and determining which parts of the expression tree
 ///     are evaluable at runtime (i.e., whether the expression can be simplified to a value).
 /// </summary>
-/// <typeparam name="TSource">The type representing the database record set.</param>
-/// <typeparam name="TReturn">The combined type to return.</param>
+/// <typeparam name="TSource">The type representing the database record set.</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
 public sealed partial class CompositeQuery<TSource, TReturn> : ExpressionVisitor
 {
     /// <summary>

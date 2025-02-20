@@ -4,11 +4,11 @@
 ///     A class that defines the fluent SQL builder type.
 /// </summary>
 /// <remarks>
-///     Initializes a new instance of the <see cref="CompositeQuery" /> class.
+///     Initializes a new instance of the <see cref="CompositeQuery{TSource, TReturn}" /> class.
 /// </remarks>
 /// <param name="connection">The database connections.</param>
-/// <typeparam name="TSource">The type representing the database record set.</param>
-/// <typeparam name="TReturn">The combined type to return.</param>
+/// <typeparam name="TSource">The type representing the database record set.</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
 public sealed partial class CompositeQuery<TSource, TReturn>(DbConnection connection) : ICompositeQuery, IDataRetrieval<TReturn>
 {
     /// <summary>
