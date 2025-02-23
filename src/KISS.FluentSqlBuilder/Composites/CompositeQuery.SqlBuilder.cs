@@ -10,13 +10,13 @@ public sealed partial class CompositeQuery<TSource, TReturn>
     /// <summary>
     ///     Gets the generated the SQL.
     /// </summary>
-    public string Sql
+    private string Sql
         => SqlBuilder.ToString();
 
     /// <summary>
     ///     A collection of dynamic parameters that can be used in SQL queries.
     /// </summary>
-    public DynamicParameters Parameters
+    private DynamicParameters Parameters
         => SqlFormat.Parameters;
 
     /// <summary>

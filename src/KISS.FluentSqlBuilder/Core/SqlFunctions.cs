@@ -38,7 +38,8 @@ public static class SqlFunctions
     /// <param name="dbConnection">The database connections.</param>
     /// <typeparam name="TEntity">The type of the record.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
-    public static QueryBuilder<TEntity> Retrieve<TEntity>(this DbConnection dbConnection)
+    public static KISS.FluentSqlBuilder.QueryHandlerChain.QueryBuilder<TEntity> Retrieve<TEntity>(
+        this DbConnection dbConnection)
         => new(dbConnection);
 
     /// <summary>

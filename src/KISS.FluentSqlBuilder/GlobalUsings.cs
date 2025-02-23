@@ -23,3 +23,4 @@ global using KISS.FluentSqlBuilder.Builders.LimitBuilders;
 global using KISS.FluentSqlBuilder.Builders.OffsetBuilders;
 global using KISS.FluentSqlBuilder.Visitors.QueryComponent.Components;
 global using KISS.FluentSqlBuilder.Composites;
+global using KISS.FluentSqlBuilder.QueryHandlerChain.QueryHandlers;

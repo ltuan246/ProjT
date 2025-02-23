@@ -222,7 +222,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 r => r.Id,
                 e => e.CardFlat)
             .InnerJoin<DustCost>( // Map one-to-many relationship
-                e => e.Id,
+                (Card e) => e.Id,
                 r => r.CardId,
                 e => e.DustCost)
             .Where((Card c) => c.Id == exId)
@@ -256,17 +256,17 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         var cards = Connection.Retrieve<CardModel>()
-                    .From<Card>()
-                    .InnerJoin<CardFlat>( // Map one-to-one relationship
-                        e => e.Id,
-                        r => r.Id,
-                        e => e.CardFlat)
-                    .InnerJoin<DustCost>( // Map one-to-many relationship
-                        e => e.Id,
-                        r => r.CardId,
-                        e => e.DustCost)
-                    .GroupBy(w => w.Type!)
-                    // .Select(SqlFunctions.AggregationType.Sum, w => w.Cost!, "Total")
-                    .ToGroupList();
+            .From<Card>()
+            .InnerJoin<CardFlat>( // Map one-to-one relationship
+                e => e.Id,
+                r => r.Id,
+                e => e.CardFlat)
+            .InnerJoin<DustCost>( // Map one-to-many relationship
+                (Card e) => e.Id,
+                r => r.CardId,
+                e => e.DustCost)
+            .GroupBy(w => w.Type!)
+            // .Select(SqlFunctions.AggregationType.Sum, w => w.Cost!, "Total")
+            .ToGroupList();
     }
 }
