@@ -10,38 +10,39 @@ public sealed partial class CompositeQuery(DbConnection connection)
     /// </summary>
     private DbConnection Connection { get; } = connection;
 
-    private QueryHandler? FirstHandler { get; set; }
-
-    /// <summary>
-    ///     AddHandler.
-    /// </summary>
-    /// <param name="handler">QueryHandler.</param>
-    public void AddHandler(QueryHandler handler)
-    {
-        if (FirstHandler is null)
-        {
-            FirstHandler = handler;
-        }
-        else
-        {
-            var lastHandler = FirstHandler;
-            while (lastHandler.NextHandler is not null)
-            {
-                lastHandler = lastHandler.NextHandler;
-            }
-
-            lastHandler.SetNext(handler);
-        }
-    }
-
     /// <summary>
     ///     AddHandler.
     /// </summary>
     public void GetList()
     {
-        FirstHandler?.Handle(this);
         _ = Connection.Query(Sql, Parameters)
             .Cast<IDictionary<string, object>>()
             .ToList();
+
+        var dapperRowCollectionParameter = Expression.Parameter(typeof(IEnumerable<IDictionary<string, object>>), "dataCollection");
+        var dapperRowStreamMethod = typeof(IEnumerable<IDictionary<string, object>>).GetMethod("GetEnumerator")!;
+
+        var dapperRowStreamVariable = Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "dataStream");
+        var streamMoveNextMethod = typeof(IEnumerator).GetMethod("MoveNext")!;
+
+        // Build while-loop
+        MemberExpression currentDapperRow = Expression.Property(dapperRowStreamVariable, "Current");
+        BlockExpression whileBody = Expression.Block(
+            [IterationRowVariable],
+            [Expression.Assign(IterationRowVariable, currentDapperRow)]);
+
+        LabelTarget breakLabel = Expression.Label();
+        LoopExpression whileLoop = Expression.Loop(
+            Expression.IfThenElse(
+                Expression.Call(dapperRowStreamVariable, streamMoveNextMethod),
+                whileBody,
+                Expression.Break(breakLabel)),
+            breakLabel);
+
+        BlockExpression fullBlock = Expression.Block(
+            [dapperRowStreamVariable],
+            [Expression.Assign(dapperRowStreamVariable, Expression.Call(dapperRowCollectionParameter, dapperRowStreamMethod)), whileLoop]);
+
+        _ = Expression.Lambda(fullBlock, []).Compile();
     }
 }

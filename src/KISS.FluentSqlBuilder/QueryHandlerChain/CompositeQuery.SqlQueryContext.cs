@@ -15,7 +15,7 @@ public sealed partial class CompositeQuery
     ///     A collection of dynamic parameters that can be used in SQL queries.
     /// </summary>
     private DynamicParameters Parameters
-        => SqlFormat.Parameters;
+        => SqlFormatting.Parameters;
 
     /// <summary>
     ///     Sets the generated the SQL.
@@ -23,12 +23,32 @@ public sealed partial class CompositeQuery
     private StringBuilder SqlBuilder { get; } = new();
 
     /// <summary>
+    ///     Sets the generated the SQL.
+    /// </summary>
+    public Dictionary<SqlStatement, List<FormattableString>> SqlStatements { get; } = new()
+    {
+        { SqlStatement.Select,  [] },
+        { SqlStatement.From,    [] },
+        { SqlStatement.Join,    [] },
+        { SqlStatement.Where,   [] },
+        { SqlStatement.GroupBy, [] },
+        { SqlStatement.OrderBy, [] },
+        { SqlStatement.Limit,   [] },
+        { SqlStatement.Offset,  [] }
+    };
+
+    /// <summary>
     ///     Use to custom string formatting for SQL queries.
     /// </summary>
-    private SqlFormatter SqlFormat { get; } = new();
+    public SqlFormatter SqlFormatting { get; } = new();
 
     /// <summary>
     ///     Use checks to know when to use Close Parenthesis.
     /// </summary>
     private bool HasOpenParentheses { get; set; }
+
+    /// <summary>
+    ///     A collection specifically for table aliases.
+    /// </summary>
+    public Dictionary<Type, string> TableAliases { get; } = [];
 }

@@ -32,7 +32,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         // Act
         IList<Weather> weathers = Connection.Retrieve<Weather>()
             .From<Weather>()
-            .Where(w => w.Id == exId && w.Country != exCountry)
+            .Where(w => w.Id == exId)
+            .Where(w => w.Country != exCountry)
             .ToList();
 
         // Assert

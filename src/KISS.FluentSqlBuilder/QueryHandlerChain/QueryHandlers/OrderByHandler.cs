@@ -4,4 +4,8 @@
 ///     OrderByHandler.
 /// </summary>
 /// <param name="Selector">Selector.</param>
-public sealed record OrderByHandler(Expression Selector) : QueryHandler;
+public sealed record OrderByHandler(Expression Selector) : QueryHandler
+{
+    /// <inheritdoc />
+    protected override void Process() { }
+}

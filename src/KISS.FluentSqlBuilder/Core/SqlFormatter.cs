@@ -4,7 +4,7 @@
 ///     Implements <see cref="IFormatProvider" /> and <see cref="ICustomFormatter" />
 ///     to provide custom string formatting for SQL queries.
 /// </summary>
-public sealed class SqlFormatter : IFormatProvider, ICustomFormatter
+public sealed record SqlFormatter : IFormatProvider, ICustomFormatter
 {
     /// <summary>
     ///     A collection of dynamic parameters that can be used in SQL queries.
@@ -14,7 +14,7 @@ public sealed class SqlFormatter : IFormatProvider, ICustomFormatter
     /// <summary>
     ///     Keeps track of the number of parameters added.
     /// </summary>
-    private int ParamCount { get; set; }
+    public int ParamCount { get; set; }
 
     /// <inheritdoc />
     public string Format(string? format, object? arg, IFormatProvider? formatProvider)

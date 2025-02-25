@@ -10,9 +10,8 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
     /// <inheritdoc />
     public IJoinBuilder<TRecordset, TReturn> From<TRecordset>()
     {
-        var composite = new CompositeQuery(Connection);
-        composite.AddHandler(new SelectHandler<TRecordset, TReturn>());
-        return new QueryBuilder<TRecordset, TReturn>(composite);
+        var handler = new SelectHandler<TRecordset, TReturn>();
+        return new QueryBuilder<TRecordset, TReturn>(Connection, handler);
     }
 }
 
@@ -22,7 +21,7 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
 /// <param name="Composite">Combining different queries together.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite) :
+public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IQueryBuilder<TRecordset, TReturn>
 {
     /// <inheritdoc />
@@ -31,8 +30,8 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Composite.AddHandler(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
-        return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite);
+        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
@@ -41,28 +40,28 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Composite.AddHandler(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
-        return new QueryBuilder<TRecordset, TRelation, TReturn>(Composite);
+        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TRecordset, TReturn> Where(Expression<Func<TRecordset, bool>> predicate)
     {
-        Composite.AddHandler(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate));
         return this;
     }
 
     /// <inheritdoc />
     public IGroupByBuilder<TRecordset, TReturn> GroupBy(Expression<Func<TRecordset, IComparable>> selector)
     {
-        Composite.AddHandler(new GroupByHandler(selector));
-        return new GroupQueryBuilder<TRecordset, TReturn>(Composite);
+        Handler.SetNext(new GroupByHandler(selector));
+        return new GroupQueryBuilder<TRecordset, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public ISelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
     {
-        Composite.AddHandler(new NewSelectHandler<TRecordset, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector));
         return this;
     }
 
@@ -70,26 +69,31 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
     public IOrderByBuilder<TRecordset, TReturn> OrderBy<TKey>(Expression<Func<TRecordset, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Composite.AddHandler(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector));
         return this;
     }
 
     /// <inheritdoc />
     public IOffsetBuilder<TRecordset, TReturn> Limit(int rows)
     {
-        Composite.AddHandler(new LimitHandler(rows));
+        Handler.SetNext(new LimitHandler(rows));
         return this;
     }
 
     /// <inheritdoc />
     public ISqlBuilder<TRecordset, TReturn> Offset(int offset)
     {
-        Composite.AddHandler(new OffsetHandler(offset));
+        Handler.SetNext(new OffsetHandler(offset));
         return this;
     }
 
     /// <inheritdoc />
-    public List<TReturn> ToList() => [];
+    public List<TReturn> ToList()
+    {
+        var composite = new CompositeQuery(Connection);
+        Handler.Handle(composite);
+        return [];
+    }
 }
 
 /// <summary>
@@ -98,20 +102,20 @@ public sealed record QueryBuilder<TRecordset, TReturn>(CompositeQuery Composite)
 /// <param name="Composite">Combining different queries together.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Composite) :
+public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IGroupQueryBuilder<TRecordset, TReturn>
 {
     /// <inheritdoc />
     public IGroupByBuilder<TRecordset, TReturn> ThenBy(Expression<Func<TRecordset, IComparable>> selector)
     {
-        Composite.AddHandler(new GroupByHandler(selector));
+        Handler.SetNext(new GroupByHandler(selector));
         return this;
     }
 
     /// <inheritdoc />
     public IHavingBuilder<TRecordset, TReturn> Having(Expression<Func<TRecordset, IComparable>> selector)
     {
-        Composite.AddHandler(new HavingHandler(selector));
+        Handler.SetNext(new HavingHandler(selector));
         return this;
     }
 
@@ -125,7 +129,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Compo
     /// <inheritdoc />
     public IGroupSelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
     {
-        Composite.AddHandler(new NewSelectHandler<TRecordset, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector));
         return this;
     }
 
@@ -133,28 +137,29 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Compo
     public IGroupOrderByBuilder<TRecordset, TReturn> OrderBy<TKey>(Expression<Func<TRecordset, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Composite.AddHandler(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector));
         return this;
     }
 
     /// <inheritdoc />
     public IGroupOffsetBuilder<TRecordset, TReturn> Limit(int rows)
     {
-        Composite.AddHandler(new LimitHandler(rows));
+        Handler.SetNext(new LimitHandler(rows));
         return this;
     }
 
     /// <inheritdoc />
     public IGroupSqlBuilder<TRecordset, TReturn> Offset(int offset)
     {
-        Composite.AddHandler(new OffsetHandler(offset));
+        Handler.SetNext(new OffsetHandler(offset));
         return this;
     }
 
     /// <inheritdoc />
     public List<TReturn> ToGroupList()
     {
-        Composite.GetList();
+        var composite = new CompositeQuery(Connection);
+        Handler.Handle(composite);
         return [];
     }
 }
@@ -166,7 +171,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(CompositeQuery Compo
 /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Composite) :
+public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IQueryBuilder<TFirst, TSecond, TReturn>
 {
     /// <inheritdoc />
@@ -175,8 +180,8 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Composite.AddHandler(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
-        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
+        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
@@ -185,8 +190,8 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Composite.AddHandler(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
-        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
+        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
@@ -195,8 +200,8 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Composite.AddHandler(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
-        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
+        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
@@ -205,35 +210,35 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Composite.AddHandler(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
-        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Composite);
+        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
     {
-        Composite.AddHandler(new GroupByHandler(selector));
-        return new GroupQueryBuilder<TFirst, TReturn>(Composite);
+        Handler.SetNext(new GroupByHandler(selector));
+        return new GroupQueryBuilder<TFirst, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TReturn> Where(Expression<Func<TFirst, bool>> predicate)
     {
-        Composite.AddHandler(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate));
         return this;
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TReturn> Where(Expression<Func<TSecond, bool>> predicate)
     {
-        Composite.AddHandler(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate));
         return this;
     }
 
     /// <inheritdoc />
     public ISelectBuilder<TFirst, TSecond, TReturn> Select(Expression<Func<TFirst, TSecond, TReturn>> selector)
     {
-        Composite.AddHandler(new NewSelectHandler<TFirst, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TFirst, TReturn>(selector));
         return this;
     }
 
@@ -241,21 +246,21 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
     public IOrderByBuilder<TFirst, TSecond, TReturn> OrderBy<TKey>(Expression<Func<TFirst, TSecond, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Composite.AddHandler(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector));
         return this;
     }
 
     /// <inheritdoc />
     public IOffsetBuilder<TFirst, TSecond, TReturn> Limit(int rows)
     {
-        Composite.AddHandler(new LimitHandler(rows));
+        Handler.SetNext(new LimitHandler(rows));
         return this;
     }
 
     /// <inheritdoc />
     public ISqlBuilder<TFirst, TSecond, TReturn> Offset(int offset)
     {
-        Composite.AddHandler(new OffsetHandler(offset));
+        Handler.SetNext(new OffsetHandler(offset));
         return this;
     }
 
@@ -271,34 +276,34 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(CompositeQuery Compo
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TThird">The third type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQuery Composite) :
+public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IQueryBuilder<TFirst, TSecond, TThird, TReturn>
 {
     /// <inheritdoc />
     public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
     {
-        Composite.AddHandler(new GroupByHandler(selector));
-        return new GroupQueryBuilder<TFirst, TReturn>(Composite);
+        Handler.SetNext(new GroupByHandler(selector));
+        return new GroupQueryBuilder<TFirst, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TFirst, bool>> predicate)
     {
-        Composite.AddHandler(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate));
         return this;
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TSecond, bool>> predicate)
     {
-        Composite.AddHandler(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate));
         return this;
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TThird, bool>> predicate)
     {
-        Composite.AddHandler(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate));
         return this;
     }
 
@@ -306,7 +311,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
     public ISelectBuilder<TFirst, TSecond, TThird, TReturn>
         Select(Expression<Func<TFirst, TSecond, TThird, TReturn>> selector)
     {
-        Composite.AddHandler(new NewSelectHandler<TFirst, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TFirst, TReturn>(selector));
         return this;
     }
 
@@ -315,21 +320,21 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(CompositeQue
         OrderBy<TKey>(Expression<Func<TFirst, TSecond, TThird, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Composite.AddHandler(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector));
         return this;
     }
 
     /// <inheritdoc />
     public IOffsetBuilder<TFirst, TSecond, TThird, TReturn> Limit(int rows)
     {
-        Composite.AddHandler(new LimitHandler(rows));
+        Handler.SetNext(new LimitHandler(rows));
         return this;
     }
 
     /// <inheritdoc />
     public ISqlBuilder<TFirst, TSecond, TThird, TReturn> Offset(int offset)
     {
-        Composite.AddHandler(new OffsetHandler(offset));
+        Handler.SetNext(new OffsetHandler(offset));
         return this;
     }
 

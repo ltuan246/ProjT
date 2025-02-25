@@ -12,9 +12,5 @@ public sealed record JoinHandler(
     Expression MapSelector) : QueryHandler
 {
     /// <inheritdoc />
-    public override void Handle(CompositeQuery context)
-    {
-        _ = context;
-        base.Handle(context);
-    }
+    protected override void Process() { }
 }

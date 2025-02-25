@@ -4,4 +4,8 @@
 ///     WhereHandler.
 /// </summary>
 /// <param name="Predicate">Predicate.</param>
-public sealed record WhereHandler(Expression Predicate) : QueryHandler;
+public sealed record WhereHandler(Expression Predicate) : QueryHandler
+{
+    /// <inheritdoc />
+    protected override void Process() { }
+}

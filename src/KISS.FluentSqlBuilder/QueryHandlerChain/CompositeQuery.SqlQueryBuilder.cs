@@ -47,7 +47,7 @@ public sealed partial class CompositeQuery
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="formatString" /> is <c>null</c>.</exception>
     public void AppendFormat(FormattableString formatString)
-        => SqlBuilder.AppendFormat(SqlFormat, formatString.Format, formatString.GetArguments());
+        => SqlBuilder.AppendFormat(SqlFormatting, formatString.Format, formatString.GetArguments());
 
     /// <summary>
     ///     Use to Open Parenthesis.
@@ -72,5 +72,30 @@ public sealed partial class CompositeQuery
         HasOpenParentheses = false;
         const char closeParenthesis = ')';
         SqlBuilder.Append(closeParenthesis);
+    }
+
+    /// <summary>
+    ///     Retrieves the alias mapped to the specified <see cref="Type" /> in the query context,
+    ///     or creates a new alias if none exists.
+    /// </summary>
+    /// <param name="type">The <see cref="Type" /> for which to retrieve or generate a table alias.</param>
+    /// <returns>
+    ///     A <see cref="string" /> representing the alias associated with the specified <paramref name="type" />.
+    /// </returns>
+    public string GetAliasMapping(Type type)
+    {
+        if (!TableAliases.TryGetValue(type, out var tableAlias))
+        {
+            const string defaultTableAlias = "Extend";
+
+            // Generate a new alias based on the default alias prefix and current alias count.
+            tableAlias = $"{defaultTableAlias}{TableAliases.Count}";
+
+            // Store the new alias in the dictionary for future reference.
+            TableAliases.Add(type, tableAlias);
+        }
+
+        // Return the alias (existing or newly created) for the specified type.
+        return tableAlias;
     }
 }

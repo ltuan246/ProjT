@@ -11,6 +11,11 @@ public abstract record QueryHandler
     public QueryHandler? NextHandler { get; set; }
 
     /// <summary>
+    /// Composite.
+    /// </summary>
+    protected CompositeQuery Composite { get; private set; } = default!;
+
+    /// <summary>
     ///     SetNext.
     /// </summary>
     /// <param name="nextHandler">NextHandler.</param>
@@ -19,6 +24,16 @@ public abstract record QueryHandler
     /// <summary>
     ///     Handle.
     /// </summary>
-    /// <param name="context">CompositeQuery.</param>
-    public virtual void Handle(CompositeQuery context) => NextHandler?.Handle(context); // Pass to the next handler
+    /// <param name="composite">CompositeQuery.</param>
+    public void Handle(CompositeQuery composite)
+    {
+        Composite = composite;
+        Process();
+        NextHandler?.Handle(composite);
+    }
+
+    /// <summary>
+    /// Process.
+    /// </summary>
+    protected abstract void Process();
 }

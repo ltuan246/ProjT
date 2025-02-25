@@ -4,4 +4,8 @@
 ///     OffsetHandler.
 /// </summary>
 /// <param name="Offset">Offset.</param>
-public sealed record OffsetHandler(int Offset) : QueryHandler;
+public sealed record OffsetHandler(int Offset) : QueryHandler
+{
+    /// <inheritdoc />
+    protected override void Process() { }
+}

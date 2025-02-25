@@ -392,6 +392,14 @@ public sealed partial class CompositeQuery<TSource, TReturn>(DbConnection connec
         Expression retrieveId = ChangeType(Expression.Property(DapperRowVariable, "Item", Expression.Constant("Extend0_Id")), typeof(string));
 
         //
+        // if (!groupingKeyIndex.TryGetValue(retrieveId, out RetrieveVariable))
+        // if (!groupingKeyIndex.TryGetValue(retrieveId, out var value))
+        // {
+        //     // RetrieveVariable = retrieveInit;
+        //     value = retrieveInit;
+        //     // groupingKeyIndex[retrieveId] = RetrieveVariable;
+        //     groupingKeyIndex[retrieveId] = value;
+        // }
         ConditionalExpression tryGetProcessing = Expression.IfThen(
             Expression.Not(
                 Expression.Call(
