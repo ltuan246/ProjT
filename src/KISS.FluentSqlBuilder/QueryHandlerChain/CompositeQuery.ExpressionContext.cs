@@ -1,22 +1,42 @@
 namespace KISS.FluentSqlBuilder.QueryHandlerChain;
 
 /// <summary>
-///     CompositeQuery.
+/// A context for storing reusable instances used in expression tree construction.
 /// </summary>
 public sealed partial class CompositeQuery
 {
-    /// <summary>
-    ///     Used to represent an instance of the source entity in the expression tree.
-    /// </summary>
-    public ParameterExpression SourceParameter { get; set; } = default!;
+    private static MethodInfo ItorMoveNextMethod { get; } = typeof(IEnumerator).GetMethod("MoveNext")!;
+
+    private static MethodInfo DisposeMethod { get; } = typeof(IDisposable).GetMethod("Dispose")!;
 
     /// <summary>
-    ///      Used to store the constructed target entity during the execution of the expression tree.
+    /// Gets the MethodInfo for the GetEnumerator method of <see cref="IEnumerable{IDictionary{string, object}}"/>.
+    /// This is used to create an enumerator for iterating over collections of dictionaries in expression trees.
     /// </summary>
-    public ParameterExpression RetrieveVariable { get; set; } = default!;
+    /// <remarks>
+    /// Cached as a static property to avoid repeated reflection calls, improving performance in expression tree construction.
+    /// The specific type <see cref="IEnumerable{IDictionary{string, object}}" ensures compatibility with dictionary-based data rows.
+    /// </remarks>
+    private static MethodInfo GetEnumeratorForIEnumDictStrObj { get; } = typeof(IEnumerable<IDictionary<string, object>>).GetMethod("GetEnumerator")!;
 
     /// <summary>
-    /// Represents a row in an iteration loop.
+    /// Gets the MethodInfo for the indexer (get_Item) of IDictionary{string, object}.
+    /// This is used to access values by key in dictionary rows within expression trees.
     /// </summary>
-    public ParameterExpression IterationRowVariable { get; } = Expression.Parameter(typeof(IDictionary<string, object>), "iterator");
+    /// <remarks>
+    /// Cached statically for efficiency, targeting IDictionary{string, object} to match the expected row type.
+    /// The indexer returns an object, requiring type conversion in downstream processing.
+    /// </remarks>
+    private static MethodInfo GetIndexerForDictStrObj { get; } = typeof(IDictionary<string, object>).GetMethod("get_Item")!;
+
+    /// <summary>
+    /// An array of functions that define how to process each row.
+    /// </summary>
+    public List<Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression>> IterRowProcessors { get; } = [];
+
+    /// <summary>
+    /// Gets or sets a function that defines how to add the <see cref="CurrentEntityVariable"/> to the <see cref="OutputCollectionVariable"/>
+    /// within an expression tree. This processor generates an expression that appends or integrates the current entity into the output collection.
+    /// </summary>
+    public Func<(ParameterExpression OutputCollectionVariable, ParameterExpression CurrentEntityVariable), Expression> OutputProcessor { get; set; } = default!;
 }

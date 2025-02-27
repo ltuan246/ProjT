@@ -10,15 +10,22 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
     /// <inheritdoc />
     protected override void Process()
     {
-        Type sourceType = typeof(TReturn);
+        Type sourceType = typeof(TSource);
         Type retrieveType = typeof(TReturn);
 
-        Composite.SourceParameter = Expression.Parameter(sourceType, "source");
-        Composite.RetrieveVariable = Expression.Variable(retrieveType, "retrieve");
-
         var alias = Composite.GetAliasMapping(sourceType);
-        var retrieveProperties = retrieveType.GetProperties().Where(p => p.CanWrite).Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}").ToList();
-        Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", retrieveProperties)}");
+        var sourceProperties = sourceType.GetProperties().Where(p => p.CanWrite).Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}").ToList();
+        Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
+
+        Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p) => Expression.Block(
+            [p.CurrentEntityVariable],
+            Expression.Assign(
+                p.CurrentEntityVariable,
+                Expression.MemberInit(
+                    Expression.New(typeof(TReturn)),
+                    Composite.CreateIterRowBindings(p.IterRowParameter, sourceType, retrieveType))));
+
+        Composite.IterRowProcessors.Add(Init);
     }
 }
 

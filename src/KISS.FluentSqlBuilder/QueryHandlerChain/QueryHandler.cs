@@ -3,7 +3,7 @@
 /// <summary>
 ///     QueryHandler.
 /// </summary>
-public abstract record QueryHandler
+public abstract partial record QueryHandler : ExpressionTranslator
 {
     /// <summary>
     ///     NextHandler.

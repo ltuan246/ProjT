@@ -15,8 +15,9 @@ public sealed partial class CompositeQuery
     /// <summary>
     ///     Appends a new line to the string being built.
     /// </summary>
+    /// <param name="value">The string to append.</param>
     /// <param name="indent">Refers to adding spaces at the beginning of lines of text.</param>
-    public void AppendLine(bool indent = false)
+    public void AppendLine(string value = "", bool indent = false)
     {
         SqlBuilder.AppendLine();
         if (indent)
@@ -24,6 +25,8 @@ public sealed partial class CompositeQuery
             const int indentationLevel = 4;
             SqlBuilder.Append(new string(' ', indentationLevel));
         }
+
+        SqlBuilder.Append(value);
     }
 
     /// <summary>

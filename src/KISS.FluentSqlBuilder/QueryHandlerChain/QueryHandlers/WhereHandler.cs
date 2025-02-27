@@ -4,8 +4,12 @@
 ///     WhereHandler.
 /// </summary>
 /// <param name="Predicate">Predicate.</param>
-public sealed record WhereHandler(Expression Predicate) : QueryHandler
+public sealed partial record WhereHandler(Expression Predicate) : QueryHandler
 {
     /// <inheritdoc />
-    protected override void Process() { }
+    protected override void Process()
+    {
+        Translate(Predicate);
+        Composite.SqlStatements[SqlStatement.Where].Add($"{QueryBuilder.ToString()}");
+    }
 }

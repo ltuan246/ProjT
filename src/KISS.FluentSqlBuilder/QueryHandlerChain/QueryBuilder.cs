@@ -30,7 +30,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        Handler.SetNext(new JoinHandler(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -40,28 +40,28 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        Handler.SetNext(new JoinHandler(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TRecordset, TReturn> Where(Expression<Func<TRecordset, bool>> predicate)
     {
-        Handler.SetNext(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate.Body));
         return this;
     }
 
     /// <inheritdoc />
     public IGroupByBuilder<TRecordset, TReturn> GroupBy(Expression<Func<TRecordset, IComparable>> selector)
     {
-        Handler.SetNext(new GroupByHandler(selector));
+        Handler.SetNext(new GroupByHandler(selector.Body));
         return new GroupQueryBuilder<TRecordset, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public ISelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
     {
-        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector.Body));
         return this;
     }
 
@@ -69,7 +69,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
     public IOrderByBuilder<TRecordset, TReturn> OrderBy<TKey>(Expression<Func<TRecordset, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Handler.SetNext(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector.Body));
         return this;
     }
 
@@ -92,7 +92,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
     {
         var composite = new CompositeQuery(Connection);
         Handler.Handle(composite);
-        return [];
+        return composite.GetList<TReturn>();
     }
 }
 
@@ -108,14 +108,14 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     /// <inheritdoc />
     public IGroupByBuilder<TRecordset, TReturn> ThenBy(Expression<Func<TRecordset, IComparable>> selector)
     {
-        Handler.SetNext(new GroupByHandler(selector));
+        Handler.SetNext(new GroupByHandler(selector.Body));
         return this;
     }
 
     /// <inheritdoc />
     public IHavingBuilder<TRecordset, TReturn> Having(Expression<Func<TRecordset, IComparable>> selector)
     {
-        Handler.SetNext(new HavingHandler(selector));
+        Handler.SetNext(new HavingHandler(selector.Body));
         return this;
     }
 
@@ -123,13 +123,16 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     public IGroupSelectBuilder<TRecordset, TReturn> Select(
         SqlFunctions.AggregationType aggregationType,
         Expression<Func<TRecordset, IComparable>> selector,
-        string alias) =>
-        this;
+        string alias)
+    {
+        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector.Body));
+        return this;
+    }
 
     /// <inheritdoc />
     public IGroupSelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
     {
-        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector.Body));
         return this;
     }
 
@@ -137,7 +140,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     public IGroupOrderByBuilder<TRecordset, TReturn> OrderBy<TKey>(Expression<Func<TRecordset, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Handler.SetNext(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector.Body));
         return this;
     }
 
@@ -180,7 +183,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        Handler.SetNext(new JoinHandler(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -190,7 +193,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        Handler.SetNext(new JoinHandler(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -200,7 +203,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        Handler.SetNext(new JoinHandler(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -210,35 +213,35 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new JoinHandler(leftKeySelector, rightKeySelector, mapSelector));
+        Handler.SetNext(new JoinHandler(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
     {
-        Handler.SetNext(new GroupByHandler(selector));
+        Handler.SetNext(new GroupByHandler(selector.Body));
         return new GroupQueryBuilder<TFirst, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TReturn> Where(Expression<Func<TFirst, bool>> predicate)
     {
-        Handler.SetNext(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate.Body));
         return this;
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TReturn> Where(Expression<Func<TSecond, bool>> predicate)
     {
-        Handler.SetNext(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate.Body));
         return this;
     }
 
     /// <inheritdoc />
     public ISelectBuilder<TFirst, TSecond, TReturn> Select(Expression<Func<TFirst, TSecond, TReturn>> selector)
     {
-        Handler.SetNext(new NewSelectHandler<TFirst, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TFirst, TReturn>(selector.Body));
         return this;
     }
 
@@ -246,7 +249,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
     public IOrderByBuilder<TFirst, TSecond, TReturn> OrderBy<TKey>(Expression<Func<TFirst, TSecond, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Handler.SetNext(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector.Body));
         return this;
     }
 
@@ -282,28 +285,28 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     /// <inheritdoc />
     public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
     {
-        Handler.SetNext(new GroupByHandler(selector));
+        Handler.SetNext(new GroupByHandler(selector.Body));
         return new GroupQueryBuilder<TFirst, TReturn>(Connection, Handler);
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TFirst, bool>> predicate)
     {
-        Handler.SetNext(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate.Body));
         return this;
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TSecond, bool>> predicate)
     {
-        Handler.SetNext(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate.Body));
         return this;
     }
 
     /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TThird, bool>> predicate)
     {
-        Handler.SetNext(new WhereHandler(predicate));
+        Handler.SetNext(new WhereHandler(predicate.Body));
         return this;
     }
 
@@ -311,7 +314,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     public ISelectBuilder<TFirst, TSecond, TThird, TReturn>
         Select(Expression<Func<TFirst, TSecond, TThird, TReturn>> selector)
     {
-        Handler.SetNext(new NewSelectHandler<TFirst, TReturn>(selector));
+        Handler.SetNext(new NewSelectHandler<TFirst, TReturn>(selector.Body));
         return this;
     }
 
@@ -320,7 +323,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
         OrderBy<TKey>(Expression<Func<TFirst, TSecond, TThird, TKey>> selector)
         where TKey : IComparable<TKey>
     {
-        Handler.SetNext(new OrderByHandler(selector));
+        Handler.SetNext(new OrderByHandler(selector.Body));
         return this;
     }
 

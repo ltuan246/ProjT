@@ -11,38 +11,57 @@ public sealed partial class CompositeQuery(DbConnection connection)
     private DbConnection Connection { get; } = connection;
 
     /// <summary>
-    ///     AddHandler.
+    ///     Executes the SQL query and returns the results as a list.
     /// </summary>
-    public void GetList()
+    /// <typeparam name="TReturn">The combined type to return.</typeparam>
+    /// <returns>Retrieve the data based on conditions.</returns>
+    public List<TReturn> GetList<TReturn>()
     {
-        _ = Connection.Query(Sql, Parameters)
+        using var selectItor = SqlStatements[SqlStatement.Select].GetEnumerator();
+        if (selectItor.MoveNext())
+        {
+            Append("SELECT");
+            AppendLine($"{selectItor.Current}");
+
+            while (selectItor.MoveNext())
+            {
+                AppendLine($", {selectItor.Current}");
+            }
+
+            AppendLine();
+        }
+
+        Append("FROM");
+        AppendLine($"{TableAliases.First().Key.Name}s AS {TableAliases.First().Value}");
+        AppendLine();
+
+        using var whereItor = SqlStatements[SqlStatement.Where].GetEnumerator();
+        if (whereItor.MoveNext())
+        {
+            Append("WHERE");
+            AppendLine($"{whereItor.Current}");
+
+            while (whereItor.MoveNext())
+            {
+                AppendLine($"AND {whereItor.Current}");
+            }
+
+            AppendLine();
+        }
+
+        var dtRows = Connection.Query(Sql, Parameters)
             .Cast<IDictionary<string, object>>()
             .ToList();
 
-        var dapperRowCollectionParameter = Expression.Parameter(typeof(IEnumerable<IDictionary<string, object>>), "dataCollection");
-        var dapperRowStreamMethod = typeof(IEnumerable<IDictionary<string, object>>).GetMethod("GetEnumerator")!;
+        OutputProcessor = (p) => Expression.Block(
+            [p.CurrentEntityVariable],
+            Expression.Call(
+                p.OutputCollectionVariable,
+                typeof(List<TReturn>).GetMethod("Add")!,
+                p.CurrentEntityVariable));
 
-        var dapperRowStreamVariable = Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "dataStream");
-        var streamMoveNextMethod = typeof(IEnumerator).GetMethod("MoveNext")!;
+        var res = ProcessData<TReturn, List<TReturn>>(dtRows);
 
-        // Build while-loop
-        MemberExpression currentDapperRow = Expression.Property(dapperRowStreamVariable, "Current");
-        BlockExpression whileBody = Expression.Block(
-            [IterationRowVariable],
-            [Expression.Assign(IterationRowVariable, currentDapperRow)]);
-
-        LabelTarget breakLabel = Expression.Label();
-        LoopExpression whileLoop = Expression.Loop(
-            Expression.IfThenElse(
-                Expression.Call(dapperRowStreamVariable, streamMoveNextMethod),
-                whileBody,
-                Expression.Break(breakLabel)),
-            breakLabel);
-
-        BlockExpression fullBlock = Expression.Block(
-            [dapperRowStreamVariable],
-            [Expression.Assign(dapperRowStreamVariable, Expression.Call(dapperRowCollectionParameter, dapperRowStreamMethod)), whileLoop]);
-
-        _ = Expression.Lambda(fullBlock, []).Compile();
+        return res;
     }
 }
