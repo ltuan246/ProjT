@@ -1,67 +1,116 @@
 ﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain;
 
 /// <summary>
-///     CompositeQuery.
+///     A sealed class that constructs and executes SQL queries using a database connection.
+///     Implements <see cref="ICompositeQueryOperations" /> to provide query execution capabilities.
 /// </summary>
-public sealed partial class CompositeQuery(DbConnection connection)
+/// <param name="connection">The <see cref="DbConnection" /> used to execute the query.</param>
+public sealed partial class CompositeQuery(DbConnection connection) : ICompositeQueryOperations
 {
     /// <summary>
-    ///     The database connections.
+    ///     Gets the database connection used for executing SQL queries.
+    ///     Initialized via the constructor and remains constant throughout the instance's lifetime.
     /// </summary>
     private DbConnection Connection { get; } = connection;
 
     /// <summary>
-    ///     Executes the SQL query and returns the results as a list.
+    ///     Executes the constructed SQL query against the database and returns the results as a list of the specified type.
     /// </summary>
-    /// <typeparam name="TReturn">The combined type to return.</typeparam>
-    /// <returns>Retrieve the data based on conditions.</returns>
+    /// <typeparam name="TReturn">The type of objects to return, representing the query result rows.</typeparam>
+    /// <returns>A list of <typeparamref name="TReturn" /> objects retrieved based on the query conditions.</returns>
     public List<TReturn> GetList<TReturn>()
     {
-        using var selectItor = SqlStatements[SqlStatement.Select].GetEnumerator();
-        if (selectItor.MoveNext())
-        {
-            Append("SELECT");
-            AppendLine($"{selectItor.Current}");
-
-            while (selectItor.MoveNext())
-            {
-                AppendLine($", {selectItor.Current}");
-            }
-
-            AppendLine();
-        }
-
-        Append("FROM");
-        AppendLine($"{TableAliases.First().Key.Name}s AS {TableAliases.First().Value}");
-        AppendLine();
-
-        using var whereItor = SqlStatements[SqlStatement.Where].GetEnumerator();
-        if (whereItor.MoveNext())
-        {
-            Append("WHERE");
-            AppendLine($"{whereItor.Current}");
-
-            while (whereItor.MoveNext())
-            {
-                AppendLine($"AND {whereItor.Current}");
-            }
-
-            AppendLine();
-        }
-
+        // Executes the SQL query using the Connection, passing the constructed Sql string and Parameters (presumed properties).
+        // Casts the result to a list of dictionaries for flexible row data access.
         var dtRows = Connection.Query(Sql, Parameters)
             .Cast<IDictionary<string, object>>()
             .ToList();
 
-        OutputProcessor = (p) => Expression.Block(
-            [p.CurrentEntityVariable],
+        // Processes the raw data rows into a typed list of TReturn objects using a dynamic expression.
+        // The lambda defines how to add each row (as CurrentEntityVariable) to the output list (OutputCollectionVariable).
+        var res = ProcessData<TReturn, List<TReturn>>(dtRows, p => Expression.Block(
+            [p.CurrentEntityVariable], // Defines a block with the current entity variable.
             Expression.Call(
-                p.OutputCollectionVariable,
-                typeof(List<TReturn>).GetMethod("Add")!,
-                p.CurrentEntityVariable));
+                p.OutputCollectionVariable, // Calls the Add method on the output list.
+                typeof(List<TReturn>).GetMethod("Add")!, // Retrieves the Add method via reflection.
+                p.CurrentEntityVariable))); // Adds the current entity to the list.
 
-        var res = ProcessData<TReturn, List<TReturn>>(dtRows);
-
+        // Returns the populated list of query results.
         return res;
+    }
+
+    /// <summary>
+    ///     Builds the SQL query string by assembling query clauses from stored statements.
+    ///     Uses a <see cref="StringBuilder" /> (via inherited or composed behavior) to construct the query incrementally.
+    /// </summary>
+    public void SetQueries()
+    {
+        SetSelect();
+        SetFrom();
+        // SetJoin();
+        SetWhere();
+        // SetGroupBy();
+        // SetHaving();
+        // SetOrderBy();
+        // SetLimit();
+        // SetOffset();
+    }
+
+    private void SetSelect()
+    {
+        // Retrieves an enumerator for SELECT statements stored in SqlStatements, a presumed collection.
+        using var itor = SqlStatements[SqlStatement.Select].GetEnumerator();
+
+        // Checks if there are any SELECT statements to process.
+        if (itor.MoveNext())
+        {
+            // Begins the query with the "SELECT" keyword on a new line.
+            Append("SELECT");
+            // Appends the first SELECT statement, typically a column or expression.
+            AppendLine($"{itor.Current}");
+
+            // Iterates through remaining SELECT statements, prefixing each with a comma for proper SQL syntax.
+            while (itor.MoveNext())
+            {
+                AppendLine($", {itor.Current}");
+            }
+
+            // Adds an empty line to finalize the SELECT clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetFrom()
+    {
+        (var table, var alias) = TableAliases.First();
+        // Appends the "FROM" clause, using the first table name and its alias from TableAliases, a presumed collection.
+        Append("FROM");
+        AppendLine($"{table.Name}s AS {alias}");
+        // Adds an empty line to separate clauses in the SQL string.
+        AppendLine();
+    }
+
+    private void SetWhere()
+    {
+        // Retrieves an enumerator for WHERE conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.Where].GetEnumerator();
+
+        // Checks if there are any WHERE conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the WHERE clause with the keyword on a new line.
+            Append("WHERE");
+            // Appends the first WHERE condition.
+            AppendLine($"{itor.Current}");
+
+            // Iterates through remaining WHERE conditions, combining them with "AND" for logical conjunction.
+            while (itor.MoveNext())
+            {
+                AppendLine($"AND {itor.Current}");
+            }
+
+            // Adds an empty line to finalize the WHERE clause in the SQL string.
+            AppendLine();
+        }
     }
 }

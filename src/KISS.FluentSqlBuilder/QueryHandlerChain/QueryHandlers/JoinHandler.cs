@@ -1,7 +1,7 @@
 ﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.QueryHandlers;
 
 /// <summary>
-/// A handler for joining recordsets with a relation, allowing key-based joins and mapping results.
+///     A handler for joining recordsets with a relation, allowing key-based joins and mapping results.
 /// </summary>
 /// <param name="LeftKeySelector">An expression to select the key from the primary recordset.</param>
 /// <param name="RightKeySelector">An expression to select the key from the related entity.</param>

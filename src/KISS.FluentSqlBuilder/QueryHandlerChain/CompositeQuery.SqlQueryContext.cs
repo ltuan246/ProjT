@@ -20,22 +20,7 @@ public sealed partial class CompositeQuery
     /// <summary>
     ///     Sets the generated the SQL.
     /// </summary>
-    private StringBuilder SqlBuilder { get; } = new();
-
-    /// <summary>
-    ///     Sets the generated the SQL.
-    /// </summary>
-    public Dictionary<SqlStatement, List<FormattableString>> SqlStatements { get; } = new()
-    {
-        { SqlStatement.Select,  [] },
-        { SqlStatement.From,    [] },
-        { SqlStatement.Join,    [] },
-        { SqlStatement.Where,   [] },
-        { SqlStatement.GroupBy, [] },
-        { SqlStatement.OrderBy, [] },
-        { SqlStatement.Limit,   [] },
-        { SqlStatement.Offset,  [] }
-    };
+    public StringBuilder SqlBuilder { get; } = new();
 
     /// <summary>
     ///     Use to custom string formatting for SQL queries.
@@ -43,9 +28,19 @@ public sealed partial class CompositeQuery
     public SqlFormatter SqlFormatting { get; } = new();
 
     /// <summary>
-    ///     Use checks to know when to use Close Parenthesis.
+    ///     Sets the generated the SQL.
     /// </summary>
-    private bool HasOpenParentheses { get; set; }
+    public Dictionary<SqlStatement, List<FormattableString>> SqlStatements { get; } = new()
+    {
+        { SqlStatement.Select, [] },
+        { SqlStatement.From, [] },
+        { SqlStatement.Join, [] },
+        { SqlStatement.Where, [] },
+        { SqlStatement.GroupBy, [] },
+        { SqlStatement.OrderBy, [] },
+        { SqlStatement.Limit, [] },
+        { SqlStatement.Offset, [] }
+    };
 
     /// <summary>
     ///     A collection specifically for table aliases.

@@ -1,7 +1,7 @@
 namespace KISS.FluentSqlBuilder.QueryHandlerChain;
 
 /// <summary>
-/// SqlStatement.
+///     SqlStatement.
 /// </summary>
 public enum SqlStatement
 {

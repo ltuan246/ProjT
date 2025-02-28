@@ -10,20 +10,24 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
     /// <inheritdoc />
     protected override void Process()
     {
-        Type sourceType = typeof(TSource);
-        Type retrieveType = typeof(TReturn);
+        var sourceType = typeof(TSource);
+        var retrieveType = typeof(TReturn);
 
         var alias = Composite.GetAliasMapping(sourceType);
-        var sourceProperties = sourceType.GetProperties().Where(p => p.CanWrite).Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}").ToList();
+        var sourceProperties = sourceType.GetProperties().Where(p => p.CanWrite)
+            .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}").ToList();
         Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
 
-        Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p) => Expression.Block(
-            [p.CurrentEntityVariable],
-            Expression.Assign(
-                p.CurrentEntityVariable,
-                Expression.MemberInit(
-                    Expression.New(typeof(TReturn)),
-                    Composite.CreateIterRowBindings(p.IterRowParameter, sourceType, retrieveType))));
+        Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)
+        {
+            return Expression.Block(
+                [p.CurrentEntityVariable],
+                Expression.Assign(
+                    p.CurrentEntityVariable,
+                    Expression.MemberInit(
+                        Expression.New(typeof(TReturn)),
+                        Composite.CreateIterRowBindings(p.IterRowParameter, sourceType, retrieveType))));
+        }
 
         Composite.IterRowProcessors.Add(Init);
     }

@@ -89,11 +89,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-    {
-        var composite = new CompositeQuery(Connection);
-        Handler.Handle(composite);
-        return composite.GetList<TReturn>();
-    }
+        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList<TReturn>();
 }
 
 /// <summary>
@@ -159,12 +155,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     }
 
     /// <inheritdoc />
-    public List<TReturn> ToGroupList()
-    {
-        var composite = new CompositeQuery(Connection);
-        Handler.Handle(composite);
-        return [];
-    }
+    public List<TReturn> ToGroupList() => [];
 }
 
 /// <summary>
