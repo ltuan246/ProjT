@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.QueryHandlers;
+﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
 
 /// <summary>
 ///     A handler for joining recordsets with a relation, allowing key-based joins and mapping results.

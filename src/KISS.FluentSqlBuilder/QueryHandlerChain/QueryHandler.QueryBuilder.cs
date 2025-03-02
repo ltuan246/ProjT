@@ -13,7 +13,7 @@ public abstract partial record QueryHandler
     /// <summary>
     ///     Use checks to know when to use Close Parenthesis.
     /// </summary>
-    protected bool HasOpenParentheses { get; set; }
+    private bool HasOpenParentheses { get; set; }
 
     /// <summary>
     ///     Appends a formatted string to the <see cref="QueryBuilder" />.

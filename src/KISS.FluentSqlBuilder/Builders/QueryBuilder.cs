@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain;
+﻿namespace KISS.FluentSqlBuilder.Builders;
 
 /// <summary>
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
@@ -18,7 +18,8 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
 /// <summary>
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
-/// <param name="Composite">Combining different queries together.</param>
+/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
+/// <param name="Handler">The handler that configures the query before proxy creation.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, QueryHandler Handler) :
@@ -95,7 +96,8 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
 /// <summary>
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
-/// <param name="Composite">Combining different queries together.</param>
+/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
+/// <param name="Handler">The handler that configures the query before proxy creation.</param>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connection, QueryHandler Handler) :
@@ -155,13 +157,15 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     }
 
     /// <inheritdoc />
-    public List<TReturn> ToGroupList() => [];
+    public List<TReturn> ToGroupList() =>
+        new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList<TReturn>();
 }
 
 /// <summary>
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
-/// <param name="Composite">Combining different queries together.</param>
+/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
+/// <param name="Handler">The handler that configures the query before proxy creation.</param>
 /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
@@ -265,7 +269,8 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
 /// <summary>
 ///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
 /// </summary>
-/// <param name="Composite">Combining different queries together.</param>
+/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
+/// <param name="Handler">The handler that configures the query before proxy creation.</param>
 /// <typeparam name="TFirst">The first type in the recordset.</typeparam>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TThird">The third type in the recordset.</typeparam>

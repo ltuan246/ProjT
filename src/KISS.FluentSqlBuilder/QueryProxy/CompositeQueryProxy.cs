@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.QueryHandlerChain;
+namespace KISS.FluentSqlBuilder.QueryProxy;
 
 /// <summary>
 ///     A generic proxy class that intercepts method calls for <see cref="CompositeQuery" /> instances,

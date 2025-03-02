@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain;
+﻿namespace KISS.FluentSqlBuilder.Composite;
 
 /// <summary>
 ///     CompositeQuery.

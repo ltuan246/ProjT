@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.QueryHandlers;
+﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
 
 /// <summary>
 ///     GroupByHandler.

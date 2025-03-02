@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.QueryHandlerChain;
+namespace KISS.FluentSqlBuilder.Composite;
 
 /// <summary>
 ///     A context for storing reusable instances used in expression tree construction.
@@ -14,8 +14,8 @@ public sealed partial class CompositeQuery
     ///     This is used to create an enumerator for iterating over collections of dictionaries in expression trees.
     /// </summary>
     /// <remarks>
-    ///     Cached as a static property to avoid repeated reflection calls, improving performance in expression tree
-    ///     construction.
+    ///     Cached as a static property to avoid repeated reflection calls,
+    ///     improving performance in expression tree construction.
     ///     The specific type
     ///     <see cref="IEnumerable{IDictionary{string, object}}" /> ensures compatibility with dictionary-based data rows.
     /// </remarks>

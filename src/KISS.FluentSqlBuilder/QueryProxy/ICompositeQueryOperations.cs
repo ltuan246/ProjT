@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.QueryHandlerChain;
+namespace KISS.FluentSqlBuilder.QueryProxy;
 
 /// <summary>
 ///     Defines the contract for data retrieval operations.

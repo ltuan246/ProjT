@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Composites;
+namespace KISS.FluentSqlBuilder.Composite;
 
 /// <summary>
 ///     Defines the contract for data retrieval operations.
@@ -58,23 +58,23 @@ public interface ICompositeQuery
     UnaryExpression ChangeType(Expression targetProperty, Type targetType);
 
     /// <summary>
-    ///     Appends a formatted string to the <see cref="CompositeQuery{TSource, TReturn}.SqlBuilder" />.
+    ///     Appends a formatted string to the CompositeQuery{TSource, TReturn}.SqlBuilder.
     /// </summary>
     /// <param name="value">The string to append.</param>
     void Append(string value);
 
     /// <summary>
-    ///     Appends a formatted string to the <see cref="CompositeQuery{TSource, TReturn}.SqlBuilder" /> using the specified SQL format provider.
+    ///     Appends a formatted string to the CompositeQuery{TSource, TReturn}.SqlBuilder using the specified SQL format provider.
     /// </summary>
     /// <param name="formatString">
     ///     A <see cref="FormattableString" /> instance containing the composite format string and arguments.
     ///     The format string specifies the text, placeholders, and data for the formatted SQL statement.
     /// </param>
     /// <remarks>
-    ///     This method formats and appends a SQL statement to the underlying <see cref="CompositeQuery{TSource, TReturn}.SqlBuilder" /> by using
+    ///     This method formats and appends a SQL statement to the underlying CompositeQuery{TSource, TReturn}.SqlBuilder by using
     ///     the <see cref="SqlFormatter" /> as a format provider. The <see cref="FormattableString.Format" /> and
     ///     <see cref="FormattableString.GetArguments" /> methods are used to parse the format string and its arguments
-    ///     before appending the formatted result to <see cref="CompositeQuery{TSource, TReturn}.SqlBuilder" />.
+    ///     before appending the formatted result to CompositeQuery{TSource, TReturn}.SqlBuilder.
     ///     Example usage:
     ///     <code>
     ///     AppendFormat($"SELECT * FROM Orders WHERE OrderId = {orderId}");
