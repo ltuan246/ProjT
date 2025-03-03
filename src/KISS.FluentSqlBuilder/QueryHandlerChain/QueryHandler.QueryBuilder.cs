@@ -23,6 +23,23 @@ public abstract partial record QueryHandler
         => QueryBuilder.Append(value);
 
     /// <summary>
+    ///     Appends a new line to the string being built.
+    /// </summary>
+    /// <param name="value">The string to append.</param>
+    /// <param name="indent">Refers to adding spaces at the beginning of lines of text.</param>
+    protected void AppendLine(string value = "", bool indent = false)
+    {
+        QueryBuilder.AppendLine();
+        if (indent)
+        {
+            const int indentationLevel = 4;
+            QueryBuilder.Append(new string(' ', indentationLevel));
+        }
+
+        QueryBuilder.Append(value);
+    }
+
+    /// <summary>
     ///     Appends a formatted string to the <see cref="QueryBuilder" /> using the specified SQL format provider.
     /// </summary>
     /// <param name="formatString">

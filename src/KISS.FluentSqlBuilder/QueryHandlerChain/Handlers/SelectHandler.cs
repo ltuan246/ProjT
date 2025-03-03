@@ -7,17 +7,31 @@
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public sealed record SelectHandler<TSource, TReturn> : QueryHandler
 {
+    /// <summary>
+    ///     The type representing the database record set.
+    /// </summary>
+    private Type SourceEntity { get; } = typeof(TSource);
+
+    /// <summary>
+    ///     The combined type to return.
+    /// </summary>
+    private Type RetrieveEntity { get; } = typeof(TReturn);
+
     /// <inheritdoc />
     protected override void Process()
     {
-        var sourceType = typeof(TSource);
-        var retrieveType = typeof(TReturn);
+        var alias = Composite.GetAliasMapping(SourceEntity);
+        var sourceProperties = SourceEntity.GetProperties()
+            .Where(p => p.CanWrite)
+            .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}")
+            .ToList();
 
-        var alias = Composite.GetAliasMapping(sourceType);
-        var sourceProperties = sourceType.GetProperties().Where(p => p.CanWrite)
-            .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}").ToList();
         Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
+    }
 
+    /// <inheritdoc />
+    protected override void BuildExpression()
+    {
         Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)
         {
             return Expression.Block(
@@ -26,10 +40,10 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
                     p.CurrentEntityVariable,
                     Expression.MemberInit(
                         Expression.New(typeof(TReturn)),
-                        Composite.CreateIterRowBindings(p.IterRowParameter, sourceType, retrieveType))));
+                        Composite.CreateIterRowBindings(p.IterRowParameter, SourceEntity, RetrieveEntity))));
         }
 
-        Composite.IterRowProcessors.Add(Init);
+        Composite.IterRowProcessor = Init;
     }
 }
 

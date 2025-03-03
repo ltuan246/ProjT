@@ -125,19 +125,9 @@ public sealed partial class CompositeQuery
     /// <typeparam name="TEntity">
     ///     The type of entity constructed or modified for each row of input data (e.g., a custom entity class).
     /// </typeparam>
-    /// <typeparam name="TReturn">
-    ///     The type of the output collection that accumulates the processed entities (e.g., <see cref="List{TEntity}" /> or
-    ///     <see cref="Dictionary{TKey, TEntity}" />).
-    ///     Must have a parameterless constructor.
-    /// </typeparam>
     /// <param name="inputData">
     ///     The list of dictionaries representing the raw data to process, where each dictionary contains key-value pairs
     ///     for a single row (e.g., "Extend0_Id" mapped to a value).
-    /// </param>
-    /// <param name="outputProcessor">
-    ///     Gets or sets a function that defines how to add the CurrentEntityVariable to the OutputCollectionVariable
-    ///     within an expression tree. This processor generates an expression that appends or integrates the current entity
-    ///     into the output collection.
     /// </param>
     /// <returns>The populated collection of type <typeparamref name="TReturn" /> containing the processed entities.</returns>
     /// <remarks>
@@ -146,35 +136,117 @@ public sealed partial class CompositeQuery
     ///     The <see cref="IterRowProcessors" /> collection must be defined elsewhere (e.g., as a field or property) and
     ///     provide the logic for transforming each row into an entity and adding it to the output collection.
     /// </remarks>
-    private TReturn ProcessData<TEntity, TReturn>(
-        List<IDictionary<string, object>> inputData,
-        Func<(ParameterExpression OutputCollectionVariable, ParameterExpression CurrentEntityVariable), Expression>
-            outputProcessor)
+    private List<TEntity> SimpleProcess<TEntity>(List<IDictionary<string, object>> inputData)
     {
         // Enumerator for iterating over inputData
-        var itorVariable = Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "itor");
+        ParameterExpression itorVariable = Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "itor"),
+            // Current row being processed in the loop
+            iterationRowParameter = Expression.Parameter(typeof(IDictionary<string, object>), "iter"),
+            // Entity being constructed/modified for the current row
+            currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntity"),
+            // Collection that accumulates all processed entities
+            outputCollectionVariable = Expression.Variable(typeof(List<TEntity>), "output");
 
-        // Current row being processed in the loop
-        var iterationRowParameter = Expression.Parameter(typeof(IDictionary<string, object>), "iter");
+        // Label to exit the loop when no more rows remain
+        var breakLabel = Expression.Label();
+        var whileLoopBody = Expression.Loop(
+            Expression.IfThenElse(
+                Expression.Call(itorVariable, ItorMoveNextMethod), // If MoveNext returns true (more rows),
+                Expression.Block(
+                    [iterationRowParameter, currentEntityVariable],
+                    [
+                        // Execute the loop body with the current row
+                        Expression.Assign(iterationRowParameter, Expression.Property(itorVariable, "Current")),
+                        IterRowProcessor((iterationRowParameter, currentEntityVariable)),
+                        Expression.Block(
+                            [currentEntityVariable], // Defines a block with the current entity variable.
+                            Expression.Call(
+                                outputCollectionVariable, // Calls the Add method on the output list.
+                                typeof(List<TEntity>).GetMethod("Add")!, // Retrieves the Add method via reflection.
+                                currentEntityVariable))
+                    ]),
+                Expression.Break(breakLabel)), // Otherwise, break out of the loop
+            breakLabel); // Target label for breaking the loop
 
-        // Entity being constructed/modified for the current row
-        var currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntity");
+        var whileBlock = Expression.TryFinally(
+            whileLoopBody, // The loop processing all rows
+            Expression.Call(itorVariable, DisposeMethod)); // Ensures the enumerator is disposed after completion
 
-        // Collection that accumulates all processed entities
-        var outputCollectionVariable = Expression.Variable(typeof(TReturn), "output");
+        var fullBlock = Expression.Block(
+            [outputCollectionVariable, itorVariable], // Declares variables used in the block
+            [
+                // Initializes outputCollection with a new instance of T
+                Expression.Assign(outputCollectionVariable, Expression.New(typeof(List<TEntity>))),
+                // Sets up the enumerator for inputData
+                Expression.Assign(
+                    itorVariable,
+                    Expression.Call(Expression.Constant(inputData), GetEnumeratorForIEnumDictStrObj)),
+                // Executes the loop with cleanup
+                whileBlock,
+                // Returns the populated collection
+                outputCollectionVariable
+            ]);
+
+        // Compiles and executes the expression tree, returning the result
+        return Expression.Lambda<Func<List<TEntity>>>(fullBlock).Compile()();
+    }
+
+    /// <summary>
+    ///     Processes a list of dictionary-based input data into a collection of type <typeparamref name="TReturn" /> using
+    ///     expression trees. This method iterates over the input data, constructs entities of type
+    ///     <typeparamref name="TEntity" />,
+    ///     and accumulates them into the output collection based on a set of processor expressions defined in
+    ///     <see cref="IterRowProcessors" />.
+    ///     The processing logic is built dynamically and executed via a compiled lambda expression for efficiency.
+    /// </summary>
+    /// <typeparam name="TEntity">
+    ///     The type of entity constructed or modified for each row of input data (e.g., a custom entity class).
+    /// </typeparam>
+    /// <param name="inputData">
+    ///     The list of dictionaries representing the raw data to process, where each dictionary contains key-value pairs
+    ///     for a single row (e.g., "Extend0_Id" mapped to a value).
+    /// </param>
+    /// <returns>The populated collection of type <typeparamref name="TReturn" /> containing the processed entities.</returns>
+    /// <remarks>
+    ///     This method leverages expression trees to dynamically construct a processing pipeline,
+    ///     ensuring flexibility and performance.
+    ///     The <see cref="IterRowProcessors" /> collection must be defined elsewhere (e.g., as a field or property) and
+    ///     provide the logic for transforming each row into an entity and adding it to the output collection.
+    /// </remarks>
+    private List<TEntity> DictProcess<TEntity>(List<IDictionary<string, object>> inputData)
+    {
+        // Enumerator for iterating over inputData
+        ParameterExpression itorVariable = Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "itor"),
+            // Current row being processed in the loop
+            iterationRowParameter = Expression.Parameter(typeof(IDictionary<string, object>), "iter"),
+            // Entity being constructed/modified for the current row
+            currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntity"),
+            // Collection that accumulates all processed entities
+            outputCollectionVariable = Expression.Variable(typeof(Dictionary<string, TEntity>), "output"),
+            keyVar = Expression.Variable(typeof(string), "key");
+
+        // Define the indexer for outputCollectionVariable[keyVar]
+        var indexer = Expression.MakeIndex(
+            outputCollectionVariable,
+            typeof(Dictionary<string, TEntity>).GetProperty("Item"),
+            [keyVar]);
 
         // Build the loop body, also assigns the current row from the enumerator to iterationRowParameter
         List<Expression> loopBodyExpressions =
             [Expression.Assign(iterationRowParameter, Expression.Property(itorVariable, "Current"))];
 
-        foreach (var processor in IterRowProcessors)
-        {
-            // Adds each processor's expression to the loop body
-            loopBodyExpressions.Add(processor((iterationRowParameter, currentEntityVariable)));
-        }
+        // using var processor = IterRowProcessors.GetEnumerator();
+        // if (processor.MoveNext())
+        // {
+        //     loopBodyExpressions.Add(processor.Current((iterationRowParameter, currentEntityVariable)));
+        //     while (processor.MoveNext())
+        //     {
+        //         loopBodyExpressions.Add(processor.Current((iterationRowParameter, currentEntityVariable)));
+        //     }
+        // }
 
         // Adds processor expression to the loop body
-        loopBodyExpressions.Add(outputProcessor((outputCollectionVariable, currentEntityVariable)));
+        // loopBodyExpressions.Add(outputProcessor((outputCollectionVariable, currentEntityVariable)));
 
         // Label to exit the loop when no more rows remain
         var breakLabel = Expression.Label();
@@ -196,7 +268,7 @@ public sealed partial class CompositeQuery
             [outputCollectionVariable, itorVariable], // Declares variables used in the block
             [
                 // Initializes outputCollection with a new instance of T
-                Expression.Assign(outputCollectionVariable, Expression.New(typeof(TReturn))),
+                Expression.Assign(outputCollectionVariable, Expression.New(typeof(Dictionary<string, TEntity>))),
                 // Sets up the enumerator for inputData
                 Expression.Assign(
                     itorVariable,
@@ -208,6 +280,7 @@ public sealed partial class CompositeQuery
             ]);
 
         // Compiles and executes the expression tree, returning the result
-        return Expression.Lambda<Func<TReturn>>(fullBlock).Compile()();
+        var res = Expression.Lambda<Func<Dictionary<string, TEntity>>>(fullBlock).Compile()();
+        return [.. res.Values];
     }
 }

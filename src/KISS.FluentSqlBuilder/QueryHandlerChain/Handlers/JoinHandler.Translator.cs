@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
 
 /// <summary>
 ///     A handler for processing join operations in a query chain, linking two relations via key equality.
@@ -7,19 +7,22 @@
 /// <param name="LeftKeySelector">An expression selecting the key from the left relation for the join condition (e.g., left => left.Id).</param>
 /// <param name="RightKeySelector">An expression selecting the key from the right relation for the join condition (e.g., right => right.Id).</param>
 /// <param name="MapSelector">An expression mapping the joined result into the output type (e.g., left => left.RightRelation).</param>
-public abstract partial record JoinHandler<TRelation>(
-    Expression LeftKeySelector,
-    Expression RightKeySelector,
-    Expression MapSelector) : QueryHandler
+public abstract partial record JoinHandler<TRelation>
 {
     /// <inheritdoc />
-    protected override void Process()
+    protected override void Translate(MemberExpression memberExpression)
     {
-        Append("INNER JOIN");
-        AppendLine($"{typeof(TRelation).Name}s {Composite.GetAliasMapping(typeof(TRelation))}", true);
-        AppendLine(" ON ", true);
-        Translate(LeftKeySelector);
-        Append(" = ");
-        Translate(RightKeySelector);
+        switch (memberExpression.Expression)
+        {
+            // Accessing a property or field of a parameter in a lambda
+            case ParameterExpression parameterExpression:
+                {
+                    Append($"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
+                    break;
+                }
+
+            default:
+                throw new NotSupportedException("Expression not supported.");
+        }
     }
 }

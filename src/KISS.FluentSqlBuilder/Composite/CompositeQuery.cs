@@ -28,12 +28,7 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
 
         // Processes the raw data rows into a typed list of TReturn objects using a dynamic expression.
         // The lambda defines how to add each row (as CurrentEntityVariable) to the output list (OutputCollectionVariable).
-        var res = ProcessData<TReturn, List<TReturn>>(dtRows, p => Expression.Block(
-            [p.CurrentEntityVariable], // Defines a block with the current entity variable.
-            Expression.Call(
-                p.OutputCollectionVariable, // Calls the Add method on the output list.
-                typeof(List<TReturn>).GetMethod("Add")!, // Retrieves the Add method via reflection.
-                p.CurrentEntityVariable))); // Adds the current entity to the list.
+        var res = SimpleProcess<TReturn>(dtRows); // Adds the current entity to the list.
 
         // Returns the populated list of query results.
         return res;
@@ -47,7 +42,7 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
     {
         SetSelect();
         SetFrom();
-        // SetJoin();
+        SetJoin();
         SetWhere();
         // SetGroupBy();
         // SetHaving();
@@ -88,6 +83,10 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
         AppendLine($"{table.Name}s AS {alias}");
         // Adds an empty line to separate clauses in the SQL string.
         AppendLine();
+    }
+
+    private void SetJoin()
+    {
     }
 
     private void SetWhere()

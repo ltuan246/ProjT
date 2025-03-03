@@ -34,8 +34,7 @@ public sealed partial class CompositeQuery
         typeof(IDictionary<string, object>).GetMethod("get_Item")!;
 
     /// <summary>
-    ///     An array of functions that define how to process each row.
+    ///     A function that define how to process each row.
     /// </summary>
-    public List<Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression>>
-        IterRowProcessors { get; } = [];
+    public Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression> IterRowProcessor { get; set; } = default!;
 }

@@ -9,7 +9,7 @@ public sealed partial class CompositeQuery
     ///     Appends a formatted string to the <see cref="SqlBuilder" />.
     /// </summary>
     /// <param name="value">The string to append.</param>
-    public void Append(string value)
+    private void Append(string value)
         => SqlBuilder.Append(value);
 
     /// <summary>
@@ -17,7 +17,7 @@ public sealed partial class CompositeQuery
     /// </summary>
     /// <param name="value">The string to append.</param>
     /// <param name="indent">Refers to adding spaces at the beginning of lines of text.</param>
-    public void AppendLine(string value = "", bool indent = false)
+    private void AppendLine(string value = "", bool indent = false)
     {
         SqlBuilder.AppendLine();
         if (indent)
