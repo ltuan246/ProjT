@@ -35,7 +35,6 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
         Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)
         {
             return Expression.Block(
-                [p.CurrentEntityVariable],
                 Expression.Assign(
                     p.CurrentEntityVariable,
                     Expression.MemberInit(
@@ -45,15 +44,4 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
 
         Composite.IterRowProcessor = Init;
     }
-}
-
-/// <summary>
-///     SelectHandler.
-/// </summary>
-/// <typeparam name="TSource">The type representing the database record set.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record NewSelectHandler<TSource, TReturn>(Expression Selector) : QueryHandler
-{
-    /// <inheritdoc />
-    protected override void Process() { }
 }

@@ -18,7 +18,7 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation>(
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
-            Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)
+            Expression Init((ParameterExpression IterRowParameter, IndexExpression CurrentEntityVariable) p)
             {
                 // Access or initialize the Relation property (List<TRelation>)
                 var relationProperty = Expression.Property(p.CurrentEntityVariable, memberExpression.Member.Name);
@@ -40,7 +40,7 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation>(
                         relationEntity)); // Always add afterward
             }
 
-            Composite.IterRowProcessor = Init;
+            Composite.JoinRowProcessors.Add(Init);
         }
     }
 }

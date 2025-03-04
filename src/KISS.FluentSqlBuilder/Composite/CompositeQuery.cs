@@ -28,7 +28,7 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
 
         // Processes the raw data rows into a typed list of TReturn objects using a dynamic expression.
         // The lambda defines how to add each row (as CurrentEntityVariable) to the output list (OutputCollectionVariable).
-        var res = SimpleProcess<TReturn>(dtRows); // Adds the current entity to the list.
+        var res = JoinRowProcessors.Count != 0 ? DictProcess<TReturn>(dtRows) : SimpleProcess<TReturn>(dtRows); // Adds the current entity to the list.
 
         // Returns the populated list of query results.
         return res;
@@ -46,9 +46,9 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
         SetWhere();
         // SetGroupBy();
         // SetHaving();
-        // SetOrderBy();
-        // SetLimit();
-        // SetOffset();
+        SetOrderBy();
+        SetLimit();
+        SetOffset();
     }
 
     private void SetSelect()
@@ -109,6 +109,60 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
             }
 
             // Adds an empty line to finalize the WHERE clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetOrderBy()
+    {
+        // Retrieves an enumerator for ORDER BY conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.OrderBy].GetEnumerator();
+
+        // Checks if there are any ORDER BY conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the ORDER BY clause with the keyword on a new line.
+            Append("ORDER BY");
+            // Appends the first ORDER BY condition.
+            AppendLine($"{itor.Current}", true);
+
+            // Iterates through remaining ORDER BY conditions, combining them with "," for logical conjunction.
+            while (itor.MoveNext())
+            {
+                AppendLine($", {itor.Current}", true);
+            }
+
+            // Adds an empty line to finalize the ORDER BY clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetLimit()
+    {
+        // Retrieves an enumerator for LIMIT conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.Limit].GetEnumerator();
+
+        // Checks if there are any LIMIT conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the LIMIT clause with the keyword on a new line.
+            Append($"LIMIT {itor.Current}");
+            // Adds an empty line to finalize the ORDER BY clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetOffset()
+    {
+        // Retrieves an enumerator for OFFSET conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.Offset].GetEnumerator();
+
+        // Checks if there are any OFFSET conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the OFFSET clause with the keyword on a new line.
+            Append($"OFFSET {itor.Current}");
+            // Adds an empty line to finalize the ORDER BY clause in the SQL string.
             AppendLine();
         }
     }

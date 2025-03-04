@@ -18,10 +18,9 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation>(
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
-            Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)
+            Expression Init((ParameterExpression IterRowParameter, IndexExpression CurrentEntityVariable) p)
             {
                 return Expression.Block(
-                    [p.CurrentEntityVariable],
                     Expression.Assign(
                         Expression.Property(p.CurrentEntityVariable, memberExpression.Member.Name),
                         Expression.MemberInit(
@@ -29,7 +28,7 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation>(
                             Composite.CreateIterRowBindings(p.IterRowParameter, typeof(TRecordset), typeof(TRelation)))));
             }
 
-            Composite.IterRowProcessor = Init;
+            Composite.JoinRowProcessors.Add(Init);
         }
     }
 }

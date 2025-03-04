@@ -12,17 +12,13 @@ public abstract partial record JoinHandler<TRelation>
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)
     {
-        switch (memberExpression.Expression)
+        if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {
-            // Accessing a property or field of a parameter in a lambda
-            case ParameterExpression parameterExpression:
-                {
-                    Append($"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
-                    break;
-                }
-
-            default:
-                throw new NotSupportedException("Expression not supported.");
+            Append($"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
+        }
+        else
+        {
+            throw new NotSupportedException("Expression not supported.");
         }
     }
 }

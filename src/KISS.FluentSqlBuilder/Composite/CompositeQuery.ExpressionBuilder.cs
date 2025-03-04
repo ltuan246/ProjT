@@ -34,82 +34,89 @@ public sealed partial class CompositeQuery
                     "Item",
                     Expression.Constant($"{alias}_{sourceProperty.Name}"));
 
-                // If the target type is nullable (e.g., Nullable<T>), retrieve its underlying non-nullable type (T).
-                // This is necessary because Expression.Convert cannot directly convert a non-nullable value to a nullable type.
-                // By first converting to the underlying type, we ensure compatibility before handling the nullable conversion.
-                var nonNullableType = Nullable.GetUnderlyingType(targetProperty.PropertyType);
-                var effectiveTargetType = nonNullableType ?? targetProperty.PropertyType;
+                yield return Expression.Bind(targetProperty, ChangeType(sourceValue, targetProperty.PropertyType));
+            }
+        }
+    }
 
-                // Handle specific conversion from string to Guid
-                if (effectiveTargetType == typeof(Guid))
-                {
-                    // Assume sourceValue is a string from IDictionary<string, object>
-                    var parseGuidCall = Expression.Call(
-                        typeof(Guid),
-                        nameof(Guid.Parse),
+    private Expression ChangeType(IndexExpression sourceValue, Type targetType)
+    {
+        // If the target type is nullable (e.g., Nullable<T>), retrieve its underlying non-nullable type (T).
+        // This is necessary because Expression.Convert cannot directly convert a non-nullable value to a nullable type.
+        // By first converting to the underlying type, we ensure compatibility before handling the nullable conversion.
+        var nonNullableType = Nullable.GetUnderlyingType(targetType);
+        var effectiveTargetType = nonNullableType ?? targetType;
+
+        // Handle specific conversion from string to Guid
+        if (effectiveTargetType == typeof(Guid))
+        {
+            // Assume sourceValue is a string from IDictionary<string, object>
+            var parseGuidCall = Expression.Call(
+                typeof(Guid),
+                nameof(Guid.Parse),
+                Type.EmptyTypes,
+                Expression.Convert(sourceValue, typeof(string)));
+
+            Expression convertedValue;
+            if (nonNullableType != null) // Nullable<Guid>
+            {
+                var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
+                var defaultValue = Expression.Default(nonNullableType); // null for Nullable<Guid>
+                convertedValue = Expression.Condition(
+                    isNullCheck,
+                    Expression.Convert(defaultValue, targetType),
+                    Expression.Convert(parseGuidCall, targetType));
+            }
+            else // Guid
+            {
+                convertedValue = parseGuidCall;
+            }
+
+            return convertedValue;
+        }
+        else
+        {
+            // General conversion logic for other types
+            if (nonNullableType is null)
+            {
+                var changeTypeCall = Expression.Call(
+                    typeof(Convert),
+                    nameof(Convert.ChangeType),
+                    Type.EmptyTypes,
+                    sourceValue,
+                    Expression.Constant(targetType));
+
+                var convertedValue = Expression.ConvertChecked(changeTypeCall, targetType);
+
+                return convertedValue;
+            }
+            else
+            {
+                var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
+                var defaultValue = Expression.Convert(
+                    Expression.Call(
+                        typeof(Activator),
+                        nameof(Activator.CreateInstance),
                         Type.EmptyTypes,
-                        Expression.Convert(sourceValue, typeof(string)));
+                        Expression.Constant(nonNullableType)),
+                    nonNullableType);
 
-                    Expression convertedValue;
-                    if (nonNullableType != null) // Nullable<Guid>
-                    {
-                        var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
-                        var defaultValue = Expression.Default(nonNullableType); // null for Nullable<Guid>
-                        convertedValue = Expression.Condition(
-                            isNullCheck,
-                            Expression.Convert(defaultValue, targetProperty.PropertyType),
-                            Expression.Convert(parseGuidCall, targetProperty.PropertyType));
-                    }
-                    else // Guid
-                    {
-                        convertedValue = parseGuidCall;
-                    }
+                var changeTypeCall = Expression.Call(
+                    typeof(Convert),
+                    nameof(Convert.ChangeType),
+                    Type.EmptyTypes,
+                    sourceValue,
+                    Expression.Constant(nonNullableType));
 
-                    yield return Expression.Bind(targetProperty, convertedValue);
-                }
-                else
-                {
-                    // General conversion logic for other types
-                    if (nonNullableType is null)
-                    {
-                        var changeTypeCall = Expression.Call(
-                            typeof(Convert),
-                            nameof(Convert.ChangeType),
-                            Type.EmptyTypes,
-                            sourceValue,
-                            Expression.Constant(targetProperty.PropertyType));
+                var conversion = Expression.ConvertChecked(changeTypeCall, nonNullableType);
+                var fallbackDefaultValue = Expression.Condition(
+                    isNullCheck,
+                    defaultValue,
+                    conversion);
 
-                        var convertedValue = Expression.ConvertChecked(changeTypeCall, targetProperty.PropertyType);
-                        yield return Expression.Bind(targetProperty, convertedValue);
-                    }
-                    else
-                    {
-                        var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
-                        var defaultValue = Expression.Convert(
-                            Expression.Call(
-                                typeof(Activator),
-                                nameof(Activator.CreateInstance),
-                                Type.EmptyTypes,
-                                Expression.Constant(nonNullableType)),
-                            nonNullableType);
+                var convertedValue = Expression.Convert(fallbackDefaultValue, targetType);
 
-                        var changeTypeCall = Expression.Call(
-                            typeof(Convert),
-                            nameof(Convert.ChangeType),
-                            Type.EmptyTypes,
-                            sourceValue,
-                            Expression.Constant(nonNullableType));
-
-                        var conversion = Expression.ConvertChecked(changeTypeCall, nonNullableType);
-                        var fallbackDefaultValue = Expression.Condition(
-                            isNullCheck,
-                            defaultValue,
-                            conversion);
-
-                        var convertedValue = Expression.Convert(fallbackDefaultValue, targetProperty.PropertyType);
-                        yield return Expression.Bind(targetProperty, convertedValue);
-                    }
-                }
+                return convertedValue;
             }
         }
     }
@@ -138,6 +145,8 @@ public sealed partial class CompositeQuery
     /// </remarks>
     private List<TEntity> SimpleProcess<TEntity>(List<IDictionary<string, object>> inputData)
     {
+        var returnType = typeof(List<TEntity>);
+
         // Enumerator for iterating over inputData
         ParameterExpression itorVariable = Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "itor"),
             // Current row being processed in the loop
@@ -145,7 +154,7 @@ public sealed partial class CompositeQuery
             // Entity being constructed/modified for the current row
             currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntity"),
             // Collection that accumulates all processed entities
-            outputCollectionVariable = Expression.Variable(typeof(List<TEntity>), "output");
+            outputCollectionVariable = Expression.Variable(returnType, "output");
 
         // Label to exit the loop when no more rows remain
         var breakLabel = Expression.Label();
@@ -157,12 +166,12 @@ public sealed partial class CompositeQuery
                     [
                         // Execute the loop body with the current row
                         Expression.Assign(iterationRowParameter, Expression.Property(itorVariable, "Current")),
-                        IterRowProcessor((iterationRowParameter, currentEntityVariable)),
                         Expression.Block(
                             [currentEntityVariable], // Defines a block with the current entity variable.
+                            IterRowProcessor((iterationRowParameter, currentEntityVariable)),
                             Expression.Call(
                                 outputCollectionVariable, // Calls the Add method on the output list.
-                                typeof(List<TEntity>).GetMethod("Add")!, // Retrieves the Add method via reflection.
+                                returnType.GetMethod("Add")!, // Retrieves the Add method via reflection.
                                 currentEntityVariable))
                     ]),
                 Expression.Break(breakLabel)), // Otherwise, break out of the loop
@@ -176,7 +185,7 @@ public sealed partial class CompositeQuery
             [outputCollectionVariable, itorVariable], // Declares variables used in the block
             [
                 // Initializes outputCollection with a new instance of T
-                Expression.Assign(outputCollectionVariable, Expression.New(typeof(List<TEntity>))),
+                Expression.Assign(outputCollectionVariable, Expression.New(returnType)),
                 // Sets up the enumerator for inputData
                 Expression.Assign(
                     itorVariable,
@@ -215,6 +224,8 @@ public sealed partial class CompositeQuery
     /// </remarks>
     private List<TEntity> DictProcess<TEntity>(List<IDictionary<string, object>> inputData)
     {
+        var returnType = typeof(Dictionary<string, TEntity>);
+
         // Enumerator for iterating over inputData
         ParameterExpression itorVariable = Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "itor"),
             // Current row being processed in the loop
@@ -222,41 +233,41 @@ public sealed partial class CompositeQuery
             // Entity being constructed/modified for the current row
             currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntity"),
             // Collection that accumulates all processed entities
-            outputCollectionVariable = Expression.Variable(typeof(Dictionary<string, TEntity>), "output"),
-            keyVar = Expression.Variable(typeof(string), "key");
+            outputCollectionVariable = Expression.Variable(returnType, "output"),
+            keyVariable = Expression.Variable(typeof(string), "key");
 
-        // Define the indexer for outputCollectionVariable[keyVar]
         var indexer = Expression.MakeIndex(
             outputCollectionVariable,
             typeof(Dictionary<string, TEntity>).GetProperty("Item"),
-            [keyVar]);
-
-        // Build the loop body, also assigns the current row from the enumerator to iterationRowParameter
-        List<Expression> loopBodyExpressions =
-            [Expression.Assign(iterationRowParameter, Expression.Property(itorVariable, "Current"))];
-
-        // using var processor = IterRowProcessors.GetEnumerator();
-        // if (processor.MoveNext())
-        // {
-        //     loopBodyExpressions.Add(processor.Current((iterationRowParameter, currentEntityVariable)));
-        //     while (processor.MoveNext())
-        //     {
-        //         loopBodyExpressions.Add(processor.Current((iterationRowParameter, currentEntityVariable)));
-        //     }
-        // }
-
-        // Adds processor expression to the loop body
-        // loopBodyExpressions.Add(outputProcessor((outputCollectionVariable, currentEntityVariable)));
+            [keyVariable]);
 
         // Label to exit the loop when no more rows remain
         var breakLabel = Expression.Label();
-
         var whileLoopBody = Expression.Loop(
             Expression.IfThenElse(
                 Expression.Call(itorVariable, ItorMoveNextMethod), // If MoveNext returns true (more rows),
                 Expression.Block(
-                    [iterationRowParameter, currentEntityVariable],
-                    loopBodyExpressions), // Execute the loop body with the current row
+                    [iterationRowParameter, currentEntityVariable, keyVariable],
+                    [
+                        Expression.Assign(iterationRowParameter, Expression.Property(itorVariable, "Current")),
+                        Expression.Assign(
+                            keyVariable,
+                            ChangeType(Expression.Property(iterationRowParameter, "Item", Expression.Constant("Extend0_Id")), typeof(string))),
+                        Expression.IfThen(
+                            Expression.Not(Expression.Call(
+                                outputCollectionVariable,
+                                typeof(Dictionary<string, TEntity>).GetMethod("ContainsKey")!,
+                                keyVariable)),
+                            Expression.Block(
+                                [currentEntityVariable],
+                                IterRowProcessor((iterationRowParameter, currentEntityVariable)),
+                                Expression.Call(
+                                    outputCollectionVariable,
+                                    typeof(Dictionary<string, TEntity>).GetMethod("Add")!,
+                                    keyVariable,
+                                    currentEntityVariable))),
+                        .. JoinRowProcessors.Select(processor => processor((iterationRowParameter, indexer)))
+                    ]),
                 Expression.Break(breakLabel)), // Otherwise, break out of the loop
             breakLabel); // Target label for breaking the loop
 
@@ -268,7 +279,7 @@ public sealed partial class CompositeQuery
             [outputCollectionVariable, itorVariable], // Declares variables used in the block
             [
                 // Initializes outputCollection with a new instance of T
-                Expression.Assign(outputCollectionVariable, Expression.New(typeof(Dictionary<string, TEntity>))),
+                Expression.Assign(outputCollectionVariable, Expression.New(returnType)),
                 // Sets up the enumerator for inputData
                 Expression.Assign(
                     itorVariable,

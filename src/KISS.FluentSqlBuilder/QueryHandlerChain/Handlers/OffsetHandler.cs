@@ -7,5 +7,6 @@
 public sealed record OffsetHandler(int Offset) : QueryHandler
 {
     /// <inheritdoc />
-    protected override void Process() { }
+    protected override void Process()
+        => Composite.SqlStatements[SqlStatement.Offset].Add($"{Offset}");
 }

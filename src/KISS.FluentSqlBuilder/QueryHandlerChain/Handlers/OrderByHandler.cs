@@ -4,8 +4,12 @@
 ///     OrderByHandler.
 /// </summary>
 /// <param name="Selector">Selector.</param>
-public sealed record OrderByHandler(Expression Selector) : QueryHandler
+public sealed partial record OrderByHandler(Expression Selector) : QueryHandler
 {
     /// <inheritdoc />
-    protected override void Process() { }
+    protected override void Process()
+    {
+        Translate(Selector);
+        Composite.SqlStatements[SqlStatement.OrderBy].Add($"{QueryBuilder.ToString()}");
+    }
 }

@@ -11,6 +11,7 @@ public interface IOffsetBuilder : ISqlBuilder;
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IOffsetBuilder<TRecordset, TReturn>
+   : ISqlBuilder<TRecordset, TReturn>
 {
     /// <summary>
     ///     Appends the <c>OFFSET</c> clause and the <paramref name="offset" /> to the builder.
@@ -27,6 +28,7 @@ public interface IOffsetBuilder<TRecordset, TReturn>
 /// <typeparam name="TSecond">The second type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IOffsetBuilder<TFirst, TSecond, TReturn>
+   : ISqlBuilder<TFirst, TSecond, TReturn>
 {
     /// <summary>
     ///     Appends the <c>OFFSET</c> clause and the <paramref name="offset" /> to the builder.
@@ -44,6 +46,7 @@ public interface IOffsetBuilder<TFirst, TSecond, TReturn>
 /// <typeparam name="TThird">The third type in the recordset.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public interface IOffsetBuilder<TFirst, TSecond, TThird, TReturn>
+   : ISqlBuilder<TFirst, TSecond, TThird, TReturn>
 {
     /// <summary>
     ///     Appends the <c>OFFSET</c> clause and the <paramref name="offset" /> to the builder.
