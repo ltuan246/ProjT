@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.Visitors;
+namespace KISS.FluentSqlBuilder.Visitor;
 
 /// <summary>
 ///     A custom expression visitor that translates LINQ expressions into SQL-compatible syntax.

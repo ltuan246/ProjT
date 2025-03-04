@@ -39,6 +39,24 @@ public sealed partial class CompositeQuery
         }
     }
 
+    /// <summary>
+    ///     Converts an <see cref="IndexExpression"/> value, typically sourced from a dictionary-like structure,
+    ///     to a specified target type, handling both nullable and non-nullable conversions.
+    /// </summary>
+    /// <param name="sourceValue">
+    ///     The source value as an <see cref="IndexExpression"/>, assumed to originate
+    ///     from an <see cref="IDictionary{TKey, TValue}"/> such as <see cref="IDictionary{string, object}"/>.
+    ///     This value may represent a string, null, or other type requiring conversion.
+    /// </param>
+    /// <param name="targetType">
+    ///     The desired target type for conversion, which may be nullable
+    ///     (e.g., <see cref="Nullable{T}"/>) or non-nullable (e.g., <see cref="Guid"/> or <see cref="int"/>).
+    /// </param>
+    /// <returns>
+    ///     An <see cref="Expression"/> representing the converted value, adjusted to match the
+    ///     <paramref name="targetType"/>. For nullable types, includes null checks to handle null source values
+    ///     appropriately.
+    /// </returns>
     private Expression ChangeType(IndexExpression sourceValue, Type targetType)
     {
         // If the target type is nullable (e.g., Nullable<T>), retrieve its underlying non-nullable type (T).

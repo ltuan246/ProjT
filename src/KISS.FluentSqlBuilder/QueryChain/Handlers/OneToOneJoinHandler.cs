@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
 
 /// <summary>
 ///     A handler for processing join operations in a query chain, linking two relations via key equality.
@@ -8,7 +8,7 @@ namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
 /// <param name="LeftKeySelector">An expression selecting the key from the left relation for the join condition (e.g., left => left.Id).</param>
 /// <param name="RightKeySelector">An expression selecting the key from the right relation for the join condition (e.g., right => right.Id).</param>
 /// <param name="MapSelector">An expression mapping the joined result into the output type (e.g., left => left.RightRelation).</param>
-public sealed record OneToManyJoinHandler<TRecordset, TRelation>(
+public sealed record OneToOneJoinHandler<TRecordset, TRelation>(
     Expression LeftKeySelector,
     Expression RightKeySelector,
     Expression MapSelector) : JoinHandler<TRelation>(LeftKeySelector, RightKeySelector, MapSelector)
@@ -20,24 +20,12 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation>(
         {
             Expression Init((ParameterExpression IterRowParameter, IndexExpression CurrentEntityVariable) p)
             {
-                // Access or initialize the Relation property (List<TRelation>)
-                var relationProperty = Expression.Property(p.CurrentEntityVariable, memberExpression.Member.Name);
-                var listType = typeof(List<TRelation>);
-                var nullCheck = Expression.Equal(relationProperty, Expression.Constant(null));
-                var assignList = Expression.Assign(relationProperty, Expression.New(listType));
-
-                // Create a new TRelation instance
-                var relationEntity = Expression.MemberInit(
-                    Expression.New(typeof(TRelation)),
-                    Composite.CreateIterRowBindings(p.IterRowParameter, typeof(TRecordset), typeof(TRelation)));
-
-                // If null, initialize; then add unconditionally
                 return Expression.Block(
-                    Expression.IfThen(nullCheck, assignList), // Only assign if null
-                    Expression.Call(
-                        relationProperty,
-                        listType.GetMethod("Add")!,
-                        relationEntity)); // Always add afterward
+                    Expression.Assign(
+                        Expression.Property(p.CurrentEntityVariable, memberExpression.Member.Name),
+                        Expression.MemberInit(
+                            Expression.New(typeof(TRelation)),
+                            Composite.CreateIterRowBindings(p.IterRowParameter, typeof(TRecordset), typeof(TRelation)))));
             }
 
             Composite.JoinRowProcessors.Add(Init);

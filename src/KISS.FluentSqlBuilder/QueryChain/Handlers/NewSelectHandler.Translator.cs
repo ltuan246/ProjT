@@ -1,11 +1,11 @@
-﻿namespace KISS.FluentSqlBuilder.Visitors.QueryComponent.Components;
+namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
 
 /// <summary>
-///     A builder for a <c>SELECT</c> clause.
+///     SelectHandler.
 /// </summary>
-/// <param name="Composite">The structure of the fluent SQL builder.</param>
-/// <param name="UseAlias">Use an alias in the <c>SELECT</c> clause.</param>
-public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias = false) : ExpressionTranslator
+/// <typeparam name="TSource">The type representing the database record set.</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
+public sealed partial record NewSelectHandler<TSource, TReturn>
 {
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)
@@ -20,12 +20,12 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
                         // Accessing a static field, get its type and value using reflection
                         case FieldInfo fieldInfo:
                             var fieldType = fieldInfo.GetType();
-                            Composite.AppendFormat($"{fieldInfo.GetValue(fieldType)}");
+                            AppendFormat($"{fieldInfo.GetValue(fieldType)}");
                             break;
                         // Accessing a static property, get its type and value using reflection
                         case PropertyInfo propertyInfo:
                             var propType = propertyInfo.GetType();
-                            Composite.AppendFormat($"{propertyInfo.GetValue(propType)}");
+                            AppendFormat($"{propertyInfo.GetValue(propType)}");
                             break;
                     }
 
@@ -35,15 +35,14 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
             // Accessing a property or field of a parameter in a lambda
             case ParameterExpression parameterExpression:
                 {
-                    Composite.Append(
-                        $"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
+                    Append($"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
 
-                    if (UseAlias)
-                    {
-                        string alias = $"{parameterExpression.Type.Name}{memberExpression.Member.Name}";
-                        Composite.ColumnAliases.Add(alias);
-                        Composite.Append($" AS {alias}");
-                    }
+                    // if (UseAlias)
+                    // {
+                    //     string alias = $"{parameterExpression.Type.Name}{memberExpression.Member.Name}";
+                    //     Composite.ColumnAliases.Add(alias);
+                    //     Append($" AS {alias}");
+                    // }
 
                     break;
                 }
@@ -54,7 +53,7 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
                     var (evaluated, value) = Composite.GetValue(memberExpression);
                     if (evaluated)
                     {
-                        Composite.AppendFormat(value);
+                        AppendFormat(value);
                     }
                     else
                     {
@@ -72,7 +71,7 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
                     // Accessing the property or field (memberExpression.Member.Name) on the object or result of the method (memberExpression.Expression).
                     var member = Expression.Property(memberExpression.Expression, memberExpression.Member.Name);
                     var value = Expression.Lambda(member).Compile().DynamicInvoke();
-                    Composite.AppendFormat($"{value}");
+                    AppendFormat($"{value}");
                     break;
                 }
 
@@ -103,7 +102,7 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
             })
             .ToArray();
 
-        Composite.Append(string.Join(", ", selectList));
+        Append(string.Join(", ", selectList));
     }
 
     /// <inheritdoc />
@@ -117,7 +116,7 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
             {
                 string alias = Composite.GetAliasMapping(parameter1.Type);
                 string sourceMemberName = $"{alias}.{member1.Member.Name}";
-                Composite.Append($"{sourceMemberName} AS {assignment1.Member.Name}");
+                Append($"{sourceMemberName} AS {assignment1.Member.Name}");
             }
 
             while (enumerator.MoveNext())
@@ -125,12 +124,12 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
                 if (enumerator.Current is MemberAssignment
                     { Expression: MemberExpression { Expression: ParameterExpression parameter2 } member2 } assignment2)
                 {
-                    Composite.Append(", ");
-                    Composite.AppendLine(true);
+                    Append(", ");
+                    AppendLine(string.Empty, true);
 
                     string alias = Composite.GetAliasMapping(parameter2.Type);
                     string sourceMemberName = $"{alias}.{member2.Member.Name}";
-                    Composite.Append($"{sourceMemberName} AS {assignment2.Member.Name}");
+                    Append($"{sourceMemberName} AS {assignment2.Member.Name}");
                 }
             }
         }
@@ -139,24 +138,19 @@ public sealed record SelectTranslator(ICompositeQuery Composite, bool UseAlias =
     /// <inheritdoc />
     protected override void Translate(UnaryExpression unaryExpression)
     {
-        switch (unaryExpression.Operand)
+        if (unaryExpression is { Operand: MemberExpression memberExpression })
         {
-            // Accessing a property or field of a parameter in a lambda
-            case MemberExpression memberExpression:
-                {
-                    Composite.Append(
-                        $"{Composite.GetAliasMapping(memberExpression.Member.DeclaringType!)}.{memberExpression.Member.Name}");
-                    break;
-                }
-
-            default:
-                throw new NotSupportedException("Expression not supported.");
+            Append($"{Composite.GetAliasMapping(memberExpression.Member.DeclaringType!)}.{memberExpression.Member.Name}");
+        }
+        else
+        {
+            throw new NotSupportedException("Expression not supported.");
         }
     }
 
     /// <inheritdoc />
     protected override void Translate(ConstantExpression constantExpression)
     {
-        Composite.Append($"{constantExpression.Value}");
+        Append($"{constantExpression.Value}");
     }
 }

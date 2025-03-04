@@ -1,10 +1,10 @@
-﻿namespace KISS.FluentSqlBuilder.Visitors.QueryComponent.Components;
+namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
 
 /// <summary>
-///     A builder for a <c>WHERE</c> clause.
+///     WhereHandler.
 /// </summary>
-/// <param name="Composite">The structure of the fluent SQL builder.</param>
-public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTranslator
+/// <param name="Predicate">Predicate.</param>
+public sealed partial record WhereHandler
 {
     private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
     {
@@ -43,12 +43,12 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
                         // Accessing a static field, get its type and value using reflection
                         case FieldInfo fieldInfo:
                             var fieldType = fieldInfo.GetType();
-                            Composite.AppendFormat($"{fieldInfo.GetValue(fieldType)}");
+                            AppendFormat($"{fieldInfo.GetValue(fieldType)}");
                             break;
                         // Accessing a static property, get its type and value using reflection
                         case PropertyInfo propertyInfo:
                             var propType = propertyInfo.GetType();
-                            Composite.AppendFormat($"{propertyInfo.GetValue(propType)}");
+                            AppendFormat($"{propertyInfo.GetValue(propType)}");
                             break;
                     }
 
@@ -58,8 +58,7 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
             // Accessing a property or field of a parameter in a lambda
             case ParameterExpression parameterExpression:
                 {
-                    Composite.Append(
-                        $"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
+                    Append($"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
                     break;
                 }
 
@@ -69,7 +68,7 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
                     var (evaluated, value) = Composite.GetValue(memberExpression);
                     if (evaluated)
                     {
-                        Composite.AppendFormat(value);
+                        AppendFormat(value);
                     }
                     else
                     {
@@ -87,7 +86,7 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
                     // Accessing the property or field (memberExpression.Member.Name) on the object or result of the method (memberExpression.Expression).
                     var member = Expression.Property(memberExpression.Expression, memberExpression.Member.Name);
                     var value = Expression.Lambda(member).Compile().DynamicInvoke();
-                    Composite.AppendFormat($"{value}");
+                    AppendFormat($"{value}");
                     break;
                 }
 
@@ -101,7 +100,7 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
 
     /// <inheritdoc />
     protected override void Translate(ConstantExpression constantExpression)
-        => Composite.AppendFormat($"{constantExpression.Value}");
+        => AppendFormat($"{constantExpression.Value}");
 
     /// <inheritdoc />
     protected override void Translate(BinaryExpression binaryExpression)
@@ -113,7 +112,7 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
             var indexExpression = binaryExpression.Right;
             var arrayAccessExpression = Expression.ArrayAccess(arrayExpression, indexExpression);
             var value = Expression.Lambda(arrayAccessExpression).Compile().DynamicInvoke();
-            Composite.AppendFormat($"{value}");
+            AppendFormat($"{value}");
         }
         else
         {
@@ -125,15 +124,15 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
                 case ExpressionType.And:
                 case ExpressionType.AndAlso:
                     {
-                        Composite.OpenParentheses();
+                        OpenParentheses();
                         break;
                     }
             }
 
             Translate(binaryExpression.Left);
-            Composite.Append(BinaryOperandMap[binaryExpression.NodeType]);
+            Append(BinaryOperandMap[binaryExpression.NodeType]);
             Translate(binaryExpression.Right);
-            Composite.CloseParentheses();
+            CloseParentheses();
         }
     }
 
@@ -158,15 +157,15 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
                     if (methodCallExpression.Arguments is
                         [var fieldAsExpression, var beginAsExpression, var endAsExpression])
                     {
-                        Composite.OpenParentheses();
+                        OpenParentheses();
                         Translate(fieldAsExpression);
 
-                        Composite.Append(betweenOp);
+                        Append(betweenOp);
                         Translate(beginAsExpression);
 
-                        Composite.Append(andOp);
+                        Append(andOp);
                         Translate(endAsExpression);
-                        Composite.CloseParentheses();
+                        CloseParentheses();
                     }
 
                     break;
@@ -179,12 +178,12 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
                     if (methodCallExpression.Arguments is
                         [var fieldAsExpression, var valuesAsExpression])
                     {
-                        Composite.OpenParentheses();
+                        OpenParentheses();
                         Translate(fieldAsExpression);
 
-                        Composite.Append(inOp);
+                        Append(inOp);
                         Translate(valuesAsExpression);
-                        Composite.CloseParentheses();
+                        CloseParentheses();
                     }
 
                     break;
@@ -197,12 +196,12 @@ public sealed record WhereTranslator(ICompositeQuery Composite) : ExpressionTran
                     if (methodCallExpression.Arguments is
                         [var fieldAsExpression, var valuesAsExpression])
                     {
-                        Composite.OpenParentheses();
+                        OpenParentheses();
                         Translate(fieldAsExpression);
 
-                        Composite.Append(notInOp);
+                        Append(notInOp);
                         Translate(valuesAsExpression);
-                        Composite.CloseParentheses();
+                        CloseParentheses();
                     }
 
                     break;

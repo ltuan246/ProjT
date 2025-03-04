@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
 
 /// <summary>
 ///     OrderByHandler.

@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
+﻿namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
 
 /// <summary>
 ///     OrderByHandler.
@@ -10,6 +10,6 @@ public sealed partial record OrderByHandler(Expression Selector) : QueryHandler
     protected override void Process()
     {
         Translate(Selector);
-        Composite.SqlStatements[SqlStatement.OrderBy].Add($"{QueryBuilder.ToString()}");
+        Composite.SqlStatements[SqlStatement.OrderBy].Add($"{StatementBuilder.ToString()}");
     }
 }

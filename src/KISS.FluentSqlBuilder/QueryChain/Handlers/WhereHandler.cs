@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain.Handlers;
+﻿namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
 
 /// <summary>
 ///     WhereHandler.
@@ -10,6 +10,6 @@ public sealed partial record WhereHandler(Expression Predicate) : QueryHandler
     protected override void Process()
     {
         Translate(Predicate);
-        Composite.SqlStatements[SqlStatement.Where].Add($"{QueryBuilder.ToString()}");
+        Composite.SqlStatements[SqlStatement.Where].Add($"{StatementBuilder.ToString()}");
     }
 }

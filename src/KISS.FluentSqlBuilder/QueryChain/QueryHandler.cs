@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryHandlerChain;
+﻿namespace KISS.FluentSqlBuilder.QueryChain;
 
 /// <summary>
 ///     An abstract base record for handling SQL query construction in a chain-of-responsibility pattern.
