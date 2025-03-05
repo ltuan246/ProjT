@@ -305,6 +305,6 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 e => e.DustCost)
             .GroupBy(w => w.Type!)
             // .Select(SqlFunctions.AggregationType.Sum, w => w.Cost!, "Total")
-            .ToGroupList();
+            .ToDictionary();
     }
 }
