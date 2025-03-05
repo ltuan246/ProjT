@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace KISS.FluentSqlBuilder.Composite;
+﻿namespace KISS.FluentSqlBuilder.Composite;
 
 /// <summary>
 ///     A sealed class that constructs and executes SQL queries using a database connection.
@@ -43,7 +41,7 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
     /// <returns>A list of <typeparamref name="TReturn" /> objects retrieved based on the query conditions.</returns>
     public Dictionary<ITuple, List<TReturn>> GetDictionary<TReturn>()
     {
-        Debug.WriteLine(Sql);
+        System.Diagnostics.Debug.WriteLine(Sql);
         // Executes the SQL query using the Connection, passing the constructed Sql string and Parameters (presumed properties).
         // Casts the result to a list of dictionaries for flexible row data access.
         var dtRows = Connection.Query(Sql, Parameters)

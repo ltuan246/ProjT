@@ -14,7 +14,7 @@ public sealed partial record GroupByHandler
             string alias = Composite.GetAliasMapping(parameterExpression.Type);
             string fieldName = $"{alias}_{memberExpression.Member.Name}";
             Composite.GroupingKeys[fieldName] = memberExpression.Type;
-            Append($"CTE.{fieldName}");
+            Append($"{fieldName}");
         }
         else
         {
@@ -30,7 +30,7 @@ public sealed partial record GroupByHandler
             string alias = Composite.GetAliasMapping(memberExpression.Member.DeclaringType!);
             string fieldName = $"{alias}_{memberExpression.Member.Name}";
             Composite.GroupingKeys[fieldName] = memberExpression.Type;
-            Append($"CTE.{fieldName}");
+            Append($"{fieldName}");
         }
         else
         {

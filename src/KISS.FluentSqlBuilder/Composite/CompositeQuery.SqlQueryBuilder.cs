@@ -64,7 +64,7 @@ public sealed partial class CompositeQuery
         SetFrom();
         SetJoin();
         SetWhere();
-        // SetGroupBy();
+        SetGroupBy();
         // SetHaving();
         SetOrderBy();
         SetLimit();
@@ -107,22 +107,22 @@ public sealed partial class CompositeQuery
 
     private void SetJoin()
     {
-        // Retrieves an enumerator for WHERE conditions stored in SqlStatements.
+        // Retrieves an enumerator for JOIN conditions stored in SqlStatements.
         using var itor = SqlStatements[SqlStatement.Join].GetEnumerator();
 
-        // Checks if there are any WHERE conditions to process.
+        // Checks if there are any JOIN conditions to process.
         if (itor.MoveNext())
         {
-            // Appends the first WHERE condition.
+            // Appends the first JOIN condition.
             Append($"{itor.Current}");
 
-            // Iterates through remaining WHERE conditions, combining them with "AND" for logical conjunction.
+            // Iterates through remaining JOIN conditions, combining them with "AND" for logical conjunction.
             while (itor.MoveNext())
             {
                 AppendLine($"{itor.Current}");
             }
 
-            // Adds an empty line to finalize the WHERE clause in the SQL string.
+            // Adds an empty line to finalize the JOIN clause in the SQL string.
             AppendLine();
         }
     }
@@ -147,6 +147,38 @@ public sealed partial class CompositeQuery
             }
 
             // Adds an empty line to finalize the WHERE clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetGroupBy()
+    {
+        // Retrieves an enumerator for GROUP BY conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.GroupBy].GetEnumerator();
+
+        if (itor.MoveNext())
+        {
+            SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
+            Append(")");
+
+            var gBy = string.Join(", ", GroupingKeys.Select(k => k.Key));
+            var pBy = string.Join(", ", GroupingKeys.Select(k => $"GP.{k.Key}"));
+            var onKeys = string.Join(" AND ", GroupingKeys.Select(k => $"CTE.{k.Key} = GP.{k.Key}"));
+
+            Append($@"
+                SELECT
+                    ROW_NUMBER() OVER (PARTITION BY {pBy} ORDER BY {pBy} DESC) AS RowNum,
+                    CTE.*
+                FROM CommonTableExpression CTE
+                JOIN (
+                    SELECT
+                        {gBy}
+                    FROM CommonTableExpression
+                    GROUP BY {gBy}
+                ) GP
+                ON {onKeys};
+            ");
+
             AppendLine();
         }
     }
