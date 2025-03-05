@@ -5,10 +5,11 @@ namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
 /// </summary>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TRelation">The type of the relation (source table or entity).</typeparam>
+/// <typeparam name="TReturn">The combined type to return.</typeparam>
 /// <param name="LeftKeySelector">An expression selecting the key from the left relation for the join condition (e.g., left => left.Id).</param>
 /// <param name="RightKeySelector">An expression selecting the key from the right relation for the join condition (e.g., right => right.Id).</param>
 /// <param name="MapSelector">An expression mapping the joined result into the output type (e.g., left => left.RightRelation).</param>
-public sealed record OneToOneJoinHandler<TRecordset, TRelation>(
+public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
     Expression LeftKeySelector,
     Expression RightKeySelector,
     Expression MapSelector) : JoinHandler<TRelation>(LeftKeySelector, RightKeySelector, MapSelector)
@@ -25,7 +26,7 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation>(
                         Expression.Property(p.CurrentEntityVariable, memberExpression.Member.Name),
                         Expression.MemberInit(
                             Expression.New(typeof(TRelation)),
-                            Composite.CreateIterRowBindings(p.IterRowParameter, typeof(TRecordset), typeof(TRelation)))));
+                            Composite.CreateIterRowBindings(p.IterRowParameter, typeof(TRelation), typeof(TRelation)))));
             }
 
             Composite.JoinRowProcessors.Add(Init);

@@ -46,4 +46,9 @@ public sealed partial class CompositeQuery
     ///     A collection specifically for table aliases.
     /// </summary>
     public Dictionary<Type, string> TableAliases { get; } = [];
+
+    /// <summary>
+    ///     A collection specifically for grouping keys.
+    /// </summary>
+    public Dictionary<string, Type> GroupingKeys { get; } = [];
 }

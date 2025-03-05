@@ -14,4 +14,11 @@ public interface ICompositeQueryOperations
     /// <typeparam name="TReturn">The combined type to return.</typeparam>
     /// <returns>Retrieve the data based on conditions.</returns>
     List<TReturn> GetList<TReturn>();
+
+    /// <summary>
+    ///     Executes the SQL query and returns the results as a list.
+    /// </summary>
+    /// <typeparam name="TReturn">The combined type to return.</typeparam>
+    /// <returns>Retrieve the data based on conditions.</returns>
+    Dictionary<ITuple, List<TReturn>> GetDictionary<TReturn>();
 }

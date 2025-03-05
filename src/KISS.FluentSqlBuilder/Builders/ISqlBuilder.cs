@@ -61,5 +61,5 @@ public interface IGroupSqlBuilder<TRecordset, TReturn>
     ///     Executes the SQL query and returns the results as a list.
     /// </summary>
     /// <returns>Retrieve the data based on conditions.</returns>
-    List<TReturn> ToGroupList();
+    Dictionary<ITuple, List<TReturn>> ToDictionary();
 }

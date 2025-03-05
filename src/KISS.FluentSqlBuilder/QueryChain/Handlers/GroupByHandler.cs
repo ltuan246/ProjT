@@ -7,5 +7,9 @@
 public sealed partial record GroupByHandler(Expression Selector) : QueryHandler
 {
     /// <inheritdoc />
-    protected override void Process() { }
+    protected override void Process()
+    {
+        Translate(Selector);
+        Composite.SqlStatements[SqlStatement.GroupBy].Add($"{StatementBuilder.ToString()}");
+    }
 }

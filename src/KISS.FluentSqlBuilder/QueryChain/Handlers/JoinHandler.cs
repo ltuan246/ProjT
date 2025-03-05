@@ -15,11 +15,22 @@ public abstract partial record JoinHandler<TRelation>(
     /// <inheritdoc />
     protected override void Process()
     {
+        var relationType = typeof(TRelation);
+        var alias = Composite.GetAliasMapping(relationType);
+        var sourceProperties = relationType.GetProperties()
+            .Where(p => p.CanWrite)
+            .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}")
+            .ToList();
+
+        Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
+
         Append("INNER JOIN");
-        AppendLine($"{typeof(TRelation).Name}s {Composite.GetAliasMapping(typeof(TRelation))}", true);
+        AppendLine($"{relationType.Name}s {alias}", true);
         AppendLine(" ON ", true);
         Translate(LeftKeySelector);
         Append(" = ");
         Translate(RightKeySelector);
+
+        Composite.SqlStatements[SqlStatement.Join].Add($"{StatementBuilder.ToString()}");
     }
 }

@@ -8,6 +8,7 @@ global using System.Linq.Expressions;
 global using System.Collections;
 global using System.Collections.Generic;
 global using System.Diagnostics.CodeAnalysis;
+global using System.Runtime.CompilerServices;
 global using Dapper;
 global using KISS.FluentSqlBuilder.Core;
 global using KISS.FluentSqlBuilder.Visitor;

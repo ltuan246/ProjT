@@ -53,4 +53,187 @@ public sealed partial class CompositeQuery
         // Return the alias (existing or newly created) for the specified type.
         return tableAlias;
     }
+
+    /// <summary>
+    ///     Builds the SQL query string by assembling query clauses from stored statements.
+    ///     Uses a <see cref="StringBuilder" /> (via inherited or composed behavior) to construct the query incrementally.
+    /// </summary>
+    public void SetQueries()
+    {
+        SetSelect();
+        SetFrom();
+        SetJoin();
+        SetWhere();
+        SetGroupBy();
+        // SetHaving();
+        SetOrderBy();
+        SetLimit();
+        SetOffset();
+    }
+
+    private void SetSelect()
+    {
+        // Retrieves an enumerator for SELECT statements stored in SqlStatements, a presumed collection.
+        using var itor = SqlStatements[SqlStatement.Select].GetEnumerator();
+
+        // Checks if there are any SELECT statements to process.
+        if (itor.MoveNext())
+        {
+            // Begins the query with the "SELECT" keyword on a new line.
+            Append("SELECT");
+            // Appends the first SELECT statement, typically a column or expression.
+            AppendLine($"{itor.Current}");
+
+            // Iterates through remaining SELECT statements, prefixing each with a comma for proper SQL syntax.
+            while (itor.MoveNext())
+            {
+                AppendLine($", {itor.Current}");
+            }
+
+            // Adds an empty line to finalize the SELECT clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetFrom()
+    {
+        (var table, var alias) = TableAliases.First();
+        // Appends the "FROM" clause, using the first table name and its alias from TableAliases, a presumed collection.
+        Append("FROM");
+        AppendLine($"{table.Name}s AS {alias}");
+        // Adds an empty line to separate clauses in the SQL string.
+        AppendLine();
+    }
+
+    private void SetJoin()
+    {
+        // Retrieves an enumerator for JOIN conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.Join].GetEnumerator();
+
+        // Checks if there are any JOIN conditions to process.
+        if (itor.MoveNext())
+        {
+            // Appends the first JOIN condition.
+            Append($"{itor.Current}");
+
+            // Iterates through remaining JOIN conditions, combining them with "AND" for logical conjunction.
+            while (itor.MoveNext())
+            {
+                AppendLine($"{itor.Current}");
+            }
+
+            // Adds an empty line to finalize the JOIN clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetWhere()
+    {
+        // Retrieves an enumerator for WHERE conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.Where].GetEnumerator();
+
+        // Checks if there are any WHERE conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the WHERE clause with the keyword on a new line.
+            Append("WHERE");
+            // Appends the first WHERE condition.
+            AppendLine($"{itor.Current}");
+
+            // Iterates through remaining WHERE conditions, combining them with "AND" for logical conjunction.
+            while (itor.MoveNext())
+            {
+                AppendLine($"AND {itor.Current}");
+            }
+
+            // Adds an empty line to finalize the WHERE clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetGroupBy()
+    {
+        // Retrieves an enumerator for GROUP BY conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.GroupBy].GetEnumerator();
+
+        if (itor.MoveNext())
+        {
+            SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
+            Append(")");
+
+            var gBy = string.Join(", ", GroupingKeys.Select(k => k.Key));
+            var pBy = string.Join(", ", GroupingKeys.Select(k => $"GP.{k.Key}"));
+            var onKeys = string.Join(" AND ", GroupingKeys.Select(k => $"CTE.{k.Key} = GP.{k.Key}"));
+
+            Append($@"
+                SELECT
+                    ROW_NUMBER() OVER (PARTITION BY {pBy} ORDER BY {pBy} DESC) AS RowNum,
+                    CTE.*
+                FROM CommonTableExpression CTE
+                JOIN (
+                    SELECT
+                        {gBy}
+                    FROM CommonTableExpression
+                    GROUP BY {gBy}
+                ) GP
+                ON {onKeys};
+            ");
+
+            AppendLine();
+        }
+    }
+
+    private void SetOrderBy()
+    {
+        // Retrieves an enumerator for ORDER BY conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.OrderBy].GetEnumerator();
+
+        // Checks if there are any ORDER BY conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the ORDER BY clause with the keyword on a new line.
+            Append("ORDER BY");
+            // Appends the first ORDER BY condition.
+            AppendLine($"{itor.Current}", true);
+
+            // Iterates through remaining ORDER BY conditions, combining them with "," for logical conjunction.
+            while (itor.MoveNext())
+            {
+                AppendLine($", {itor.Current}", true);
+            }
+
+            // Adds an empty line to finalize the ORDER BY clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetLimit()
+    {
+        // Retrieves an enumerator for LIMIT conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.Limit].GetEnumerator();
+
+        // Checks if there are any LIMIT conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the LIMIT clause with the keyword on a new line.
+            Append($"LIMIT {itor.Current}");
+            // Adds an empty line to finalize the ORDER BY clause in the SQL string.
+            AppendLine();
+        }
+    }
+
+    private void SetOffset()
+    {
+        // Retrieves an enumerator for OFFSET conditions stored in SqlStatements.
+        using var itor = SqlStatements[SqlStatement.Offset].GetEnumerator();
+
+        // Checks if there are any OFFSET conditions to process.
+        if (itor.MoveNext())
+        {
+            // Begins the OFFSET clause with the keyword on a new line.
+            Append($"OFFSET {itor.Current}");
+            // Adds an empty line to finalize the ORDER BY clause in the SQL string.
+            AppendLine();
+        }
+    }
 }
