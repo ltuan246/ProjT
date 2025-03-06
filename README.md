@@ -1,4 +1,5 @@
 # Keep It Simple
+KISS - Keep it simple, stupid - is a coding idea proving less is more, turning profound concepts into simple!
 
 [![Continuous Integration and Delivery](https://github.com/lttuan846/ProjT/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/lttuan846/ProjT/actions/workflows/ci-cd.yml)
 [![codecov](https://codecov.io/github/lttuan846/ProjT/graph/badge.svg?token=FZCBEEPVKD)](https://codecov.io/github/lttuan846/ProjT)

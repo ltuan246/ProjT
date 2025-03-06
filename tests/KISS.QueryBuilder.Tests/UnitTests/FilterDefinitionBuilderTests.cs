@@ -277,12 +277,12 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 Assert.Equal(exCardFlatType, c.CardFlat.Type);
 
                 Assert.NotNull(c.DustCost);
-                Assert.Equal(1, c.DustCost.Count);
-                // Assert.Collection(c.DustCost,
-                //     dc => Assert.Equal("CRAFTING_NORMAL", dc.Action),
-                //     dc => Assert.Equal("CRAFTING_GOLDEN", dc.Action),
-                //     dc => Assert.Equal("DISENCHANT_NORMAL", dc.Action),
-                //     dc => Assert.Equal("DISENCHANT_GOLDEN", dc.Action));
+                Assert.Equal(4, c.DustCost.Count);
+                Assert.Collection(c.DustCost,
+                    dc => Assert.Equal("CRAFTING_NORMAL", dc.Action),
+                    dc => Assert.Equal("CRAFTING_GOLDEN", dc.Action),
+                    dc => Assert.Equal("DISENCHANT_NORMAL", dc.Action),
+                    dc => Assert.Equal("DISENCHANT_GOLDEN", dc.Action));
             });
     }
 
@@ -304,7 +304,29 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 r => r.CardId,
                 e => e.DustCost)
             .GroupBy(w => w.Type!)
-            // .Select(SqlFunctions.AggregationType.Sum, w => w.Cost!, "Total")
+            // .Select(SqlAggregation.Sum, w => w.Cost!, "Total")
+            .ToDictionary();
+    }
+
+    [Fact]
+    public void Having_FluentBuilder_ReturnsExpectedCards()
+    {
+        // Arrange
+        // const string exId = "BRM_010t2";
+
+        // Act
+        var cards = Connection.Retrieve<CardModel>()
+            .From<Card>()
+            .InnerJoin<CardFlat>( // Map one-to-one relationship
+                e => e.Id,
+                r => r.Id,
+                e => e.CardFlat)
+            .InnerJoin<DustCost>( // Map one-to-many relationship
+                (Card e) => e.Id,
+                r => r.CardId,
+                e => e.DustCost)
+            .GroupBy(w => w.Type!)
+            .Having(SqlAggregation.Sum, w => w.Cost!)
             .ToDictionary();
     }
 }
