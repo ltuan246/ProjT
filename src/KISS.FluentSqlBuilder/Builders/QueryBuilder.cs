@@ -111,7 +111,9 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     }
 
     /// <inheritdoc />
-    public IHavingBuilder<TRecordset, TReturn> Having(Expression<Func<TRecordset, IComparable>> selector)
+    public IHavingBuilder<TRecordset, TReturn> Having(
+        SqlAggregation aggregationType,
+        Expression<Func<TRecordset, IComparable>> selector)
     {
         Handler.SetNext(new HavingHandler(selector.Body));
         return this;
@@ -119,7 +121,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
 
     /// <inheritdoc />
     public IGroupSelectBuilder<TRecordset, TReturn> Select(
-        SqlFunctions.AggregationType aggregationType,
+        SqlAggregation aggregationType,
         Expression<Func<TRecordset, IComparable>> selector,
         string alias)
     {

@@ -48,7 +48,7 @@ public interface IGroupSelectBuilder<TRecordset, TReturn> :
     /// <param name="alias">The alias columns.</param>
     /// <returns>The <see cref="IGroupSelectBuilder{TRecordset, TReturn}" /> instance.</returns>
     IGroupSelectBuilder<TRecordset, TReturn> Select(
-        SqlFunctions.AggregationType aggregationType,
+        SqlAggregation aggregationType,
         Expression<Func<TRecordset, IComparable>> selector,
         string alias);
 
