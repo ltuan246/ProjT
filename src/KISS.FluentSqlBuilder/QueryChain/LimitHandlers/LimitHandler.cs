@@ -1,9 +1,9 @@
-﻿namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+﻿namespace KISS.FluentSqlBuilder.QueryChain.LimitHandlers;
 
 /// <summary>
-///     LimitHandler.
+///     A handler for processing <c>LIMIT</c> in a query chain.
 /// </summary>
-/// <param name="Rows">Limit.</param>
+/// <param name="Rows">The number of rows to fetch.</param>
 public sealed record LimitHandler(int Rows) : QueryHandler
 {
     /// <inheritdoc />

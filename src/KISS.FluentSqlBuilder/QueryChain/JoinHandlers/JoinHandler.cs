@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+﻿namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 
 /// <summary>
 ///     A handler for processing join operations in a query chain, linking two relations via key equality.
@@ -31,6 +31,6 @@ public abstract partial record JoinHandler<TRelation>(
         Append(" = ");
         Translate(RightKeySelector);
 
-        Composite.SqlStatements[SqlStatement.Join].Add($"{StatementBuilder.ToString()}");
+        Composite.SqlStatements[SqlStatement.Join].Add($"{StatementBuilder}");
     }
 }

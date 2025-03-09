@@ -1,9 +1,8 @@
-namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryChain.GroupByHandlers;
 
 /// <summary>
-///     GroupByHandler.
+///     A handler for processing <c>GROUP BY</c> in a query chain.
 /// </summary>
-/// <param name="Selector">Selector.</param>
 public sealed partial record GroupByHandler
 {
     /// <inheritdoc />

@@ -1,9 +1,8 @@
-namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryChain.OrderByHandlers;
 
 /// <summary>
-///     OrderByHandler.
+///     A handler for processing <c>ORDER BY</c> in a query chain.
 /// </summary>
-/// <param name="Selector">Selector.</param>
 public sealed partial record OrderByHandler
 {
     /// <inheritdoc />

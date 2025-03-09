@@ -1,9 +1,8 @@
-namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryChain.WhereHandlers;
 
 /// <summary>
-///     WhereHandler.
+///     A handler for processing <c>WHERE</c> in a query chain.
 /// </summary>
-/// <param name="Predicate">Predicate.</param>
 public sealed partial record WhereHandler
 {
     private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()

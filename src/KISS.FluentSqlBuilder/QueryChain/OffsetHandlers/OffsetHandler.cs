@@ -1,9 +1,9 @@
-﻿namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+﻿namespace KISS.FluentSqlBuilder.QueryChain.OffsetHandlers;
 
 /// <summary>
-///     OffsetHandler.
+///     A handler for processing <c>OFFSET</c> in a query chain.
 /// </summary>
-/// <param name="Offset">Offset.</param>
+/// <param name="Offset">The number of rows to skip.</param>
 public sealed record OffsetHandler(int Offset) : QueryHandler
 {
     /// <inheritdoc />

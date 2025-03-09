@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 
 /// <summary>
 ///     A handler for processing join operations in a query chain, linking two relations via key equality.

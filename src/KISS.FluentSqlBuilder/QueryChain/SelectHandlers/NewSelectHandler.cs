@@ -1,7 +1,7 @@
-namespace KISS.FluentSqlBuilder.QueryChain.Handlers;
+namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 
 /// <summary>
-///     SelectHandler.
+///     A handler for processing <c>SELECT</c> in a query chain.
 /// </summary>
 /// <typeparam name="TSource">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
