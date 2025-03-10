@@ -112,10 +112,9 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
 
     /// <inheritdoc />
     public IHavingBuilder<TRecordset, TReturn> Having(
-        SqlAggregation aggregationType,
-        Expression<Func<TRecordset, IComparable>> selector)
+        Expression<Func<AggregationBuilder<TRecordset>, bool>> condition)
     {
-        Handler.SetNext(new HavingHandler(selector.Body));
+        Handler.SetNext(new HavingHandler(condition.Body));
         return this;
     }
 
@@ -282,7 +281,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     IQueryBuilder<TFirst, TSecond, TThird, TReturn>
 {
     /// <inheritdoc />
-    public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
+    public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable?>> selector)
     {
         Handler.SetNext(new GroupByHandler(selector.Body));
         return new GroupQueryBuilder<TFirst, TReturn>(Connection, Handler);

@@ -45,5 +45,5 @@ public interface IGroupByBuilderEntry<TFirst, TSecond, TThird, TReturn>
     /// </summary>
     /// <param name="selector">The grouping key.</param>
     /// <returns>The <see cref="IGroupByBuilder{TRecordset, TReturn}" /> instance.</returns>
-    IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector);
+    IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable?>> selector);
 }
