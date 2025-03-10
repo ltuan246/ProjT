@@ -1,8 +1,8 @@
-﻿namespace KISS.FluentSqlBuilder.Builders.GroupByBuilders.AggregationBuilders;
+﻿namespace KISS.FluentSqlBuilder.Builders.AggregationBuilders;
 
 /// <summary>
 ///     Provides a builder for defining aggregation operations (e.g., Sum, Max) in a query.
-///     This class exposes methods to specify how data is aggregated from a generic type <typeparamref name="T" />.
+///     This class exposes methods to specify how data is aggregated from a generic type <typeparamref name="TRecordset" />.
 ///     It works in conjunction with <see cref="QueryBuilder{T}" /> to construct HAVING clauses.
 /// </summary>
 /// <typeparam name="TRecordset">The type of the data being queried and aggregated.</typeparam>
