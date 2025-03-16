@@ -37,6 +37,7 @@ public sealed partial class CompositeQuery
         { SqlStatement.Join, [] },
         { SqlStatement.Where, [] },
         { SqlStatement.GroupBy, [] },
+        { SqlStatement.Having, [] },
         { SqlStatement.OrderBy, [] },
         { SqlStatement.Limit, [] },
         { SqlStatement.Offset, [] }

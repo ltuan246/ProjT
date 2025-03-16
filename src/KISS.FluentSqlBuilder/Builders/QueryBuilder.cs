@@ -119,17 +119,10 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     }
 
     /// <inheritdoc />
-    public IGroupSelectBuilder<TRecordset, TReturn> Select(
+    public IGroupSelectBuilder<TRecordset, TReturn> SelectAggregate(
         SqlAggregation aggregationType,
         Expression<Func<TRecordset, IComparable>> selector,
         string alias)
-    {
-        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector.Body));
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IGroupSelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
     {
         Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector.Body));
         return this;

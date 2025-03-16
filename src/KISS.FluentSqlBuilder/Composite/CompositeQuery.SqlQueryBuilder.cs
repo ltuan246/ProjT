@@ -65,7 +65,6 @@ public sealed partial class CompositeQuery
         SetJoin();
         SetWhere();
         SetGroupBy();
-        // SetHaving();
         SetOrderBy();
         SetLimit();
         SetOffset();
@@ -137,6 +136,7 @@ public sealed partial class CompositeQuery
         {
             // Begins the WHERE clause with the keyword on a new line.
             Append("WHERE");
+
             // Appends the first WHERE condition.
             AppendLine($"{itor.Current}");
 
@@ -165,6 +165,24 @@ public sealed partial class CompositeQuery
             var pBy = string.Join(", ", GroupingKeys.Select(k => $"GP.{k.Key}"));
             var onKeys = string.Join(" AND ", GroupingKeys.Select(k => $"CTE.{k.Key} = GP.{k.Key}"));
 
+            StringBuilder havingBuilder = new();
+
+            // Retrieves an enumerator for WHERE conditions stored in SqlStatements.
+            using var havingItor = SqlStatements[SqlStatement.Having].GetEnumerator();
+
+            // Checks if there are any WHERE conditions to process.
+            if (havingItor.MoveNext())
+            {
+                // Begins the HAVING clause with the keyword on a new line.
+                havingBuilder.Append($"HAVING {havingItor.Current}");
+
+                // Iterates through remaining WHERE conditions, combining them with "AND" for logical conjunction.
+                while (havingItor.MoveNext())
+                {
+                    havingBuilder.AppendLine($"AND {havingItor.Current}");
+                }
+            }
+
             Append($@"
                 SELECT
                     ROW_NUMBER() OVER (PARTITION BY {pBy} ORDER BY {pBy} DESC) AS RowNum,
@@ -175,6 +193,7 @@ public sealed partial class CompositeQuery
                         {gBy}
                     FROM CommonTableExpression
                     GROUP BY {gBy}
+                    {havingBuilder}
                 ) GP
                 ON {onKeys};
             ");

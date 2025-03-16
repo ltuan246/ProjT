@@ -40,6 +40,10 @@ public abstract record ExpressionTranslator
             case MethodCallExpression methodCallExpression:
                 Translate(methodCallExpression);
                 break;
+
+            case LambdaExpression lambdaExpression:
+                Translate(lambdaExpression);
+                break;
         }
     }
 
@@ -84,4 +88,10 @@ public abstract record ExpressionTranslator
     /// </summary>
     /// <param name="methodCallExpression">The nodes to visit.</param>
     protected virtual void Translate(MethodCallExpression methodCallExpression) { }
+
+    /// <summary>
+    ///     Visits the children of the LambdaExpression.
+    /// </summary>
+    /// <param name="lambdaExpression">The nodes to visit.</param>
+    protected virtual void Translate(LambdaExpression lambdaExpression) { }
 }
