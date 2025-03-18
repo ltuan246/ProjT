@@ -11,6 +11,7 @@ public enum SqlStatement
     Where,
     GroupBy,
     Having,
+    SelectAggregate,
     OrderBy,
     Limit,
     Offset

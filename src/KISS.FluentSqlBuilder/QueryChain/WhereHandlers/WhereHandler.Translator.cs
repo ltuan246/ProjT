@@ -5,30 +5,6 @@ namespace KISS.FluentSqlBuilder.QueryChain.WhereHandlers;
 /// </summary>
 public sealed partial record WhereHandler
 {
-    private Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
-    {
-        { ExpressionType.Assign, " = " },
-        { ExpressionType.Equal, " = " },
-        { ExpressionType.NotEqual, " != " },
-        { ExpressionType.GreaterThan, " > " },
-        { ExpressionType.GreaterThanOrEqual, " >= " },
-        { ExpressionType.LessThan, " < " },
-        { ExpressionType.LessThanOrEqual, " <= " },
-        { ExpressionType.OrElse, " OR " },
-        { ExpressionType.AndAlso, " AND " },
-        { ExpressionType.Coalesce, " ?? " },
-        { ExpressionType.Add, " + " },
-        { ExpressionType.Subtract, " - " },
-        { ExpressionType.Multiply, " * " },
-        { ExpressionType.Divide, " / " },
-        { ExpressionType.Modulo, " % " },
-        { ExpressionType.And, " & " },
-        { ExpressionType.Or, " | " },
-        { ExpressionType.ExclusiveOr, " ^ " },
-        { ExpressionType.LeftShift, " << " },
-        { ExpressionType.RightShift, " >> " }
-    };
-
     /// <inheritdoc />
     protected override void Translate(MemberExpression memberExpression)
     {

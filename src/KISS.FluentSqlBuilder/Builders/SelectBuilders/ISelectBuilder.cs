@@ -43,12 +43,10 @@ public interface IGroupSelectBuilder<TRecordset, TReturn> :
     /// <summary>
     ///     Appends the <c>SELECT</c> clause to the builder.
     /// </summary>
-    /// <param name="aggregationType">The aggregation types used in queries for calculating summary statistics.</param>
-    /// <param name="selector">The table columns.</param>
+    /// <param name="selector">An expression defining the aggregation operation.</param>
     /// <param name="alias">The alias columns.</param>
     /// <returns>The <see cref="ISelectAggregateBuilder{TRecordset, TReturn}" /> instance.</returns>
     IGroupSelectBuilder<TRecordset, TReturn> SelectAggregate(
-        SqlAggregation aggregationType,
-        Expression<Func<TRecordset, IComparable>> selector,
+        Expression<Func<AggregationBuilder<TRecordset>, AggregationComparer<TRecordset>>> selector,
         string alias);
 }

@@ -326,7 +326,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 r => r.CardId,
                 e => e.DustCost)
             .GroupBy(w => w.Type)
-            .Having(agg => agg.Min(x => x.Cost) > 10 && agg.Max(x => x.Cost) < 100)
+            .Having(agg => agg.Sum(x => x.Cost) > 1)
+            .SelectAggregate(agg => agg.Sum(x => x.Cost), "SumCost")
             .ToDictionary();
     }
 }
