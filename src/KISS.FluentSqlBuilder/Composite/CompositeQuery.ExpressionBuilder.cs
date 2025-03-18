@@ -441,12 +441,13 @@ public sealed partial class CompositeQuery
                 [innerKeyVariable]);
 
         // Generate ValueTuple type dynamically
-        var outerKeyConstructor = Type.GetType($"{typeof(ValueTuple).FullName}`{GroupingKeys.Count}")!
-            .MakeGenericType([.. GroupingKeys.Values])
-            .GetConstructor([.. GroupingKeys.Values])!;
+        var outerKeyConstructor = Type.GetType($"{typeof(ValueTuple).FullName}`{GroupingKeys.Count + AggregationKeys.Count}")!
+            .MakeGenericType([.. GroupingKeys.Values, .. AggregationKeys.Values])
+            .GetConstructor([.. GroupingKeys.Values, .. AggregationKeys.Values])!;
 
         // Create constructor arguments from currentInputRowParameter
         var outerKeyArguments = GroupingKeys
+            .Union(AggregationKeys)
             .Select(grp => ChangeType(Expression.Property(currentInputRowParameter, "Item", Expression.Constant(grp.Key)), grp.Value))
             .ToArray();
 

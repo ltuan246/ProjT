@@ -37,6 +37,8 @@ public sealed partial class CompositeQuery
         { SqlStatement.Join, [] },
         { SqlStatement.Where, [] },
         { SqlStatement.GroupBy, [] },
+        { SqlStatement.Having, [] },
+        { SqlStatement.SelectAggregate, [] },
         { SqlStatement.OrderBy, [] },
         { SqlStatement.Limit, [] },
         { SqlStatement.Offset, [] }
@@ -51,4 +53,9 @@ public sealed partial class CompositeQuery
     ///     A collection specifically for grouping keys.
     /// </summary>
     public Dictionary<string, Type> GroupingKeys { get; } = [];
+
+    /// <summary>
+    ///     A collection specifically for aggregation keys.
+    /// </summary>
+    public Dictionary<string, Type> AggregationKeys { get; } = [];
 }

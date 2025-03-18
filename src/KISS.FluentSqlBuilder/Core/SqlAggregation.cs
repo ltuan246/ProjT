@@ -23,5 +23,10 @@ public enum SqlAggregation
     /// <summary>
     /// Represents the SQL MAX() function, which returns the maximum value from a column.
     /// </summary>
-    Max
+    Max,
+
+    /// <summary>
+    /// Represents the SQL COUNT() function,  which returns the number of items found in a group.
+    /// </summary>
+    Count
 }

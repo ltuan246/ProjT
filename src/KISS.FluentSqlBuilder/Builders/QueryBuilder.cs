@@ -112,27 +112,18 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
 
     /// <inheritdoc />
     public IHavingBuilder<TRecordset, TReturn> Having(
-        SqlAggregation aggregationType,
-        Expression<Func<TRecordset, IComparable>> selector)
+        Expression<Func<AggregationBuilder<TRecordset>, bool>> condition)
     {
-        Handler.SetNext(new HavingHandler(selector.Body));
+        Handler.SetNext(new HavingHandler(condition.Body));
         return this;
     }
 
     /// <inheritdoc />
-    public IGroupSelectBuilder<TRecordset, TReturn> Select(
-        SqlAggregation aggregationType,
-        Expression<Func<TRecordset, IComparable>> selector,
+    public IGroupSelectBuilder<TRecordset, TReturn> SelectAggregate(
+        Expression<Func<AggregationBuilder<TRecordset>, AggregationComparer<TRecordset>>> selector,
         string alias)
     {
-        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector.Body));
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IGroupSelectBuilder<TRecordset, TReturn> Select(Expression<Func<TRecordset, TReturn>> selector)
-    {
-        Handler.SetNext(new NewSelectHandler<TRecordset, TReturn>(selector.Body));
+        Handler.SetNext(new SelectAggregateHandler(selector.Body, alias));
         return this;
     }
 
@@ -282,7 +273,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     IQueryBuilder<TFirst, TSecond, TThird, TReturn>
 {
     /// <inheritdoc />
-    public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable>> selector)
+    public IGroupByBuilder<TFirst, TReturn> GroupBy(Expression<Func<TFirst, IComparable?>> selector)
     {
         Handler.SetNext(new GroupByHandler(selector.Body));
         return new GroupQueryBuilder<TFirst, TReturn>(Connection, Handler);

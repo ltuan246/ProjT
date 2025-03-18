@@ -303,7 +303,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 (Card e) => e.Id,
                 r => r.CardId,
                 e => e.DustCost)
-            .GroupBy(w => w.Type!)
+            .GroupBy(w => w.Type)
             // .Select(SqlAggregation.Sum, w => w.Cost!, "Total")
             .ToDictionary();
     }
@@ -325,8 +325,9 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
                 (Card e) => e.Id,
                 r => r.CardId,
                 e => e.DustCost)
-            .GroupBy(w => w.Type!)
-            .Having(SqlAggregation.Sum, w => w.Cost!)
+            .GroupBy(w => w.Type)
+            .Having(agg => agg.Sum(x => x.Cost) > 1)
+            .SelectAggregate(agg => agg.Sum(x => x.Cost), "SumCost")
             .ToDictionary();
     }
 }

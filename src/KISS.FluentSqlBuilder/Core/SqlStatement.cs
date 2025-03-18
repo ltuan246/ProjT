@@ -10,6 +10,8 @@ public enum SqlStatement
     Join,
     Where,
     GroupBy,
+    Having,
+    SelectAggregate,
     OrderBy,
     Limit,
     Offset

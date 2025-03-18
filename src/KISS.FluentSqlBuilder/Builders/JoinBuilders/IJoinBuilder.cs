@@ -10,7 +10,7 @@ public interface IJoinBuilder<TRecordset, TReturn> : IWhereBuilder<TRecordset, T
     /// <summary>
     ///     Appends the <c>JOIN</c> clause to the query.
     /// </summary>
-    /// <typeparam name="TRelation">The type of join table.</typeparam>s
+    /// <typeparam name="TRelation">The type of join table.</typeparam>
     /// <param name="leftKeySelector">The table as the left key.</param>
     /// <param name="rightKeySelector">The table as the right key.</param>
     /// <param name="mapSelector">The combined type to return.</param>

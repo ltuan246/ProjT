@@ -1,0 +1,20 @@
+namespace KISS.FluentSqlBuilder.QueryChain.OrderByHandlers;
+
+/// <summary>
+///     A handler for processing <c>ORDER BY</c> in a query chain.
+/// </summary>
+public sealed partial record OrderByHandler
+{
+    /// <inheritdoc />
+    protected override void Translate(MemberExpression memberExpression)
+    {
+        if (memberExpression is { Expression: ParameterExpression parameterExpression })
+        {
+            Append($"{Composite.GetAliasMapping(parameterExpression.Type)}.{memberExpression.Member.Name}");
+        }
+        else
+        {
+            throw new NotSupportedException("Expression not supported.");
+        }
+    }
+}

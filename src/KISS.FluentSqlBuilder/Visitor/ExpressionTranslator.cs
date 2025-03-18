@@ -6,6 +6,33 @@ namespace KISS.FluentSqlBuilder.Visitor;
 public abstract record ExpressionTranslator
 {
     /// <summary>
+    ///     Used to convert expression tree operators into their equivalent SQL or code symbols.
+    /// </summary>
+    public Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
+    {
+        { ExpressionType.Assign, " = " },
+        { ExpressionType.Equal, " = " },
+        { ExpressionType.NotEqual, " != " },
+        { ExpressionType.GreaterThan, " > " },
+        { ExpressionType.GreaterThanOrEqual, " >= " },
+        { ExpressionType.LessThan, " < " },
+        { ExpressionType.LessThanOrEqual, " <= " },
+        { ExpressionType.OrElse, " OR " },
+        { ExpressionType.AndAlso, " AND " },
+        { ExpressionType.Coalesce, " ?? " },
+        { ExpressionType.Add, " + " },
+        { ExpressionType.Subtract, " - " },
+        { ExpressionType.Multiply, " * " },
+        { ExpressionType.Divide, " / " },
+        { ExpressionType.Modulo, " % " },
+        { ExpressionType.And, " & " },
+        { ExpressionType.Or, " | " },
+        { ExpressionType.ExclusiveOr, " ^ " },
+        { ExpressionType.LeftShift, " << " },
+        { ExpressionType.RightShift, " >> " }
+    };
+
+    /// <summary>
     ///     Dispatches the expression to one of the more specialized visit methods in this class.
     /// </summary>
     /// <param name="expression">The nodes to visit.</param>
@@ -39,6 +66,10 @@ public abstract record ExpressionTranslator
 
             case MethodCallExpression methodCallExpression:
                 Translate(methodCallExpression);
+                break;
+
+            case LambdaExpression lambdaExpression:
+                Translate(lambdaExpression);
                 break;
         }
     }
@@ -84,4 +115,10 @@ public abstract record ExpressionTranslator
     /// </summary>
     /// <param name="methodCallExpression">The nodes to visit.</param>
     protected virtual void Translate(MethodCallExpression methodCallExpression) { }
+
+    /// <summary>
+    ///     Visits the children of the LambdaExpression.
+    /// </summary>
+    /// <param name="lambdaExpression">The nodes to visit.</param>
+    protected virtual void Translate(LambdaExpression lambdaExpression) { }
 }

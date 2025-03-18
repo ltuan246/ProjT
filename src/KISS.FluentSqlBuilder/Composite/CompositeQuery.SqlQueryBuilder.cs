@@ -65,7 +65,6 @@ public sealed partial class CompositeQuery
         SetJoin();
         SetWhere();
         SetGroupBy();
-        // SetHaving();
         SetOrderBy();
         SetLimit();
         SetOffset();
@@ -137,6 +136,7 @@ public sealed partial class CompositeQuery
         {
             // Begins the WHERE clause with the keyword on a new line.
             Append("WHERE");
+
             // Appends the first WHERE condition.
             AppendLine($"{itor.Current}");
 
@@ -161,22 +161,88 @@ public sealed partial class CompositeQuery
             SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
             Append(")");
 
-            var gBy = string.Join(", ", GroupingKeys.Select(k => k.Key));
-            var pBy = string.Join(", ", GroupingKeys.Select(k => $"GP.{k.Key}"));
-            var onKeys = string.Join(" AND ", GroupingKeys.Select(k => $"CTE.{k.Key} = GP.{k.Key}"));
+            StringBuilder outerSelectBuilder = new(),
+                innerSelectBuilder = new(),
+                groupByFilteringBuilder = new(),
+                onClauseBuilder = new();
+
+            using var aggregatingItor = AggregationKeys.GetEnumerator();
+
+            if (aggregatingItor.MoveNext())
+            {
+                outerSelectBuilder.Append($"GP.{aggregatingItor.Current.Key}");
+
+                while (aggregatingItor.MoveNext())
+                {
+                    outerSelectBuilder.AppendLine($", GP.{aggregatingItor.Current.Key}");
+                }
+
+                outerSelectBuilder.Append(',');
+            }
+
+            outerSelectBuilder.Append("CTE.*");
+
+            using var groupingItor = GroupingKeys.GetEnumerator();
+
+            if (groupingItor.MoveNext())
+            {
+                innerSelectBuilder.Append($"{groupingItor.Current.Key}");
+                groupByFilteringBuilder.Append($"GROUP BY {groupingItor.Current.Key}");
+                onClauseBuilder.Append($"CTE.{groupingItor.Current.Key} = GP.{groupingItor.Current.Key}");
+
+                while (groupingItor.MoveNext())
+                {
+                    innerSelectBuilder.AppendLine($", {groupingItor.Current.Key}");
+                    groupByFilteringBuilder.AppendLine($", {groupingItor.Current.Key}");
+                    onClauseBuilder.AppendLine($"AND CTE.{groupingItor.Current.Key} = GP.{groupingItor.Current.Key}");
+                }
+
+                innerSelectBuilder.Append(',');
+            }
+
+            // Retrieves an enumerator for HAVING conditions stored in SqlStatements.
+            using var havingItor = SqlStatements[SqlStatement.Having].GetEnumerator();
+
+            // Checks if there are any HAVING conditions to process.
+            if (havingItor.MoveNext())
+            {
+                // Begins the HAVING clause with the keyword on a new line.
+                groupByFilteringBuilder.Append($" HAVING {havingItor.Current}");
+
+                // Iterates through remaining HAVING conditions, combining them with "AND" for logical conjunction.
+                while (havingItor.MoveNext())
+                {
+                    groupByFilteringBuilder.AppendLine($"AND {havingItor.Current}");
+                }
+            }
+
+            // Retrieves an enumerator for HAVING conditions stored in SqlStatements.
+            using var aggregateItor = SqlStatements[SqlStatement.SelectAggregate].GetEnumerator();
+
+            // Checks if there are any HAVING conditions to process.
+            if (aggregateItor.MoveNext())
+            {
+                // Begins the HAVING clause with the keyword on a new line.
+                innerSelectBuilder.Append($" {aggregateItor.Current}");
+
+                // Iterates through remaining HAVING conditions, combining them with "AND" for logical conjunction.
+                while (aggregateItor.MoveNext())
+                {
+                    innerSelectBuilder.AppendLine($", {aggregateItor.Current}");
+                }
+            }
 
             Append($@"
                 SELECT
-                    ROW_NUMBER() OVER (PARTITION BY {pBy} ORDER BY {pBy} DESC) AS RowNum,
-                    CTE.*
+                    {outerSelectBuilder}
                 FROM CommonTableExpression CTE
                 JOIN (
                     SELECT
-                        {gBy}
+                        {innerSelectBuilder}
                     FROM CommonTableExpression
-                    GROUP BY {gBy}
+                        {groupByFilteringBuilder}
                 ) GP
-                ON {onKeys};
+                ON {onClauseBuilder};
             ");
 
             AppendLine();
