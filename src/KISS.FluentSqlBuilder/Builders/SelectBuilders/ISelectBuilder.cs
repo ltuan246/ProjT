@@ -45,7 +45,7 @@ public interface IGroupSelectBuilder<TRecordset, TReturn> :
     /// </summary>
     /// <param name="selector">An expression defining the aggregation operation.</param>
     /// <param name="alias">The alias columns.</param>
-    /// <returns>The <see cref="ISelectAggregateBuilder{TRecordset, TReturn}" /> instance.</returns>
+    /// <returns>The <see cref="IGroupSelectBuilder{TRecordset, TReturn}" /> instance.</returns>
     IGroupSelectBuilder<TRecordset, TReturn> SelectAggregate(
         Expression<Func<AggregationBuilder<TRecordset>, AggregationComparer<TRecordset>>> selector,
         string alias);

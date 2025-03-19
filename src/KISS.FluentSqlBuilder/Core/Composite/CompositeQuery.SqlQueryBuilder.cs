@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.Composite;
+﻿namespace KISS.FluentSqlBuilder.Core.Composite;
 
 /// <summary>
 ///     CompositeQuery.

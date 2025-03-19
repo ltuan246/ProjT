@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.Composite;
+﻿namespace KISS.FluentSqlBuilder.Core.Composite;
 
 /// <summary>
 ///     A sealed class that constructs and executes SQL queries using a database connection.

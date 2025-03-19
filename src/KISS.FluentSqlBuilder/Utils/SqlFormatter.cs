@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.Core;
+﻿namespace KISS.FluentSqlBuilder.Utils;
 
 /// <summary>
 ///     Implements <see cref="IFormatProvider" /> and <see cref="ICustomFormatter" />
@@ -14,7 +14,7 @@ public sealed record SqlFormatter : IFormatProvider, ICustomFormatter
     /// <summary>
     ///     Keeps track of the number of parameters added.
     /// </summary>
-    public int ParamCount { get; set; }
+    private int ParamCount { get; set; }
 
     /// <inheritdoc />
     public string Format(string? format, object? arg, IFormatProvider? formatProvider)

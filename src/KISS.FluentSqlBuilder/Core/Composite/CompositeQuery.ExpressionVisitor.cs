@@ -1,4 +1,4 @@
-﻿namespace KISS.FluentSqlBuilder.Composite;
+﻿namespace KISS.FluentSqlBuilder.Core.Composite;
 
 /// <summary>
 ///     Implements <see cref="ExpressionVisitor" /> for the <see cref="CompositeQuery" /> type.

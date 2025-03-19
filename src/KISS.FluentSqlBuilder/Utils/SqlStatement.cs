@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Core;
+namespace KISS.FluentSqlBuilder.Utils;
 
 /// <summary>
 ///     SqlStatement.

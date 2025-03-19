@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Core;
+namespace KISS.FluentSqlBuilder.Utils;
 
 /// <summary>
 /// Defines the various aggregation types used in SQL queries for calculating summary statistics.
