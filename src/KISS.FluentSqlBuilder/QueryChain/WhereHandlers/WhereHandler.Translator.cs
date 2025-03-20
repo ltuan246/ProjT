@@ -1,11 +1,17 @@
 namespace KISS.FluentSqlBuilder.QueryChain.WhereHandlers;
 
 /// <summary>
-///     A handler for processing <c>WHERE</c> in a query chain.
+///     A handler for processing WHERE clauses in a query chain.
+///     This class provides the translation logic for converting LINQ expressions into SQL WHERE conditions.
 /// </summary>
 public sealed partial record WhereHandler
 {
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a member expression into SQL.
+    ///     Handles various scenarios for accessing members of objects, including static members,
+    ///     parameter members, constant members, and method call results.
+    /// </summary>
+    /// <param name="memberExpression">The member expression to translate.</param>
     protected override void Translate(MemberExpression memberExpression)
     {
         switch (memberExpression.Expression)
@@ -73,11 +79,19 @@ public sealed partial record WhereHandler
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a constant expression into SQL.
+    ///     Converts constant values into their string representation for SQL.
+    /// </summary>
+    /// <param name="constantExpression">The constant expression to translate.</param>
     protected override void Translate(ConstantExpression constantExpression)
         => AppendFormat($"{constantExpression.Value}");
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a binary expression into SQL.
+    ///     Handles logical operations, comparisons, and array indexing.
+    /// </summary>
+    /// <param name="binaryExpression">The binary expression to translate.</param>
     protected override void Translate(BinaryExpression binaryExpression)
     {
         if (binaryExpression.NodeType is ExpressionType.ArrayIndex)
@@ -111,7 +125,11 @@ public sealed partial record WhereHandler
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a method call expression into SQL.
+    ///     Handles special SQL functions like InRange, AnyIn, and NotIn.
+    /// </summary>
+    /// <param name="methodCallExpression">The method call expression to translate.</param>
     protected override void Translate(MethodCallExpression methodCallExpression)
     {
         const string inRange = nameof(SqlFunctions.InRange);

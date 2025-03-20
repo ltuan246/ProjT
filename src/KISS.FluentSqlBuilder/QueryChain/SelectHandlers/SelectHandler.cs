@@ -1,23 +1,31 @@
-﻿namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
+namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 
 /// <summary>
-///     A handler for processing <c>SELECT</c> in a query chain.
+///     A handler for processing SELECT clauses in a query chain.
+///     This class is responsible for generating SQL SELECT statements and mapping
+///     database results to strongly-typed objects.
 /// </summary>
 /// <typeparam name="TSource">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
 public sealed record SelectHandler<TSource, TReturn> : QueryHandler
 {
     /// <summary>
-    ///     The type representing the database record set.
+    ///     Gets the type representing the database record set.
+    ///     This type defines the structure of the data being queried from the database.
     /// </summary>
     private Type SourceEntity { get; } = typeof(TSource);
 
     /// <summary>
-    ///     The combined type to return.
+    ///     Gets the combined type to return.
+    ///     This type defines the structure of the object that will be created
+    ///     from the query results.
     /// </summary>
     private Type RetrieveEntity { get; } = typeof(TReturn);
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Processes the SELECT clause by generating SQL statements for selecting
+    ///     columns from the source entity and mapping them to the return type.
+    /// </summary>
     protected override void Process()
     {
         var alias = Composite.GetAliasMapping(SourceEntity);
@@ -29,7 +37,11 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
         Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Builds the expression for processing query results and mapping them
+    ///     to the return type. This method creates the necessary expression tree
+    ///     for converting database rows into strongly-typed objects.
+    /// </summary>
     protected override void BuildExpression()
     {
         Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)

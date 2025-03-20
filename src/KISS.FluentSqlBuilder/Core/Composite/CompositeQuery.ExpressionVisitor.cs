@@ -1,36 +1,39 @@
-﻿namespace KISS.FluentSqlBuilder.Composite;
+namespace KISS.FluentSqlBuilder.Core.Composite;
 
 /// <summary>
 ///     Implements <see cref="ExpressionVisitor" /> for the <see cref="CompositeQuery" /> type.
-///     Traversing and analyzing LINQ expression trees and determining which parts of the expression tree
-///     are evaluable at runtime (i.e., whether the expression can be simplified to a value).
+///     This class provides functionality for traversing and analyzing LINQ expression trees,
+///     determining which parts of the expression tree can be evaluated at runtime and
+///     converting them into SQL-compatible form.
 /// </summary>
 public sealed partial class CompositeQuery : ExpressionVisitor
 {
     /// <summary>
-    ///     Creates a stack to store expressions as we traverse,
-    ///     helping track context for determining if an expression is "Evaluable" (i.e., reducible to a value).
+    ///     Gets a stack used to track expressions during traversal.
+    ///     This stack helps maintain context for determining if an expression
+    ///     is evaluable by tracking its position in the expression tree.
     /// </summary>
     private Stack<Expression> ExpressionStack { get; } = new();
 
     /// <summary>
-    ///     Initializes a dictionary where "Evaluable" means an expression can be computed to a concrete value at runtime;
-    ///     keys are expressions, values are true (evaluable) or false (not evaluable).
+    ///     Gets a dictionary that tracks whether expressions can be evaluated at runtime.
+    ///     This cache stores the evaluability status of expressions to avoid redundant analysis.
     /// </summary>
     private Dictionary<Expression, bool> Evaluable { get; } = [];
 
     /// <summary>
-    ///     Depending on the type of expression (e.g., ConstantExpression, MethodCallExpression),
-    ///     it marks whether certain expressions are evaluable by setting entries in the Evaluable dictionary.
+    ///     Visits and analyzes an expression node to determine its evaluability.
+    ///     This method implements the core logic for expression traversal and analysis,
+    ///     handling various expression types and their specific characteristics.
     /// </summary>
-    /// <param name="node">The expression to visit.</param>
+    /// <param name="node">The expression node to visit and analyze.</param>
     /// <returns>
-    ///     The modified expression, if it or any subexpression was modified;
-    ///     otherwise, returns the original expression.
+    ///     The modified expression if changes were made during traversal,
+    ///     or the original expression if no modifications were needed.
     /// </returns>
     public override Expression? Visit(Expression? node)
     {
-        // If the node is null, returns null immediately; "Evaluable" doesn’t apply since there’s no expression to evaluate.
+        // Handle null expressions
         if (node is null)
         {
             return null;
@@ -40,7 +43,7 @@ public sealed partial class CompositeQuery : ExpressionVisitor
         // crucial for deciding "Evaluable" status across nested expressions.
         ExpressionStack.Push(node);
 
-        // Switches on the node’s type to determine if it’s "Evaluable"—can it be reduced to a value?—based on its properties and context.
+        // Analyze expression based on its type and characteristics
         switch (node)
         {
             // Example: Expression.Call(typeof(Console).GetMethod("WriteLine", [typeof(string)]), Expression.Constant("Hi"))
@@ -49,7 +52,7 @@ public sealed partial class CompositeQuery : ExpressionVisitor
             //     When: Matches when the expression’s Type is void; set to false unless a parent BlockExpression provides a value.
             //     Why: Void expressions don’t yield a result, so they’re not independently evaluable.
             //     GetValue Result: (false, "") (unless in a block with a return value)
-            case Expression { Type: Type t } when t == typeof(void):
+            case { Type: { } t } when t == typeof(void):
                 // Loops through the stack to assess each expression’s "Evaluable" status, starting from the current void expression.
                 foreach (var x in ExpressionStack)
                 {
@@ -94,6 +97,7 @@ public sealed partial class CompositeQuery : ExpressionVisitor
 
                 break;
 
+            // Handle potentially evaluable expressions
             case DefaultExpression:
             // Example: ConstantExpression: Expression.Constant(42)
             //     Evaluable: true
@@ -149,12 +153,17 @@ public sealed partial class CompositeQuery : ExpressionVisitor
     }
 
     /// <summary>
-    ///     Determines if a specific expression can be evaluated.
+    ///     Evaluates an expression and returns its value if possible.
+    ///     This method attempts to convert an expression into a concrete value
+    ///     that can be used in SQL query construction.
     /// </summary>
-    /// <param name="node">The expression to visit.</param>
+    /// <param name="node">The expression to evaluate.</param>
     /// <returns>
-    ///     A tuple of a boolean (Evaluated) indicating whether the expression was evaluable,
-    ///     and the evaluated result (Value) as a FormatString.
+    ///     A tuple containing:
+    ///     <list type="bullet">
+    ///         <item>Evaluated: Whether the expression could be evaluated</item>
+    ///         <item>Value: The evaluated result as a FormattableString</item>
+    ///     </list>
     /// </returns>
     public (bool Evaluated, FormattableString Value) GetValue(Expression node)
     {
@@ -168,7 +177,7 @@ public sealed partial class CompositeQuery : ExpressionVisitor
                 node,
                 out var canEvaluate)) // Checks if "Evaluable" is known; if not, it’s unassessed.
         {
-            // Analyzes the node to set its "Evaluable" status in the dictionary.
+            // Analyze the expression if not previously evaluated
             Visit(node);
             // Retrieves the updated "Evaluable" status post-visit.
             Evaluable.TryGetValue(node, out canEvaluate);
@@ -189,7 +198,7 @@ public sealed partial class CompositeQuery : ExpressionVisitor
         // Example: ConstantExpression: Expression.Constant(42)
         //     Evaluable: true
         //     What: A constant (42) that can be evaluated.
-        //     When: After Visit confirms it’s evaluable; proceeds to lambda creation.
+        //     When: After Visit confirms it is evaluable; proceeds to lambda creation.
         //     Why: It’s a fixed value, so it can be computed.
         //     GetValue Result: (true, "42")
         var lambdaExpression = Expression.Lambda(node); // Wraps the evaluable node in a lambda for execution.

@@ -2,20 +2,22 @@ namespace KISS.FluentSqlBuilder.QueryProxy;
 
 /// <summary>
 ///     A generic proxy class that intercepts method calls for <see cref="CompositeQuery" /> instances,
-///     using the <see cref="DispatchProxy" /> mechanism to provide additional behavior.
+///     using the <see cref="DispatchProxy" /> mechanism to provide additional behavior. This class
+///     enables dynamic query building and execution by intercepting calls to query operations.
 /// </summary>
 /// <typeparam name="TReturn">The type of result returned by the proxied operations.</typeparam>
 public class CompositeQueryProxy<TReturn> : DispatchProxy
 {
     /// <summary>
     ///     Holds the target <see cref="CompositeQuery" /> instance that this proxy delegates to.
-    ///     Initialized to default! to suppress null warnings, set later in <see cref="Create" />.
+    ///     This property stores the actual query implementation that will be executed.
     /// </summary>
     private CompositeQuery Composite { get; set; } = default!;
 
     /// <summary>
-    ///     Creates a proxy instance for <see cref="ICompositeQueryOperations" /> that wraps a <see cref="CompositeQuery" />.
-    ///     Configures the query with a handler and sets up the proxy to intercept method calls.
+    ///     Creates a proxy instance for <see cref="ICompositeQueryOperations" /> that wraps a
+    ///     <see cref="CompositeQuery" />. This method sets up the complete query execution
+    ///     pipeline with proper configuration and interception.
     /// </summary>
     /// <param name="connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
     /// <param name="handler">The handler that configures the query before proxy creation.</param>
@@ -39,7 +41,9 @@ public class CompositeQueryProxy<TReturn> : DispatchProxy
     }
 
     /// <summary>
-    ///     Intercepts method calls, ensures query setup is performed, and delegates execution to the real service.
+    ///     Intercepts method calls, ensures query setup is performed, and delegates execution
+    ///     to the real service. This method is called automatically for all method invocations
+    ///     on the proxy.
     /// </summary>
     /// <param name="targetMethod">The method being invoked on the <see cref="ICompositeQueryOperations" /> interface.</param>
     /// <param name="args">The arguments passed to the method during invocation.</param>

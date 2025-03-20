@@ -2,13 +2,17 @@ namespace KISS.FluentSqlBuilder.Visitor;
 
 /// <summary>
 ///     A custom expression visitor that translates LINQ expressions into SQL-compatible syntax.
+///     This class provides the foundation for converting C# expressions into SQL statements
+///     by implementing a visitor pattern for different types of expressions.
 /// </summary>
 public abstract record ExpressionTranslator
 {
     /// <summary>
-    ///     Used to convert expression tree operators into their equivalent SQL or code symbols.
+    ///     Maps C# expression types to their corresponding SQL operators and symbols.
+    ///     This dictionary provides the translation rules for converting C# expressions
+    ///     into SQL-compatible syntax.
     /// </summary>
-    public Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
+    protected Dictionary<ExpressionType, string> BinaryOperandMap { get; } = new()
     {
         { ExpressionType.Assign, " = " },
         { ExpressionType.Equal, " = " },
@@ -33,10 +37,11 @@ public abstract record ExpressionTranslator
     };
 
     /// <summary>
-    ///     Dispatches the expression to one of the more specialized visit methods in this class.
+    ///     Dispatches the expression to the appropriate specialized visit method based on its type.
+    ///     This method serves as the entry point for expression translation.
     /// </summary>
-    /// <param name="expression">The nodes to visit.</param>
-    public void Translate(Expression expression)
+    /// <param name="expression">The expression to translate.</param>
+    protected void Translate(Expression expression)
     {
         switch (expression)
         {
@@ -75,50 +80,50 @@ public abstract record ExpressionTranslator
     }
 
     /// <summary>
-    ///     Visits the children of the BinaryExpression.
+    ///     Translates a binary expression (e.g., x => x.Age > 18) into SQL syntax.
     /// </summary>
-    /// <param name="binaryExpression">The nodes to visit.</param>
+    /// <param name="binaryExpression">The binary expression to translate.</param>
     protected virtual void Translate(BinaryExpression binaryExpression) { }
 
     /// <summary>
-    ///     Visits the children of the UnaryExpression.
+    ///     Translates a unary expression (e.g., x => !x.IsActive) into SQL syntax.
     /// </summary>
-    /// <param name="unaryExpression">The nodes to visit.</param>
+    /// <param name="unaryExpression">The unary expression to translate.</param>
     protected virtual void Translate(UnaryExpression unaryExpression) { }
 
     /// <summary>
-    ///     Visits the children of the MemberExpression.
+    ///     Translates a member expression (e.g., x => x.Name) into SQL syntax.
     /// </summary>
-    /// <param name="memberExpression">The nodes to visit.</param>
+    /// <param name="memberExpression">The member expression to translate.</param>
     protected virtual void Translate(MemberExpression memberExpression) { }
 
     /// <summary>
-    ///     Visits the children of the ConstantExpression.
+    ///     Translates a constant expression (e.g., 42, "Hello") into SQL syntax.
     /// </summary>
-    /// <param name="constantExpression">The nodes to visit.</param>
+    /// <param name="constantExpression">The constant expression to translate.</param>
     protected virtual void Translate(ConstantExpression constantExpression) { }
 
     /// <summary>
-    ///     Visits the children of the NewExpression.
+    ///     Translates a new expression (e.g., new { x.Name, x.Age }) into SQL syntax.
     /// </summary>
-    /// <param name="newExpression">The nodes to visit.</param>
+    /// <param name="newExpression">The new expression to translate.</param>
     protected virtual void Translate(NewExpression newExpression) { }
 
     /// <summary>
-    ///     Visits the children of the MemberInitExpression.
+    ///     Translates a member initialization expression into SQL syntax.
     /// </summary>
-    /// <param name="memberInitExpression">The nodes to visit.</param>
+    /// <param name="memberInitExpression">The member initialization expression to translate.</param>
     protected virtual void Translate(MemberInitExpression memberInitExpression) { }
 
     /// <summary>
-    ///     Visits the children of the MethodCallExpression.
+    ///     Translates a method call expression (e.g., x => x.ToString()) into SQL syntax.
     /// </summary>
-    /// <param name="methodCallExpression">The nodes to visit.</param>
+    /// <param name="methodCallExpression">The method call expression to translate.</param>
     protected virtual void Translate(MethodCallExpression methodCallExpression) { }
 
     /// <summary>
-    ///     Visits the children of the LambdaExpression.
+    ///     Translates a lambda expression into SQL syntax.
     /// </summary>
-    /// <param name="lambdaExpression">The nodes to visit.</param>
+    /// <param name="lambdaExpression">The lambda expression to translate.</param>
     protected virtual void Translate(LambdaExpression lambdaExpression) { }
 }

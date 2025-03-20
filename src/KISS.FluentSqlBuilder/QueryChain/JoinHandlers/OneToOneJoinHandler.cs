@@ -1,7 +1,8 @@
 namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 
 /// <summary>
-///     A handler for processing join operations in a query chain, linking two relations via key equality.
+///     A handler for processing one-to-one join operations in a query chain.
+///     Links two relations via key equality and maps the result to a single entity.
 /// </summary>
 /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
 /// <typeparam name="TRelation">The type of the relation (source table or entity).</typeparam>
@@ -14,7 +15,9 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
     Expression RightKeySelector,
     Expression MapSelector) : JoinHandler<TRelation>(LeftKeySelector, RightKeySelector, MapSelector)
 {
-    /// <inheritdoc />
+    /// <summary>
+    ///     Builds the expression for mapping joined results to the output type.
+    /// </summary>
     protected override void BuildExpression()
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)

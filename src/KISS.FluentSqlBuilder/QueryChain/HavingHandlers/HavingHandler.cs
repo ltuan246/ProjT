@@ -1,12 +1,20 @@
-﻿namespace KISS.FluentSqlBuilder.QueryChain.HavingHandlers;
+namespace KISS.FluentSqlBuilder.QueryChain.HavingHandlers;
 
 /// <summary>
-///     A handler for processing <c>HAVING</c> in a query chain.
+///     A handler for processing HAVING clauses in a query chain.
+///     This class is responsible for generating SQL HAVING statements that filter
+///     grouped results based on aggregate conditions.
 /// </summary>
-/// <param name="Predicate">Filters a sequence of values based on a predicate.</param>
+/// <param name="Predicate">
+///     An expression defining the aggregate conditions to filter the grouped results.
+///     This expression typically contains aggregate functions and comparison operators.
+/// </param>
 public sealed partial record HavingHandler(Expression Predicate) : QueryHandler
 {
-    /// <inheritdoc />
+    /// <summary>
+    ///     Processes the HAVING clause by translating the predicate expression
+    ///     into SQL and adding it to the query's HAVING statements.
+    /// </summary>
     protected override void Process()
     {
         Translate(Predicate);

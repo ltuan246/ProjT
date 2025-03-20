@@ -1,29 +1,32 @@
-﻿namespace KISS.FluentSqlBuilder.QueryChain;
+namespace KISS.FluentSqlBuilder.QueryChain;
 
 /// <summary>
 ///     An abstract base record for handling SQL query construction in a chain-of-responsibility pattern.
-///     Inherits from <see cref="ExpressionTranslator" /> to process query expressions
-///     and delegates to the next handler if present.
+///     This class serves as the foundation for all query component handlers, providing a structured
+///     approach to processing different parts of a SQL query (SELECT, WHERE, JOIN, etc.).
 /// </summary>
 public abstract partial record QueryHandler : ExpressionTranslator
 {
     /// <summary>
     ///     Gets or sets the next handler in the chain, enabling sequential processing of query components.
-    ///     Initially null, set via <see cref="SetNext(QueryHandler)" /> to link handlers.
+    ///     This property implements the chain-of-responsibility pattern by allowing handlers to be linked
+    ///     together in a sequence for processing different parts of a query.
     /// </summary>
     private QueryHandler? NextHandler { get; set; }
 
     /// <summary>
-    ///     Gets the <see cref="CompositeQuery" /> instance being processed by this handler.
-    ///     Set during <see cref="Handle(CompositeQuery)" /> and accessible to derived classes for query manipulation.
-    ///     Initialized as default! to suppress null warnings, assigned a valid instance before use.
+    ///     Gets the CompositeQuery instance being processed by this handler.
+    ///     This property provides access to the query being built and allows handlers
+    ///     to modify the query state during processing.
     /// </summary>
     protected CompositeQuery Composite { get; private set; } = default!;
 
     /// <summary>
     ///     Links this handler to the next one in the chain, forming a sequence of query processing steps.
+    ///     This method implements the chain-of-responsibility pattern by finding the last handler
+    ///     in the current chain and appending the new handler.
     /// </summary>
-    /// <param name="nextHandler">The next <see cref="QueryHandler" /> to process the query after this one.</param>
+    /// <param name="nextHandler">The next QueryHandler to process the query after this one.</param>
     public void SetNext(QueryHandler nextHandler)
     {
         var lastHandler = this;
@@ -36,10 +39,11 @@ public abstract partial record QueryHandler : ExpressionTranslator
     }
 
     /// <summary>
-    ///     Processes the provided <see cref="CompositeQuery" /> by setting it as the current instance,
+    ///     Processes the provided CompositeQuery by setting it as the current instance,
     ///     executing this handler's specific logic, and passing control to the next handler if available.
+    ///     This method implements the core processing logic of the chain-of-responsibility pattern.
     /// </summary>
-    /// <param name="composite">The <see cref="CompositeQuery" /> instance to be processed by the handler chain.</param>
+    /// <param name="composite">The CompositeQuery instance to be processed by the handler chain.</param>
     public void Handle(CompositeQuery composite)
     {
         // Assigns the provided CompositeQuery to this handler for processing.
@@ -53,14 +57,15 @@ public abstract partial record QueryHandler : ExpressionTranslator
 
     /// <summary>
     ///     Defines the specific processing logic for this handler, to be implemented by derived classes.
-    ///     Typically translates expressions or modifies the <see cref="Composite" /> query state.
+    ///     This abstract method allows each handler to define its own processing logic for specific
+    ///     query components (SELECT, WHERE, JOIN, etc.).
     /// </summary>
     protected abstract void Process();
 
     /// <summary>
     ///     Builds an expression processor to translate the handler's query component into executable SQL.
-    ///     Derived classes can implement this method to define how their specific expressions
-    ///     (e.g., join conditions, WHERE clauses) are processed and integrated into the <see cref="CompositeQuery"/>.
+    ///     This virtual method provides a hook for handlers to define how their specific expressions
+    ///     are processed and integrated into the final SQL query.
     /// </summary>
     protected virtual void BuildExpression() { }
 }

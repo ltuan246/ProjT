@@ -1,13 +1,26 @@
 namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 
 /// <summary>
-///     A handler for processing <c>SELECT</c> in a query chain.
+///     A handler for processing SELECT clauses with object initialization in a query chain.
+///     This class provides the translation logic for converting object initialization expressions
+///     into SQL-compatible form.
 /// </summary>
-/// <typeparam name="TSource">The type representing the database record set.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
+/// <typeparam name="TSource">
+///     The type representing the database record set.
+///     This type defines the structure of the data being queried.
+/// </typeparam>
+/// <typeparam name="TReturn">
+///     The type of the object to be created and returned.
+///     This type defines the structure of the result object.
+/// </typeparam>
 public sealed partial record NewSelectHandler<TSource, TReturn>
 {
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a member expression into SQL for object initialization.
+    ///     Handles various scenarios for accessing members of objects, including static members,
+    ///     parameter members, constant members, and method call results.
+    /// </summary>
+    /// <param name="memberExpression">The member expression to translate.</param>
     protected override void Translate(MemberExpression memberExpression)
     {
         switch (memberExpression.Expression)
@@ -83,7 +96,11 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a new expression into SQL for object initialization.
+    ///     Handles the creation of new objects with property assignments.
+    /// </summary>
+    /// <param name="newExpression">The new expression to translate.</param>
     protected override void Translate(NewExpression newExpression)
     {
         var selectList = newExpression.Members!
@@ -105,7 +122,11 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
         Append(string.Join(", ", selectList));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a member initialization expression into SQL.
+    ///     Handles the initialization of object properties with values from the source.
+    /// </summary>
+    /// <param name="memberInitExpression">The member initialization expression to translate.</param>
     protected override void Translate(MemberInitExpression memberInitExpression)
     {
         using var enumerator = memberInitExpression.Bindings.GetEnumerator();
@@ -135,7 +156,11 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a unary expression into SQL for object initialization.
+    ///     Handles operations like negation and type conversion.
+    /// </summary>
+    /// <param name="unaryExpression">The unary expression to translate.</param>
     protected override void Translate(UnaryExpression unaryExpression)
     {
         if (unaryExpression is { Operand: MemberExpression memberExpression })
@@ -148,7 +173,11 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Translates a constant expression into SQL for object initialization.
+    ///     Converts constant values into their string representation for SQL.
+    /// </summary>
+    /// <param name="constantExpression">The constant expression to translate.</param>
     protected override void Translate(ConstantExpression constantExpression)
     {
         Append($"{constantExpression.Value}");

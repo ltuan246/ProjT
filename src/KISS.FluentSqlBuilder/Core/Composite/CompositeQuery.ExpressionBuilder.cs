@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Composite;
+namespace KISS.FluentSqlBuilder.Core.Composite;
 
 /// <summary>
 ///     A context for storing reusable instances used in expression tree construction.
