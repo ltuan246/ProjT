@@ -1,32 +1,41 @@
 namespace KISS.FluentSqlBuilder.QueryChain;
 
 /// <summary>
-///     QueryHandler.
+///     Provides functionality for building SQL query statements in a fluent manner.
+///     This partial class extends the QueryHandler with methods for constructing
+///     SQL statements using a StringBuilder and managing query formatting.
 /// </summary>
 public abstract partial record QueryHandler
 {
     /// <summary>
-    ///     Sets the generated the SQL.
+    ///     Gets the StringBuilder used to construct the SQL statement.
+    ///     This property provides access to the underlying string builder
+    ///     for accumulating SQL query components.
     /// </summary>
     protected StringBuilder StatementBuilder { get; } = new();
 
     /// <summary>
-    ///     Use checks to know when to use Close Parenthesis.
+    ///     Tracks whether there is an open parenthesis in the current SQL statement.
+    ///     Used to ensure proper nesting and closure of parentheses in complex expressions.
     /// </summary>
     private bool HasOpenParentheses { get; set; }
 
     /// <summary>
-    ///     Appends a formatted string to the <see cref="StatementBuilder" />.
+    ///     Appends a string value to the SQL statement being built.
+    ///     This method is used for adding static SQL components that don't require
+    ///     formatting or parameter substitution.
     /// </summary>
-    /// <param name="value">The string to append.</param>
+    /// <param name="value">The string to append to the SQL statement.</param>
     protected void Append(string value)
-        => StatementBuilder.Append(value);
+    => StatementBuilder.Append(value);
 
     /// <summary>
-    ///     Appends a new line to the string being built.
+    ///     Appends a string value to the SQL statement with optional indentation.
+    ///     This method is used for adding SQL components that should be on a new line,
+    ///     with proper formatting and indentation for readability.
     /// </summary>
-    /// <param name="value">The string to append.</param>
-    /// <param name="indent">Refers to adding spaces at the beginning of lines of text.</param>
+    /// <param name="value">The string to append to the SQL statement.</param>
+    /// <param name="indent">Whether to indent the appended line.</param>
     protected void AppendLine(string value = "", bool indent = false)
     {
         StatementBuilder.AppendLine();
@@ -40,30 +49,20 @@ public abstract partial record QueryHandler
     }
 
     /// <summary>
-    ///     Appends a formatted string to the <see cref="StatementBuilder" /> using the specified SQL format provider.
+    ///     Appends a formatted string to the SQL statement using the SQL formatter.
+    ///     This method handles parameter substitution and proper SQL formatting
+    ///     for dynamic query components.
     /// </summary>
     /// <param name="formatString">
-    ///     A <see cref="FormattableString" /> instance containing the composite format string and arguments.
-    ///     The format string specifies the text, placeholders, and data for the formatted SQL statement.
+    ///     A FormattableString containing the SQL statement with placeholders.
     /// </param>
-    /// <remarks>
-    ///     This method formats and appends a SQL statement to the underlying <see cref="StatementBuilder" /> by using
-    ///     the <see cref="SqlFormatter" /> as a format provider. The <see cref="FormattableString.Format" /> and
-    ///     <see cref="FormattableString.GetArguments" /> methods are used to parse the format string and its arguments
-    ///     before appending the formatted result to <see cref="StatementBuilder" />.
-    ///     Example usage:
-    ///     <code>
-    ///     AppendFormat($"SELECT * FROM Orders WHERE OrderId = {orderId}");
-    ///     </code>
-    ///     This example will append a SQL statement with a placeholder for <c>OrderId</c>,
-    ///     formatted by <see cref="SqlFormatter" />.
-    /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="formatString" /> is <c>null</c>.</exception>
     protected void AppendFormat(FormattableString formatString)
         => StatementBuilder.AppendFormat(Composite.SqlFormatting, formatString.Format, formatString.GetArguments());
 
     /// <summary>
-    ///     Use to Open Parenthesis.
+    ///     Opens a parenthesis in the SQL statement.
+    ///     This method is used to start a parenthesized expression and tracks
+    ///     the parenthesis state for proper nesting.
     /// </summary>
     protected void OpenParentheses()
     {
@@ -73,7 +72,9 @@ public abstract partial record QueryHandler
     }
 
     /// <summary>
-    ///     Use to Close Parenthesis.
+    ///     Closes a parenthesis in the SQL statement if one is open.
+    ///     This method ensures proper closure of parenthesized expressions
+    ///     and maintains correct SQL syntax.
     /// </summary>
     protected void CloseParentheses()
     {

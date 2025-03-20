@@ -1,6 +1,8 @@
-﻿namespace KISS.FluentSqlBuilder.Builders.OffsetBuilders;
+namespace KISS.FluentSqlBuilder.Builders.OffsetBuilders;
 
 /// <summary>
-///     An interface for building <c>OFFSET</c>, and the <c>ROWS</c> clauses.
+///     A marker interface for building <c>OFFSET</c> and <c>ROWS</c> clauses.
+///     This interface serves as the base for all offset rows builders in the
+///     query building process.
 /// </summary>
 public interface IOffsetRowsBuilder;

@@ -1,10 +1,12 @@
-﻿namespace KISS.FluentSqlBuilder.Builders;
+namespace KISS.FluentSqlBuilder.Builders;
 
 /// <summary>
-///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
+///     Provides the base implementation for building SQL queries with a fluent interface.
+///     This class serves as the entry point for constructing SQL queries and manages
+///     the connection to the database.
 /// </summary>
-/// <param name="Connection">The database connections.</param>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
+/// <param name="Connection">The database connection used to execute queries.</param>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuilder<TReturn>
 {
     /// <inheritdoc />
@@ -16,12 +18,13 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
 }
 
 /// <summary>
-///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
+///     Implements the query builder for single-table operations, providing methods
+///     for constructing SQL queries with various clauses (SELECT, WHERE, JOIN, etc.).
 /// </summary>
-/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
-/// <param name="Handler">The handler that configures the query before proxy creation.</param>
-/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
+/// <param name="Connection">The database connection used to execute queries.</param>
+/// <param name="Handler">The query handler that manages query construction and execution.</param>
+/// <typeparam name="TRecordset">The type representing the database table or view.</typeparam>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IQueryBuilder<TRecordset, TReturn>
 {
@@ -94,12 +97,13 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
 }
 
 /// <summary>
-///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
+///     Implements the query builder for grouped queries, providing methods for
+///     constructing SQL queries with GROUP BY clauses and aggregations.
 /// </summary>
-/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
-/// <param name="Handler">The handler that configures the query before proxy creation.</param>
-/// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
+/// <param name="Connection">The database connection used to execute queries.</param>
+/// <param name="Handler">The query handler that manages query construction and execution.</param>
+/// <typeparam name="TRecordset">The type representing the database table or view.</typeparam>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IGroupQueryBuilder<TRecordset, TReturn>
 {
@@ -155,13 +159,14 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
 }
 
 /// <summary>
-///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
+///     Implements the query builder for two-table operations, providing methods
+///     for constructing SQL queries that join two tables.
 /// </summary>
-/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
-/// <param name="Handler">The handler that configures the query before proxy creation.</param>
-/// <typeparam name="TFirst">The first type in the recordset.</typeparam>
-/// <typeparam name="TSecond">The second type in the recordset.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
+/// <param name="Connection">The database connection used to execute queries.</param>
+/// <param name="Handler">The query handler that manages query construction and execution.</param>
+/// <typeparam name="TFirst">The type of the first table in the query.</typeparam>
+/// <typeparam name="TSecond">The type of the second table in the query.</typeparam>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IQueryBuilder<TFirst, TSecond, TReturn>
 {
@@ -261,14 +266,15 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
 }
 
 /// <summary>
-///     Contains the builder methods for different SQL clauses, which is probably how the query is constructed.
+///     Implements the query builder for three-table operations, providing methods
+///     for constructing SQL queries that join three tables.
 /// </summary>
-/// <param name="Connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
-/// <param name="Handler">The handler that configures the query before proxy creation.</param>
-/// <typeparam name="TFirst">The first type in the recordset.</typeparam>
-/// <typeparam name="TSecond">The second type in the recordset.</typeparam>
-/// <typeparam name="TThird">The third type in the recordset.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
+/// <param name="Connection">The database connection used to execute queries.</param>
+/// <param name="Handler">The query handler that manages query construction and execution.</param>
+/// <typeparam name="TFirst">The type of the first table in the query.</typeparam>
+/// <typeparam name="TSecond">The type of the second table in the query.</typeparam>
+/// <typeparam name="TThird">The type of the third table in the query.</typeparam>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IQueryBuilder<TFirst, TSecond, TThird, TReturn>
 {

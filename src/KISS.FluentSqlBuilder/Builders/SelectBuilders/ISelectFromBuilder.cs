@@ -1,15 +1,21 @@
-﻿namespace KISS.FluentSqlBuilder.Builders.SelectBuilders;
+namespace KISS.FluentSqlBuilder.Builders.SelectBuilders;
 
 /// <summary>
-///     An interface for adding a <c>FROM</c> clause to the query.
+///     Defines an interface for building the FROM clause of a SQL query. This interface
+///     provides the foundation for specifying the source table or view in a SELECT statement.
 /// </summary>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public interface ISelectFromBuilder<TReturn>
 {
     /// <summary>
-    ///     An interface for adding a <c>FROM</c> clause to the query.
+    ///     Adds a FROM clause to the query, specifying the source table or view.
+    ///     This method initiates the query building process by defining the primary
+    ///     data source for the SELECT statement.
     /// </summary>
-    /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-    /// <returns>The <see cref="IJoinBuilder{TRecordset, TReturn}"/> instance.</returns>
+    /// <typeparam name="TRecordset">The type representing the database table or view to query.</typeparam>
+    /// <returns>
+    ///     An <see cref="IJoinBuilder{TRecordset, TReturn}"/> instance that allows you to
+    ///     add joins and other query components.
+    /// </returns>
     IJoinBuilder<TRecordset, TReturn> From<TRecordset>();
 }
