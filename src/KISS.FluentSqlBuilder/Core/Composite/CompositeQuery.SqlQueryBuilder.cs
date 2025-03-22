@@ -75,22 +75,18 @@ public sealed partial class CompositeQuery
     ///     and expressions from the stored statements.
     /// </summary>
     private void SetSelect()
-    {
-        using var itor = SqlStatements[SqlStatement.Select].GetEnumerator();
-
-        if (itor.MoveNext())
-        {
-            Append("SELECT");
-            AppendLine($"{itor.Current}");
-
-            while (itor.MoveNext())
+        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Select])
+            .AccessFirst(fs =>
             {
-                AppendLine($", {itor.Current}");
-            }
-
-            AppendLine();
-        }
-    }
+                Append("SELECT");
+                AppendLine($"{fs}");
+            })
+            .AccessRemaining(fs =>
+            {
+                AppendLine($", {fs}");
+            })
+            .AccessLast(() => AppendLine())
+            .Execute();
 
     /// <summary>
     ///     Builds the FROM clause of the SQL query by specifying the main table
@@ -109,195 +105,172 @@ public sealed partial class CompositeQuery
     ///     from the stored statements.
     /// </summary>
     private void SetJoin()
-    {
-        using var itor = SqlStatements[SqlStatement.Join].GetEnumerator();
-
-        if (itor.MoveNext())
-        {
-            Append($"{itor.Current}");
-
-            while (itor.MoveNext())
+        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Join])
+            .AccessFirst(fs =>
             {
-                AppendLine($"{itor.Current}");
-            }
-
-            AppendLine();
-        }
-    }
+                AppendLine($"{fs}");
+            })
+            .AccessRemaining(fs =>
+            {
+                AppendLine($"{fs}");
+            })
+            .AccessLast(() => AppendLine())
+            .Execute();
 
     /// <summary>
     ///     Builds the WHERE clause of the SQL query by assembling conditions
     ///     from the stored statements.
     /// </summary>
     private void SetWhere()
-    {
-        using var itor = SqlStatements[SqlStatement.Where].GetEnumerator();
-
-        if (itor.MoveNext())
-        {
-            Append("WHERE");
-            AppendLine($"{itor.Current}");
-
-            while (itor.MoveNext())
+        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Where])
+            .AccessFirst(fs =>
             {
-                AppendLine($"AND {itor.Current}");
-            }
-
-            AppendLine();
-        }
-    }
+                Append("WHERE");
+                AppendLine($"{fs}");
+            })
+            .AccessRemaining(fs =>
+            {
+                AppendLine($"AND {fs}");
+            })
+            .AccessLast(() => AppendLine())
+            .Execute();
 
     /// <summary>
     ///     Builds the GROUP BY clause of the SQL query, including handling of
     ///     Common Table Expressions (CTEs) for complex grouping scenarios.
     /// </summary>
     private void SetGroupBy()
-    {
-        using var itor = SqlStatements[SqlStatement.GroupBy].GetEnumerator();
-
-        if (itor.MoveNext())
-        {
-            SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
-            Append(")");
-
-            StringBuilder outerSelectBuilder = new(),
-                innerSelectBuilder = new(),
-                groupByFilteringBuilder = new(),
-                onClauseBuilder = new();
-
-            using var aggregatingItor = AggregationKeys.GetEnumerator();
-
-            if (aggregatingItor.MoveNext())
+        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.GroupBy])
+            .AccessFirst(_ =>
             {
-                outerSelectBuilder.Append($"GP.{aggregatingItor.Current.Key}");
+                SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
+                Append(")");
 
-                while (aggregatingItor.MoveNext())
-                {
-                    outerSelectBuilder.AppendLine($", GP.{aggregatingItor.Current.Key}");
-                }
+                StringBuilder outerSelectBuilder = new(),
+                    innerSelectBuilder = new(),
+                    groupByFilteringBuilder = new(),
+                    onClauseBuilder = new();
 
-                outerSelectBuilder.Append(',');
-            }
+                new EnumeratorProcessor<KeyValuePair<string, Type>>(AggregationKeys)
+                    .AccessFirst(kv =>
+                    {
+                        outerSelectBuilder.Append($"GP.{kv.Key}");
+                    })
+                    .AccessRemaining(kv =>
+                    {
+                        outerSelectBuilder.AppendLine($", GP.{kv.Key}");
+                    })
+                    .AccessLast(() => outerSelectBuilder.Append(','))
+                    .Execute();
 
-            using var groupingItor = GroupingKeys.GetEnumerator();
+                new EnumeratorProcessor<KeyValuePair<string, Type>>(GroupingKeys)
+                    .AccessFirst(kv =>
+                    {
+                        outerSelectBuilder.Append($"GP.{kv.Key}");
+                        innerSelectBuilder.Append($"{kv.Key}");
+                        groupByFilteringBuilder.Append($"GROUP BY {kv.Key}");
+                        onClauseBuilder.Append($"CTE.{kv.Key} = GP.{kv.Key}");
+                    })
+                    .AccessRemaining(kv =>
+                    {
+                        outerSelectBuilder.AppendLine($", GP.{kv.Key}");
+                        innerSelectBuilder.AppendLine($", {kv.Key}");
+                        groupByFilteringBuilder.AppendLine($", {kv.Key}");
+                        onClauseBuilder.AppendLine(
+                            $"AND CTE.{kv.Key} = GP.{kv.Key}");
+                    })
+                    .AccessLast(() => outerSelectBuilder.Append(','))
+                    .Execute();
 
-            if (groupingItor.MoveNext())
-            {
-                outerSelectBuilder.Append($"GP.{groupingItor.Current.Key}");
-                innerSelectBuilder.Append($"{groupingItor.Current.Key}");
-                groupByFilteringBuilder.Append($"GROUP BY {groupingItor.Current.Key}");
-                onClauseBuilder.Append($"CTE.{groupingItor.Current.Key} = GP.{groupingItor.Current.Key}");
+                outerSelectBuilder.Append("CTE.*");
 
-                while (groupingItor.MoveNext())
-                {
-                    outerSelectBuilder.AppendLine($", GP.{groupingItor.Current.Key}");
-                    innerSelectBuilder.AppendLine($", {groupingItor.Current.Key}");
-                    groupByFilteringBuilder.AppendLine($", {groupingItor.Current.Key}");
-                    onClauseBuilder.AppendLine($"AND CTE.{groupingItor.Current.Key} = GP.{groupingItor.Current.Key}");
-                }
+                new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.SelectAggregate])
+                    .AccessFirst(fs =>
+                    {
+                        if (innerSelectBuilder.Length > 0)
+                        {
+                            innerSelectBuilder.Append(',');
+                        }
 
-                outerSelectBuilder.Append(',');
-            }
+                        innerSelectBuilder.Append($" {fs}");
+                    })
+                    .AccessRemaining(fs =>
+                    {
+                        innerSelectBuilder.AppendLine($", {fs}");
+                    })
+                    .Execute();
 
-            outerSelectBuilder.Append("CTE.*");
+                new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Having])
+                    .AccessFirst(fs =>
+                    {
+                        groupByFilteringBuilder.Append($" HAVING {fs}");
+                    })
+                    .AccessRemaining(fs =>
+                    {
+                        groupByFilteringBuilder.AppendLine($"AND {fs}");
+                    })
+                    .Execute();
 
-            using var aggregateItor = SqlStatements[SqlStatement.SelectAggregate].GetEnumerator();
-
-            if (aggregateItor.MoveNext())
-            {
-                if (innerSelectBuilder.Length > 0)
-                {
-                    innerSelectBuilder.Append(',');
-                }
-
-                innerSelectBuilder.Append($" {aggregateItor.Current}");
-
-                while (aggregateItor.MoveNext())
-                {
-                    innerSelectBuilder.AppendLine($", {aggregateItor.Current}");
-                }
-            }
-
-            using var havingItor = SqlStatements[SqlStatement.Having].GetEnumerator();
-
-            if (havingItor.MoveNext())
-            {
-                groupByFilteringBuilder.Append($" HAVING {havingItor.Current}");
-
-                while (havingItor.MoveNext())
-                {
-                    groupByFilteringBuilder.AppendLine($"AND {havingItor.Current}");
-                }
-            }
-
-            Append($@"
-                SELECT
-                    {outerSelectBuilder}
-                FROM CommonTableExpression CTE
-                JOIN (
+                Append($@"
                     SELECT
-                        {innerSelectBuilder}
-                    FROM CommonTableExpression
-                        {groupByFilteringBuilder}
-                ) GP
-                ON {onClauseBuilder};
-            ");
+                        {outerSelectBuilder}
+                    FROM CommonTableExpression CTE
+                    JOIN (
+                        SELECT
+                            {innerSelectBuilder}
+                        FROM CommonTableExpression
+                            {groupByFilteringBuilder}
+                    ) GP
+                    ON {onClauseBuilder};
+                ");
 
-            AppendLine();
-        }
-    }
+                AppendLine();
+            })
+            .Execute();
 
     /// <summary>
     ///     Builds the ORDER BY clause of the SQL query by assembling sorting
     ///     conditions from the stored statements.
     /// </summary>
     private void SetOrderBy()
-    {
-        using var itor = SqlStatements[SqlStatement.OrderBy].GetEnumerator();
-
-        if (itor.MoveNext())
-        {
-            Append("ORDER BY");
-            AppendLine($"{itor.Current}");
-
-            while (itor.MoveNext())
+        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.OrderBy])
+            .AccessFirst(fs =>
             {
-                AppendLine($", {itor.Current}");
-            }
-
-            AppendLine();
-        }
-    }
+                Append("ORDER BY");
+                AppendLine($"{fs}");
+            })
+            .AccessRemaining(fs =>
+            {
+                AppendLine($", {fs}");
+            })
+            .AccessLast(() => AppendLine())
+            .Execute();
 
     /// <summary>
     ///     Builds the LIMIT clause of the SQL query by adding the limit
     ///     value from the stored statements.
     /// </summary>
     private void SetLimit()
-    {
-        using var itor = SqlStatements[SqlStatement.Limit].GetEnumerator();
-
-        if (itor.MoveNext())
-        {
-            Append("LIMIT");
-            AppendLine($"{itor.Current}");
-            AppendLine();
-        }
-    }
+        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Limit])
+            .AccessFirst(fs =>
+            {
+                Append("LIMIT");
+                AppendLine($"{fs}");
+                AppendLine();
+            })
+            .Execute();
 
     /// <summary>
     ///     Builds the OFFSET clause of the SQL query by adding the offset
     ///     value from the stored statements.
     /// </summary>
     private void SetOffset()
-    {
-        using var itor = SqlStatements[SqlStatement.Offset].GetEnumerator();
-
-        if (itor.MoveNext())
-        {
-            Append("OFFSET");
-            AppendLine($"{itor.Current}");
-            AppendLine();
-        }
-    }
+        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Offset])
+            .AccessFirst(fs =>
+            {
+                Append("OFFSET");
+                AppendLine($"{fs}");
+                AppendLine();
+            })
+            .Execute();
 }
