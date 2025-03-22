@@ -129,20 +129,20 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     /// <param name="memberInitExpression">The member initialization expression to translate.</param>
     protected override void Translate(MemberInitExpression memberInitExpression)
     {
-        using var enumerator = memberInitExpression.Bindings.GetEnumerator();
-        if (enumerator.MoveNext())
-        {
-            if (enumerator.Current is MemberAssignment
-                { Expression: MemberExpression { Expression: ParameterExpression parameter1 } member1 } assignment1)
+        new EnumeratorProcessor<MemberBinding>(memberInitExpression.Bindings)
+            .AccessFirst(m =>
             {
-                string alias = Composite.GetAliasMapping(parameter1.Type);
-                string sourceMemberName = $"{alias}.{member1.Member.Name}";
-                Append($"{sourceMemberName} AS {assignment1.Member.Name}");
-            }
-
-            while (enumerator.MoveNext())
+                if (m is MemberAssignment
+                    { Expression: MemberExpression { Expression: ParameterExpression parameter1 } member1 } assignment1)
+                {
+                    string alias = Composite.GetAliasMapping(parameter1.Type);
+                    string sourceMemberName = $"{alias}.{member1.Member.Name}";
+                    Append($"{sourceMemberName} AS {assignment1.Member.Name}");
+                }
+            })
+            .AccessRemaining(m =>
             {
-                if (enumerator.Current is MemberAssignment
+                if (m is MemberAssignment
                     { Expression: MemberExpression { Expression: ParameterExpression parameter2 } member2 } assignment2)
                 {
                     Append(", ");
@@ -152,8 +152,8 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
                     string sourceMemberName = $"{alias}.{member2.Member.Name}";
                     Append($"{sourceMemberName} AS {assignment2.Member.Name}");
                 }
-            }
-        }
+            })
+            .Execute();
     }
 
     /// <summary>
