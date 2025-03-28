@@ -42,7 +42,7 @@ public abstract partial record JoinHandler<TRelation>(
         Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
 
         Append("INNER JOIN");
-        AppendLine($"{relationType.Name}s {alias}", true);
+        AppendLine($"{relationType.Name} {alias}", true);
         AppendLine(" ON ", true);
         Translate(LeftKeySelector);
         Append(" = ");

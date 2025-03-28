@@ -96,7 +96,7 @@ public sealed partial class CompositeQuery
     {
         var (table, alias) = TableAliases.First();
         Append("FROM");
-        AppendLine($"{table.Name}s AS {alias}");
+        AppendLine($"{table.Name} AS {alias}");
         AppendLine();
     }
 

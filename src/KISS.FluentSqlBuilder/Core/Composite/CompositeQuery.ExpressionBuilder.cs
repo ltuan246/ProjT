@@ -69,7 +69,7 @@ public sealed partial class CompositeQuery
         if (effectiveTargetType == typeof(Guid))
         {
             // Assume sourceValue is a string from IDictionary<string, object>
-            var parseGuidCall = Expression.Call(
+            var guidValue = Expression.Call(
                 typeof(Guid),
                 nameof(Guid.Parse),
                 Type.EmptyTypes,
@@ -83,11 +83,38 @@ public sealed partial class CompositeQuery
                 convertedValue = Expression.Condition(
                     isNullCheck,
                     Expression.Convert(defaultValue, targetType),
-                    Expression.Convert(parseGuidCall, targetType));
+                    guidValue);
             }
             else // Guid
             {
-                convertedValue = parseGuidCall;
+                convertedValue = guidValue;
+            }
+
+            return convertedValue;
+        }
+        else if (effectiveTargetType == typeof(DateTime) || effectiveTargetType == typeof(DateTimeOffset))
+        {
+            var dateTimeOffsetValue = Expression.Call(
+                typeof(DateTimeOffset),
+                nameof(DateTimeOffset.Parse),
+                Type.EmptyTypes,
+                Expression.Convert(sourceValue, typeof(string)));
+
+            var dateTimeValue = Expression.Property(dateTimeOffsetValue, nameof(DateTimeOffset.DateTime));
+
+            Expression convertedValue;
+            if (nonNullableType != null) // Nullable<DateTime>
+            {
+                var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
+                var defaultValue = Expression.Default(nonNullableType);
+                convertedValue = Expression.Condition(
+                    isNullCheck,
+                    Expression.Convert(defaultValue, targetType),
+                    dateTimeValue);
+            }
+            else // DateTime
+            {
+                convertedValue = dateTimeValue;
             }
 
             return convertedValue;

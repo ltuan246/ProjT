@@ -25,4 +25,17 @@ public abstract partial record JoinHandler<TRelation>
             throw new NotSupportedException("Expression not supported.");
         }
     }
+
+    /// <summary>
+    ///     Translates a unary expression into SQL for aggregate operations.
+    ///     Handles operations like negation and type conversion.
+    /// </summary>
+    /// <param name="unaryExpression">The unary expression to translate.</param>
+    protected override void Translate(UnaryExpression unaryExpression)
+    {
+        if (unaryExpression is { Operand: { } expression })
+        {
+            Translate(expression);
+        }
+    }
 }

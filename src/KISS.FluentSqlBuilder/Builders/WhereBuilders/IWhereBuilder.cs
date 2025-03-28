@@ -22,6 +22,14 @@ public interface IWhereBuilder<TRecordset, TReturn> :
     /// <param name="predicate">The expression specifying the condition.</param>
     /// <returns>The <see cref="IWhereBuilder{TRecordset, TReturn}" /> instance for method chaining.</returns>
     IWhereBuilder<TRecordset, TReturn> Where(Expression<Func<TRecordset, bool>> predicate);
+
+    /// <summary>
+    ///     Appends the <c>WHERE</c> clause (or the AND clause, if a WHERE clause is present) to the query.
+    /// </summary>
+    /// <param name="condition">The value to determine whether the method should be executed.</param>
+    /// <param name="predicate">The expression specifying the condition.</param>
+    /// <returns>The <see cref="IWhereBuilder{TRecordset, TReturn}" /> instance for method chaining.</returns>
+    IWhereBuilder<TRecordset, TReturn> Where(bool condition, Expression<Func<TRecordset, bool>> predicate);
 }
 
 /// <summary>

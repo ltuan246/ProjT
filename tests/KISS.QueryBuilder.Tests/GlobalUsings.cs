@@ -1,4 +1,5 @@
 global using System;
+global using System.IO;
 global using System.Data;
 global using System.Collections.Generic;
 global using System.Linq;
@@ -8,6 +9,7 @@ global using System.Threading.Tasks;
 global using Dapper;
 global using Microsoft.Data.Sqlite;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 global using CsvHelper.Configuration.Attributes;
 global using KISS.Misc.DataAccess;
 global using KISS.FluentSqlBuilder;

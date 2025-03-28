@@ -2,11 +2,11 @@ namespace KISS.QueryBuilder.Tests.Sqlite;
 
 public sealed class SqliteTestsFixture : IAsyncLifetime
 {
-    private const string ConnectionString = "DataSource=:memory:";
-
     public SqliteConnection Connection { get; private set; } = default!;
 
     private ApplicationDbContext Context { get; set; } = default!;
+
+    private bool IsDisposed { get; set; } = false;
 
     public async Task InitializeAsync()
     {
@@ -16,13 +16,21 @@ public sealed class SqliteTestsFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await Context.Database.EnsureDeletedAsync();
-        Connection.Close();
-        await Connection.DisposeAsync();
+        if (!IsDisposed)
+        {
+            // await Context.Database.EnsureDeletedAsync();
+            Connection.Close();
+            await Connection.DisposeAsync();
+            IsDisposed = true;
+        }
     }
 
     private static SqliteConnection CreateDbConnection()
-        => new(ConnectionString);
+    {
+        string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "weather.db");
+        string connectionString = $"DataSource={dbPath};Mode=ReadWrite;Cache=Shared";
+        return new(connectionString);
+    }
 
     private async Task InitialiseDbConnectionAsync()
     {

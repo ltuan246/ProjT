@@ -30,6 +30,7 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
     /// </returns>
     public List<TReturn> GetList<TReturn>()
     {
+        System.Diagnostics.Debug.WriteLine(Sql);
         // Executes the SQL query using the Connection, passing the constructed Sql string and Parameters
         var dtRows = Connection.Query(Sql, Parameters)
             .Cast<IDictionary<string, object>>()

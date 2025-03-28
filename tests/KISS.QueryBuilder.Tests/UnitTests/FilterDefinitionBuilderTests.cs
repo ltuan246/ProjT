@@ -9,17 +9,24 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
     {
         // Arrange
-        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+        const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872";
+        const double exLatitude = 42.5, exLongitude = 1.517;
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
+        var weathers = Connection.Retrieve<WeatherModel>()
+            .From<Location>()
             .Where(w => w.Id == exId)
             .ToList();
 
         // Assert
         Assert.Single(weathers);
-        Assert.Collection(weathers, weather => Assert.Equal(exId, weather.Id));
+        Assert.Collection(weathers,
+            weather =>
+            {
+                Assert.Equal(exId, weather.Id);
+                Assert.Equal(exLatitude, weather.Latitude);
+                Assert.Equal(exLongitude, weather.Longitude);
+            });
     }
 
     [Fact]
@@ -329,5 +336,21 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
             .Having(agg => agg.Sum(x => x.Cost) > 1)
             .SelectAggregate(agg => agg.Sum(x => x.Cost), "SumCost")
             .ToDictionary();
+    }
+
+    [Fact]
+    public void Fetch_FluentBuilder_ReturnsExpectedCards()
+    {
+        var weathers = Connection.Retrieve<WeatherModel>()
+            .From<Location>()
+            .InnerJoin<Astronomy>( // Map one-to-one relationship
+                e => e.Id,
+                r => r.LocationId,
+                e => e.Astro)
+            .InnerJoin<DailyWeather>( // Map one-to-one relationship
+                (Location e) => e.Id,
+                r => r.LocationId,
+                e => e.DailyWeathers)
+            .ToList();
     }
 }

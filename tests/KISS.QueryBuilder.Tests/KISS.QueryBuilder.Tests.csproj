@@ -12,7 +12,7 @@
         <None Update="Assets\Weather.csv">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\countries.csv">
+        <None Update="Assets\weather.db">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Assets\HearthstoneCards\cards.csv">
