@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <ProjectReference Include="..\..\src\KISS.FluentSqlBuilder\KISS.FluentSqlBuilder.csproj" />
-      <ProjectReference Include="..\..\src\KISS.Misc\KISS.Misc.csproj" />
+    <ProjectReference Include="..\..\src\KISS.FluentSqlBuilder\KISS.FluentSqlBuilder.csproj" />
+    <ProjectReference Include="..\..\src\KISS.Misc\KISS.Misc.csproj" />
   </ItemGroup>
 
 </Project>
