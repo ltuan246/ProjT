@@ -304,6 +304,17 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     }
 
     /// <inheritdoc />
+    public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(bool condition, Expression<Func<TFirst, bool>> predicate)
+    {
+        if (condition)
+        {
+            Handler.SetNext(new WhereHandler(predicate.Body));
+        }
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TSecond, bool>> predicate)
     {
         Handler.SetNext(new WhereHandler(predicate.Body));

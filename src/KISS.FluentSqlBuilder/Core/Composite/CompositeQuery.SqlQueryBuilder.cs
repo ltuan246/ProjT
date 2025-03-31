@@ -55,6 +55,18 @@ public sealed partial class CompositeQuery
     }
 
     /// <summary>
+    ///     Retrieves the database table name associated with a given type using the SqlTableAttribute.
+    /// </summary>
+    /// <param name="type">The type (class) for which to retrieve the table name.</param>
+    /// <returns>The name of the table as specified by the SqlTableAttribute on the type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the specified type does not have a SqlTableAttribute applied.</exception>
+    public string GetTableName(Type type)
+    {
+        var attr = type.GetCustomAttribute<SqlTableAttribute>();
+        return attr == null ? throw new InvalidOperationException($"Type {type.Name} must have a SqlTableAttribute.") : attr.Name;
+    }
+
+    /// <summary>
     ///     Builds the complete SQL query by assembling all query clauses in the correct order.
     ///     This method orchestrates the construction of the final SQL query string.
     /// </summary>
@@ -96,7 +108,7 @@ public sealed partial class CompositeQuery
     {
         var (table, alias) = TableAliases.First();
         Append("FROM");
-        AppendLine($"{table.Name} AS {alias}");
+        AppendLine($"{GetTableName(table)} AS {alias}");
         AppendLine();
     }
 
