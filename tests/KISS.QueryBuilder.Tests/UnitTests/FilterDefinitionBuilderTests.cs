@@ -283,7 +283,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Join_FluentBuilder_ReturnsExpectedCards()
+    public void Join_FluentBuilder_ReturnsExpectedData()
     {
         // Arrange
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exMoonPhase = "New Moon";
@@ -320,7 +320,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void GroupBy_FluentBuilder_ReturnsExpectedCards()
+    public void GroupBy_FluentBuilder_ReturnsExpectedData()
     {
         // Act
         var weathers = Connection.Retrieve<DailyWeather>()
@@ -333,7 +333,7 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Having_FluentBuilder_ReturnsExpectedCards()
+    public void Having_FluentBuilder_ReturnsExpectedData()
     {
         // Arrange
         const double exTotalSnowCm = 20;

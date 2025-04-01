@@ -1,25 +1,25 @@
 namespace KISS.QueryBuilder.Benchmarks;
 
 [MemoryDiagnoser]
-[Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
-public sealed class FluentSqlBuilderBenchmarks
+[Orderer(SummaryOrderPolicy.FastestToSlowest)]
+public class FluentSqlBuilderBenchmarks
 {
-    private SqliteConnection Connection { get; } = new("Data Source=weather.db");
+    private SqliteConnection Connection { get; } = new();
 
     // Setup method to initialize the connection before benchmarks
     [GlobalSetup]
     public void Setup()
     {
-        // Assuming weather.db is in the test directory; adjust path as needed
+        string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "weather.db");
+        string connectionString = $"DataSource={dbPath};Mode=ReadWrite;Cache=Shared";
+        Connection.ConnectionString = connectionString;
         Connection.Open();
     }
 
     // Cleanup method to dispose of the connection after benchmarks
     [GlobalCleanup]
     public void Cleanup()
-    {
-        Connection?.Dispose();
-    }
+        => Connection.Dispose();
 
     [Benchmark]
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
@@ -28,7 +28,7 @@ public sealed class FluentSqlBuilderBenchmarks
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872";
 
         // Act
-        IList<Location> locations = Connection.Retrieve<Location>()
+        _ = Connection.Retrieve<Location>()
             .From<Location>()
             .Where(w => w.Id == exId)
             .ToList();
@@ -41,7 +41,7 @@ public sealed class FluentSqlBuilderBenchmarks
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exTzId = "Europe/Andorra";
 
         // Act
-        IList<Location> locations = Connection.Retrieve<Location>()
+        _ = Connection.Retrieve<Location>()
             .From<Location>()
             .Where(w => w.Id == exId)
             .Where(w => w.TzId != exTzId)
@@ -55,7 +55,7 @@ public sealed class FluentSqlBuilderBenchmarks
         const float exTemperatureCelsius = 29;
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => w.AvgTempC > exTemperatureCelsius)
             .ToList();
@@ -68,7 +68,7 @@ public sealed class FluentSqlBuilderBenchmarks
         const float exTemperatureCelsius = 29;
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => w.AvgTempC >= exTemperatureCelsius)
             .ToList();
@@ -81,7 +81,7 @@ public sealed class FluentSqlBuilderBenchmarks
         const float exTemperatureCelsius = 10;
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => w.AvgTempC < exTemperatureCelsius)
             .ToList();
@@ -94,7 +94,7 @@ public sealed class FluentSqlBuilderBenchmarks
         const float exTemperatureCelsius = 10;
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => w.AvgTempC <= exTemperatureCelsius)
             .ToList();
@@ -107,7 +107,7 @@ public sealed class FluentSqlBuilderBenchmarks
         string[] exConditionTexts = ["Sunny", "Cloudy"];
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => SqlFunctions.AnyIn(w.ConditionText, exConditionTexts))
             .ToList();
@@ -120,7 +120,7 @@ public sealed class FluentSqlBuilderBenchmarks
         string[] exConditionTexts = ["Sunny", "Cloudy"];
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => SqlFunctions.NotIn(w.ConditionText, exConditionTexts))
             .ToList();
@@ -135,7 +135,7 @@ public sealed class FluentSqlBuilderBenchmarks
         long exDateBeginEpoch = EpochTime.GetIntDate(exDateBegin), exDateEndEpoch = EpochTime.GetIntDate(exDateEnd);
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => SqlFunctions.InRange(w.DateEpoch, exDateBeginEpoch, exDateEndEpoch))
             .ToList();
@@ -145,13 +145,14 @@ public sealed class FluentSqlBuilderBenchmarks
     public void OrOperator_FluentBuilder_ReturnsDataIfAnyOneConditionIsTrue()
     {
         // Arrange
-        string[] exIds = [new("b804d8ae-791b-4c51-a164-e823146297d4"), new("7489b710-5661-4068-b904-899e7f0df0b7")];
+        string[] exIds =
+            [new string("b804d8ae-791b-4c51-a164-e823146297d4"), new string("7489b710-5661-4068-b904-899e7f0df0b7")];
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
-            .Select(w => new()
+            .Select(w => new DailyWeather
             {
                 Id = w.Id,
                 LocationId = w.LocationId,
@@ -166,13 +167,14 @@ public sealed class FluentSqlBuilderBenchmarks
     public void SelectLimit_FluentBuilder_ReturnsDataIfAnyOneConditionIsTrue()
     {
         // Arrange
-        string[] exIds = [new("b804d8ae-791b-4c51-a164-e823146297d4"), new("7489b710-5661-4068-b904-899e7f0df0b7")];
+        string[] exIds =
+            [new string("b804d8ae-791b-4c51-a164-e823146297d4"), new string("7489b710-5661-4068-b904-899e7f0df0b7")];
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
-            .Select(w => new()
+            .Select(w => new DailyWeather
             {
                 Id = w.Id,
                 LocationId = w.LocationId,
@@ -189,13 +191,14 @@ public sealed class FluentSqlBuilderBenchmarks
     public void SelectOffset_FluentBuilder_ReturnsDataIfAnyOneConditionIsTrue()
     {
         // Arrange
-        string[] exIds = [new("b804d8ae-791b-4c51-a164-e823146297d4"), new("7489b710-5661-4068-b904-899e7f0df0b7")];
+        string[] exIds =
+            [new string("b804d8ae-791b-4c51-a164-e823146297d4"), new string("7489b710-5661-4068-b904-899e7f0df0b7")];
 
         // Act
-        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
-            .Select(w => new()
+            .Select(w => new DailyWeather
             {
                 Id = w.Id,
                 LocationId = w.LocationId,
@@ -210,13 +213,13 @@ public sealed class FluentSqlBuilderBenchmarks
     }
 
     [Benchmark]
-    public void Join_FluentBuilder_ReturnsExpectedCards()
+    public void Join_FluentBuilder_ReturnsExpectedData()
     {
         // Arrange
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872";
 
         // Act
-        IList<WeatherModel> weathers = Connection.Retrieve<WeatherModel>()
+        _ = Connection.Retrieve<WeatherModel>()
             .From<Location>()
             .InnerJoin<Astronomy>( // Map one-to-one relationship
                 e => e.Id,
@@ -231,23 +234,23 @@ public sealed class FluentSqlBuilderBenchmarks
     }
 
     [Benchmark]
-    public void GroupBy_FluentBuilder_ReturnsExpectedCards()
+    public void GroupBy_FluentBuilder_ReturnsExpectedData()
     {
         // Act
-        var weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .GroupBy(c => c.LocationId)
             .ToDictionary();
     }
 
     [Benchmark]
-    public void Having_FluentBuilder_ReturnsExpectedCards()
+    public void Having_FluentBuilder_ReturnsExpectedData()
     {
         // Arrange
         const double exTotalSnowCm = 20;
 
         // Act
-        var weathers = Connection.Retrieve<DailyWeather>()
+        _ = Connection.Retrieve<DailyWeather>()
             .From<DailyWeather>()
             .GroupBy(c => c.LocationId)
             .Having(agg => agg.Sum(x => x.TotalSnowCm) > exTotalSnowCm)

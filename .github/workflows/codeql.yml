@@ -1,13 +1,19 @@
 name: "CodeQL"
 
 on:
-    push:
-        branches: [ "main" ]
+    # push:
+    #     branches: [ "main" ]
+    # pull_request:
+    #     branches: [ "main" ]
+    # schedule:
+    #     -   cron: '0 17 * * 5'
+    # workflow_dispatch:
+
     pull_request:
-        branches: [ "main" ]
-    schedule:
-        -   cron: '0 17 * * 5'
-    workflow_dispatch:
+        branches:
+        - main
+        types:
+        - closed # Trigger only when PR is closed (includes merges)
 
 jobs:
     analyze:
