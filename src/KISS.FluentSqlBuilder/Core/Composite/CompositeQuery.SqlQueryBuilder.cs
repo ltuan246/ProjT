@@ -20,16 +20,9 @@ public sealed partial class CompositeQuery
     ///     This method is used for adding SQL fragments with proper formatting and structure.
     /// </summary>
     /// <param name="value">The SQL string to append to the query.</param>
-    /// <param name="indent">Whether to add indentation to the new line.</param>
-    private void AppendLine(string value = "", bool indent = false)
+    private void AppendLine(string value = "")
     {
         SqlBuilder.AppendLine();
-        if (indent)
-        {
-            const int indentationLevel = 4;
-            SqlBuilder.Append(new string(' ', indentationLevel));
-        }
-
         SqlBuilder.Append(value);
     }
 
@@ -63,7 +56,9 @@ public sealed partial class CompositeQuery
     public string GetTableName(Type type)
     {
         var attr = type.GetCustomAttribute<SqlTableAttribute>();
-        return attr == null ? throw new InvalidOperationException($"Type {type.Name} must have a SqlTableAttribute.") : attr.Name;
+        return attr == null
+            ? throw new InvalidOperationException($"Type {type.Name} must have a SqlTableAttribute.")
+            : attr.Name;
     }
 
     /// <summary>

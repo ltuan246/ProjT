@@ -19,11 +19,6 @@ public sealed partial record SelectAggregateHandler
             Append($"{Composite.GetAliasMapping(parameterExpression.Type)}_{memberExpression.Member.Name}");
             switch (memberExpression.Member)
             {
-                // Accessing a static field, get its type and value using reflection
-                case FieldInfo fieldInfo:
-                    var fieldType = fieldInfo.FieldType;
-                    Composite.AggregationKeys[Alias] = fieldType;
-                    break;
                 // Accessing a static property, get its type and value using reflection
                 case PropertyInfo propertyInfo:
                     var propType = propertyInfo.PropertyType;
@@ -31,26 +26,6 @@ public sealed partial record SelectAggregateHandler
                     break;
             }
         }
-    }
-
-    /// <summary>
-    ///     Translates a constant expression into SQL for aggregate operations.
-    ///     Converts constant values into their string representation for SQL.
-    /// </summary>
-    /// <param name="constantExpression">The constant expression to translate.</param>
-    protected override void Translate(ConstantExpression constantExpression)
-        => AppendFormat($"{constantExpression.Value}");
-
-    /// <summary>
-    ///     Translates a binary expression into SQL for aggregate operations.
-    ///     Handles mathematical and comparison operations within aggregates.
-    /// </summary>
-    /// <param name="binaryExpression">The binary expression to translate.</param>
-    protected override void Translate(BinaryExpression binaryExpression)
-    {
-        Translate(binaryExpression.Left);
-        Append(BinaryOperandMap[binaryExpression.NodeType]);
-        Translate(binaryExpression.Right);
     }
 
     /// <summary>

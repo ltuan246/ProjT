@@ -92,7 +92,8 @@ public sealed partial class CompositeQuery
 
             return convertedValue;
         }
-        else if (effectiveTargetType == typeof(DateTime) || effectiveTargetType == typeof(DateTimeOffset))
+
+        if (effectiveTargetType == typeof(DateTime) || effectiveTargetType == typeof(DateTimeOffset))
         {
             var dateTimeOffsetValue = Expression.Call(
                 typeof(DateTimeOffset),
@@ -119,50 +120,48 @@ public sealed partial class CompositeQuery
 
             return convertedValue;
         }
+
+        // General conversion logic for other types
+        if (nonNullableType is null)
+        {
+            var changeTypeCall = Expression.Call(
+                typeof(Convert),
+                nameof(Convert.ChangeType),
+                Type.EmptyTypes,
+                sourceValue,
+                Expression.Constant(targetType));
+
+            var convertedValue = Expression.ConvertChecked(changeTypeCall, targetType);
+
+            return convertedValue;
+        }
         else
         {
-            // General conversion logic for other types
-            if (nonNullableType is null)
-            {
-                var changeTypeCall = Expression.Call(
-                    typeof(Convert),
-                    nameof(Convert.ChangeType),
+            var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
+            var defaultValue = Expression.Convert(
+                Expression.Call(
+                    typeof(Activator),
+                    nameof(Activator.CreateInstance),
                     Type.EmptyTypes,
-                    sourceValue,
-                    Expression.Constant(targetType));
+                    Expression.Constant(nonNullableType)),
+                nonNullableType);
 
-                var convertedValue = Expression.ConvertChecked(changeTypeCall, targetType);
+            var changeTypeCall = Expression.Call(
+                typeof(Convert),
+                nameof(Convert.ChangeType),
+                Type.EmptyTypes,
+                sourceValue,
+                Expression.Constant(nonNullableType));
 
-                return convertedValue;
-            }
-            else
-            {
-                var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
-                var defaultValue = Expression.Convert(
-                    Expression.Call(
-                        typeof(Activator),
-                        nameof(Activator.CreateInstance),
-                        Type.EmptyTypes,
-                        Expression.Constant(nonNullableType)),
-                    nonNullableType);
+            var conversion = Expression.ConvertChecked(changeTypeCall, nonNullableType);
+            var fallbackDefaultValue = Expression.Condition(
+                isNullCheck,
+                defaultValue,
+                conversion);
 
-                var changeTypeCall = Expression.Call(
-                    typeof(Convert),
-                    nameof(Convert.ChangeType),
-                    Type.EmptyTypes,
-                    sourceValue,
-                    Expression.Constant(nonNullableType));
+            var convertedValue = Expression.Convert(fallbackDefaultValue, targetType);
 
-                var conversion = Expression.ConvertChecked(changeTypeCall, nonNullableType);
-                var fallbackDefaultValue = Expression.Condition(
-                    isNullCheck,
-                    defaultValue,
-                    conversion);
-
-                var convertedValue = Expression.Convert(fallbackDefaultValue, targetType);
-
-                return convertedValue;
-            }
+            return convertedValue;
         }
     }
 

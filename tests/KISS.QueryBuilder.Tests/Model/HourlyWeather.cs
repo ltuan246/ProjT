@@ -50,7 +50,7 @@ public class HourlyWeather
     /// <summary>
     ///     Indicator if this hour is during daylight (0 = night, 1 = day).
     /// </summary>
-    public int IsDay { get; set; }
+    public bool IsDay { get; set; }
 
     /// <summary>
     ///     Text description of the weather condition at this hour (e.g., "Rainy", "Clear").

@@ -3,7 +3,7 @@ namespace KISS.QueryBuilder.Tests.UnitTests;
 [Collection(nameof(SqliteTestsCollection))]
 public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 {
-    private SqliteConnection Connection { get; init; } = fixture.Connection;
+    private SqliteConnection Connection { get; } = fixture.Connection;
 
     [Theory]
     [InlineData(true, 1)]
@@ -15,16 +15,16 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         var weathers = Connection.Retrieve<WeatherModel>()
-            .From<Location>()
+            .From<Model.Location>()
             .InnerJoin<Astronomy>( // Map one-to-one relationship
                 e => e.Id,
                 r => r.LocationId,
                 e => e.Astro)
             .InnerJoin<DailyWeather>( // Map one-to-one relationship
-                (Location e) => e.Id,
+                (Model.Location e) => e.Id,
                 r => r.LocationId,
                 e => e.DailyWeathers)
-            .Where(condition, (Location w) => w.Id == exId)
+            .Where(condition, (Model.Location w) => w.Id == exId)
             .ToList();
 
         // Assert
@@ -39,8 +39,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const double exLatitude = 42.5, exLongitude = 1.517;
 
         // Act
-        IList<Location> locations = Connection.Retrieve<Location>()
-            .From<Location>()
+        IList<Model.Location> locations = Connection.Retrieve<Model.Location>()
+            .From<Model.Location>()
             .Where(w => w.Id == exId)
             .ToList();
 
@@ -63,8 +63,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exTzId = "Europe/Andorra";
 
         // Act
-        IList<Location> locations = Connection.Retrieve<Location>()
-            .From<Location>()
+        IList<Model.Location> locations = Connection.Retrieve<Model.Location>()
+            .From<Model.Location>()
             .Where(w => w.Id == exId)
             .Where(w => w.TzId != exTzId)
             .ToList();
@@ -290,16 +290,16 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<WeatherModel> weathers = Connection.Retrieve<WeatherModel>()
-            .From<Location>()
+            .From<Model.Location>()
             .InnerJoin<Astronomy>( // Map one-to-one relationship
                 e => e.Id,
                 r => r.LocationId,
                 e => e.Astro)
             .InnerJoin<DailyWeather>( // Map one-to-one relationship
-                (Location e) => e.Id,
+                (Model.Location e) => e.Id,
                 r => r.LocationId,
                 e => e.DailyWeathers)
-            .Where((Location c) => c.Id == exId)
+            .Where((Model.Location c) => c.Id == exId)
             .ToList();
 
         // Assert
@@ -344,6 +344,10 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
             .GroupBy(c => c.LocationId)
             .Having(agg => agg.Sum(x => x.TotalSnowCm) > exTotalSnowCm)
             .SelectAggregate(agg => agg.Sum(x => x.TotalSnowCm), "TotalSnowCm")
+            .SelectAggregate(agg => agg.Max(x => x.TotalSnowCm), "MaxSnowCm")
+            .SelectAggregate(agg => agg.Min(x => x.TotalSnowCm), "MinSnowCm")
+            .SelectAggregate(agg => agg.Avg(x => x.TotalSnowCm), "AvgSnowCm")
+            .SelectAggregate(agg => agg.Count(x => 1), "Cnt")
             .ToDictionary();
 
         Assert.Equal(10, weathers.Count);

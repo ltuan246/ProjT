@@ -6,6 +6,7 @@ namespace KISS.FluentSqlBuilder.Builders.AggregationBuilders;
 ///     queries and HAVING clauses.
 /// </summary>
 /// <typeparam name="TRecordset">The type representing the database table or view being queried.</typeparam>
+[ExcludeFromCodeCoverage]
 public sealed record AggregationBuilder<TRecordset>
 {
     /// <summary>

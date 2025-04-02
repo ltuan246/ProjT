@@ -23,17 +23,6 @@ public sealed partial class CompositeQuery
         typeof(IEnumerable<IDictionary<string, object>>).GetMethod("GetEnumerator")!;
 
     /// <summary>
-    ///     Gets the MethodInfo for the indexer (get_Item) of IDictionary{string, object}.
-    ///     This is used to access values by key in dictionary rows within expression trees.
-    /// </summary>
-    /// <remarks>
-    ///     Cached statically for efficiency, targeting IDictionary{string, object} to match the expected row type.
-    ///     The indexer returns an object, requiring type conversion in downstream processing.
-    /// </remarks>
-    private static MethodInfo GetIndexerForDictStrObj { get; } =
-        typeof(IDictionary<string, object>).GetMethod("get_Item")!;
-
-    /// <summary>
     ///     A function that define how to process each row.
     /// </summary>
     public Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression> IterRowProcessor { get; set; } = default!;

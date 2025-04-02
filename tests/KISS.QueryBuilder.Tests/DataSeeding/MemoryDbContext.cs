@@ -1,6 +1,6 @@
-namespace KISS.QueryBuilder.Tests.DataSeeding;
+﻿namespace KISS.QueryBuilder.Tests.DataSeeding;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+public class MemoryDbContext(DbContextOptions<MemoryDbContext> options) : DbContext(options)
 {
     public DbSet<Location> Locations { get; set; }
     public DbSet<DailyWeather> DailyWeathers { get; set; }
