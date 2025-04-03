@@ -8,23 +8,23 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     [Theory]
     [InlineData(true, 1)]
     [InlineData(false, 201)]
-    public void Fetch_FluentBuilder_ReturnsExpectedCards(bool condition, int expected)
+    public void Fetch_FluentBuilder_ReturnsExpectedWeathers(bool condition, int expected)
     {
         // Arrange
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872";
 
         // Act
         var weathers = Connection.Retrieve<WeatherModel>()
-            .From<Model.Location>()
+            .From<Location>()
             .InnerJoin<Astronomy>( // Map one-to-one relationship
                 e => e.Id,
                 r => r.LocationId,
                 e => e.Astro)
             .InnerJoin<DailyWeather>( // Map one-to-one relationship
-                (Model.Location e) => e.Id,
+                (Location e) => e.Id,
                 r => r.LocationId,
                 e => e.DailyWeathers)
-            .Where(condition, (Model.Location w) => w.Id == exId)
+            .Where(condition, (Location w) => w.Id == exId)
             .ToList();
 
         // Assert
@@ -39,8 +39,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const double exLatitude = 42.5, exLongitude = 1.517;
 
         // Act
-        IList<Model.Location> locations = Connection.Retrieve<Model.Location>()
-            .From<Model.Location>()
+        IList<Location> locations = Connection.Retrieve<Location>()
+            .From<Location>()
             .Where(w => w.Id == exId)
             .ToList();
 
@@ -63,8 +63,8 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exTzId = "Europe/Andorra";
 
         // Act
-        IList<Model.Location> locations = Connection.Retrieve<Model.Location>()
-            .From<Model.Location>()
+        IList<Location> locations = Connection.Retrieve<Location>()
+            .From<Location>()
             .Where(w => w.Id == exId)
             .Where(w => w.TzId != exTzId)
             .ToList();
@@ -290,16 +290,16 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 
         // Act
         IList<WeatherModel> weathers = Connection.Retrieve<WeatherModel>()
-            .From<Model.Location>()
+            .From<Location>()
             .InnerJoin<Astronomy>( // Map one-to-one relationship
                 e => e.Id,
                 r => r.LocationId,
                 e => e.Astro)
             .InnerJoin<DailyWeather>( // Map one-to-one relationship
-                (Model.Location e) => e.Id,
+                (Location e) => e.Id,
                 r => r.LocationId,
                 e => e.DailyWeathers)
-            .Where((Model.Location c) => c.Id == exId)
+            .Where((Location c) => c.Id == exId)
             .ToList();
 
         // Assert

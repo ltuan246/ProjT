@@ -68,57 +68,75 @@ public sealed partial class CompositeQuery
         // Handle specific conversion from string to Guid
         if (effectiveTargetType == typeof(Guid))
         {
-            // Assume sourceValue is a string from IDictionary<string, object>
-            var guidValue = Expression.Call(
+            var sourceString = Expression.Convert(sourceValue, typeof(string));
+            var isNullOrEmptyCheck = Expression.OrElse(
+                Expression.Equal(sourceString, Expression.Constant(null)),
+                Expression.Equal(sourceString, Expression.Constant(string.Empty)));
+
+            var resultVar = Expression.Variable(typeof(Guid), "result");
+            var tryParse = Expression.Call(
                 typeof(Guid),
-                nameof(Guid.Parse),
+                nameof(Guid.TryParse),
                 Type.EmptyTypes,
-                Expression.Convert(sourceValue, typeof(string)));
+                sourceString,
+                resultVar);
 
-            Expression convertedValue;
-            if (nonNullableType != null) // Nullable<Guid>
+            var tryParseBlock = Expression.Block(
+                [resultVar],
+                Expression.IfThen(
+                    Expression.IsTrue(tryParse),
+                    Expression.Assign(
+                        resultVar,
+                        Expression.Call(typeof(Guid), nameof(Guid.Parse), Type.EmptyTypes, sourceString))),
+                resultVar);
+
+            if (nonNullableType != null && nonNullableType == typeof(Guid)) // Nullable<Guid>
             {
-                var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
-                var defaultValue = Expression.Default(nonNullableType); // null for Nullable<Guid>
-                convertedValue = Expression.Condition(
-                    isNullCheck,
-                    Expression.Convert(defaultValue, targetType),
-                    guidValue);
-            }
-            else // Guid
-            {
-                convertedValue = guidValue;
+                var defaultValue = Expression.Constant(null, typeof(Guid?));
+                return Expression.Condition(
+                    isNullOrEmptyCheck,
+                    defaultValue,
+                    Expression.Convert(tryParseBlock, typeof(Guid?)));
             }
 
-            return convertedValue;
+            return tryParseBlock;
         }
 
-        if (effectiveTargetType == typeof(DateTime) || effectiveTargetType == typeof(DateTimeOffset))
+        // Handle DateTime and DateTime?
+        if (effectiveTargetType == typeof(DateTime))
         {
-            var dateTimeOffsetValue = Expression.Call(
-                typeof(DateTimeOffset),
-                nameof(DateTimeOffset.Parse),
+            var sourceString = Expression.Convert(sourceValue, typeof(string));
+            var isNullOrEmptyCheck = Expression.OrElse(
+                Expression.Equal(sourceString, Expression.Constant(null)),
+                Expression.Equal(sourceString, Expression.Constant(string.Empty)));
+
+            var resultVar = Expression.Variable(typeof(DateTime), "result");
+            var tryParse = Expression.Call(
+                typeof(DateTime),
+                nameof(DateTime.TryParse),
                 Type.EmptyTypes,
-                Expression.Convert(sourceValue, typeof(string)));
+                sourceString,
+                resultVar);
 
-            var dateTimeValue = Expression.Property(dateTimeOffsetValue, nameof(DateTimeOffset.DateTime));
+            var tryParseBlock = Expression.Block(
+                [resultVar],
+                Expression.IfThen(
+                    Expression.IsTrue(tryParse),
+                    Expression.Assign(
+                        resultVar,
+                        Expression.Call(typeof(DateTime), nameof(DateTime.Parse), Type.EmptyTypes, sourceString))),
+                resultVar);
 
-            Expression convertedValue;
             if (nonNullableType != null) // Nullable<DateTime>
             {
-                var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
-                var defaultValue = Expression.Default(nonNullableType);
-                convertedValue = Expression.Condition(
-                    isNullCheck,
-                    Expression.Convert(defaultValue, targetType),
-                    dateTimeValue);
-            }
-            else // DateTime
-            {
-                convertedValue = dateTimeValue;
+                var defaultValue = Expression.Constant(null, typeof(DateTime?));
+                return Expression.Condition(
+                    isNullOrEmptyCheck,
+                    defaultValue,
+                    Expression.Convert(tryParseBlock, typeof(DateTime?)));
             }
 
-            return convertedValue;
+            return tryParseBlock;
         }
 
         // General conversion logic for other types

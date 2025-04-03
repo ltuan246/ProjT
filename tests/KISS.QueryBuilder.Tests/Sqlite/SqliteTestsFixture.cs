@@ -58,7 +58,7 @@ public sealed class MemoryDbTestsFixture : IAsyncLifetime
 {
     public SqliteConnection Connection { get; private set; } = default!;
 
-    private WeatherDbContext Context { get; set; } = default!;
+    private MemoryDbContext Context { get; set; } = default!;
 
     private bool IsDisposed { get; set; }
 
@@ -98,11 +98,11 @@ public sealed class MemoryDbTestsFixture : IAsyncLifetime
 
     private async Task CreateSchemaAsync()
     {
-        DbContextOptions<WeatherDbContext> options = new DbContextOptionsBuilder<WeatherDbContext>()
+        DbContextOptions<MemoryDbContext> options = new DbContextOptionsBuilder<MemoryDbContext>()
             .UseSqlite(Connection)
             .Options;
 
-        Context = new WeatherDbContext(options);
+        Context = new MemoryDbContext(options);
         await Context.Database.EnsureCreatedAsync();
     }
 }
