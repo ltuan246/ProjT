@@ -132,25 +132,30 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
         new EnumeratorProcessor<MemberBinding>(memberInitExpression.Bindings)
             .AccessFirst(m =>
             {
+                // if (m is MemberAssignment
+                //     { Expression: MemberExpression { Expression: ParameterExpression parameter } member } assignment)
+                // {
+                //     string alias = Composite.GetAliasMapping(parameter.Type);
+                //     string sourceMemberName = $"{alias}.{member.Member.Name}";
+                //     Append($"{sourceMemberName} AS {assignment.Member.Name}");
+                // }
+
                 if (m is MemberAssignment
-                    { Expression: MemberExpression { Expression: ParameterExpression parameter1 } member1 } assignment1)
+                    { Expression: MemberExpression { Expression: ParameterExpression parameter } member } assignment)
                 {
-                    string alias = Composite.GetAliasMapping(parameter1.Type);
-                    string sourceMemberName = $"{alias}.{member1.Member.Name}";
-                    Append($"{sourceMemberName} AS {assignment1.Member.Name}");
                 }
             })
             .AccessRemaining(m =>
             {
                 if (m is MemberAssignment
-                    { Expression: MemberExpression { Expression: ParameterExpression parameter2 } member2 } assignment2)
+                    { Expression: MemberExpression { Expression: ParameterExpression parameter } member } assignment)
                 {
                     Append(", ");
                     AppendLine(string.Empty, true);
 
-                    string alias = Composite.GetAliasMapping(parameter2.Type);
-                    string sourceMemberName = $"{alias}.{member2.Member.Name}";
-                    Append($"{sourceMemberName} AS {assignment2.Member.Name}");
+                    string alias = Composite.GetAliasMapping(parameter.Type);
+                    string sourceMemberName = $"{alias}.{member.Member.Name}";
+                    Append($"{sourceMemberName} AS {assignment.Member.Name}");
                 }
             })
             .Execute();

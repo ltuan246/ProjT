@@ -9,8 +9,9 @@ public sealed class FilterDefinitionBuilderTests(MemoryDbTestsFixture fixture)
     public void Fetch_FluentBuilder_ReturnsExpectedWeathers()
     {
         // Act
-        IList<MemoryDailyWeather> weathers = Connection.Retrieve<MemoryDailyWeather>()
+        IList<MemoryDailyWeatherModel> weathers = Connection.Retrieve<MemoryDailyWeatherModel>()
             .From<MemoryDailyWeather>()
+            .Select(w => new() { Id = w.Id })
             .ToList();
 
         // Assert
@@ -33,6 +34,8 @@ public sealed class FilterDefinitionBuilderTests(MemoryDbTestsFixture fixture)
             // .Where(w => w.MaxTempC == exMaxTempC)
             // .Where(w => w.DateEpoch == 1740873600)
             .ToList();
+
+        _ = weathers;
 
         // Assert
         // Assert.Equal(1, weathers.Count);

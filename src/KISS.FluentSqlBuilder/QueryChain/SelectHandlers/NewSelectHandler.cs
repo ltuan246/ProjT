@@ -24,5 +24,10 @@ public sealed partial record NewSelectHandler<TSource, TReturn>(Expression Selec
     ///     This method is implemented in the translator class to handle the actual
     ///     translation of the object initialization expression into SQL.
     /// </summary>
-    protected override void Process() { }
+    protected override void Process()
+    {
+        Translate(Selector);
+        var sql = StatementBuilder.ToString();
+        _ = sql;
+    }
 }

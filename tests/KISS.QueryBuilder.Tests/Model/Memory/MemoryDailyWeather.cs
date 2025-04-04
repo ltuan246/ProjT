@@ -164,3 +164,26 @@ public class MemoryDailyWeather
     [Name("uv")]
     public double Uv { get; set; }
 }
+
+public class MemoryDailyWeatherModel
+{
+    /// <summary>
+    ///     Unique identifier for this daily weather record (e.g., a GUID or custom string).
+    /// </summary>
+    public Guid? Id { get; set; }
+
+    /// <summary>
+    ///     Identifier linking this record to a specific location (e.g., foreign key to MemoryLocation table).
+    /// </summary>
+    public Guid? LocationId { get; set; }
+
+    /// <summary>
+    ///     The date this weather data pertains to, typically in UTC.
+    /// </summary>
+    public DateTime? Date { get; set; }
+
+    /// <summary>
+    ///     The date represented as a Unix epoch timestamp (seconds since 1970-01-01 UTC).
+    /// </summary>
+    public long? DateEpoch { get; set; }
+}

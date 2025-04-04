@@ -9,7 +9,7 @@ public sealed partial class CompositeQuery
     ///     Creates a collection of <see cref="MemberBinding" /> instances by mapping properties
     ///     from an iterated row (e.g., a dictionary or dynamic object) to a target type.
     /// </summary>
-    /// <param name="itorRowVariable">The current row being processed in the loop.</param>
+    /// <param name="iterRowVariable">The current row being processed in the loop.</param>
     /// <param name="sourceType">The type of the source entity providing the data.</param>
     /// <param name="targetType">The type of the target entity to which properties are bound.</param>
     /// <returns>
@@ -18,7 +18,7 @@ public sealed partial class CompositeQuery
     ///     to a corresponding target property.
     /// </returns>
     public IEnumerable<MemberBinding> CreateIterRowBindings(
-        ParameterExpression itorRowVariable,
+        ParameterExpression iterRowVariable,
         Type sourceType,
         Type targetType)
     {
@@ -30,7 +30,7 @@ public sealed partial class CompositeQuery
             if (targetProperty != null && targetProperty.PropertyType == sourceProperty.PropertyType)
             {
                 var sourceValue = Expression.Property(
-                    itorRowVariable,
+                    iterRowVariable,
                     "Item",
                     Expression.Constant($"{alias}_{sourceProperty.Name}"));
 
@@ -53,7 +53,7 @@ public sealed partial class CompositeQuery
     ///     (e.g., <see cref="Nullable{T}"/>) or non-nullable (e.g., <see cref="Guid"/> or <see cref="int"/>).
     /// </param>
     /// <returns>
-    ///     An <see cref="Expression"/> representing the converted value, adjusted to match the
+    ///     A <see cref="Expression"/> representing the converted value, adjusted to match the
     ///     <paramref name="targetType"/>. For nullable types, includes null checks to handle null source values
     ///     appropriately.
     /// </returns>
@@ -65,122 +65,57 @@ public sealed partial class CompositeQuery
         var nonNullableType = Nullable.GetUnderlyingType(targetType);
         var effectiveTargetType = nonNullableType ?? targetType;
 
-        // Handle specific conversion from string to Guid
-        if (effectiveTargetType == typeof(Guid))
+        if (effectiveTargetType == typeof(Guid)
+            || effectiveTargetType == typeof(DateTime)
+            || nonNullableType is not null)
         {
-            var sourceString = Expression.Convert(sourceValue, typeof(string));
-            var isNullOrEmptyCheck = Expression.OrElse(
-                Expression.Equal(sourceString, Expression.Constant(null)),
-                Expression.Equal(sourceString, Expression.Constant(string.Empty)));
-
-            var resultVar = Expression.Variable(typeof(Guid), "result");
-            var tryParse = Expression.Call(
-                typeof(Guid),
-                nameof(Guid.TryParse),
-                Type.EmptyTypes,
-                sourceString,
-                resultVar);
-
-            var tryParseBlock = Expression.Block(
-                [resultVar],
-                Expression.IfThen(
-                    Expression.IsTrue(tryParse),
-                    Expression.Assign(
-                        resultVar,
-                        Expression.Call(typeof(Guid), nameof(Guid.Parse), Type.EmptyTypes, sourceString))),
-                resultVar);
-
-            if (nonNullableType != null && nonNullableType == typeof(Guid)) // Nullable<Guid>
-            {
-                var defaultValue = Expression.Constant(null, typeof(Guid?));
-                return Expression.Condition(
-                    isNullOrEmptyCheck,
-                    defaultValue,
-                    Expression.Convert(tryParseBlock, typeof(Guid?)));
-            }
-
-            return tryParseBlock;
+            return ChangeSpecificType(sourceValue, targetType);
         }
 
-        // Handle DateTime and DateTime?
-        if (effectiveTargetType == typeof(DateTime))
-        {
-            var sourceString = Expression.Convert(sourceValue, typeof(string));
-            var isNullOrEmptyCheck = Expression.OrElse(
-                Expression.Equal(sourceString, Expression.Constant(null)),
-                Expression.Equal(sourceString, Expression.Constant(string.Empty)));
+        var changeTypeCall = Expression.Call(
+            typeof(Convert),
+            nameof(Convert.ChangeType),
+            Type.EmptyTypes,
+            sourceValue,
+            Expression.Constant(targetType));
 
-            var resultVar = Expression.Variable(typeof(DateTime), "result");
-            var tryParse = Expression.Call(
-                typeof(DateTime),
-                nameof(DateTime.TryParse),
-                Type.EmptyTypes,
-                sourceString,
-                resultVar);
+        var convertedValue = Expression.ConvertChecked(changeTypeCall, targetType);
 
-            var tryParseBlock = Expression.Block(
-                [resultVar],
-                Expression.IfThen(
-                    Expression.IsTrue(tryParse),
-                    Expression.Assign(
-                        resultVar,
-                        Expression.Call(typeof(DateTime), nameof(DateTime.Parse), Type.EmptyTypes, sourceString))),
-                resultVar);
+        return convertedValue;
+    }
 
-            if (nonNullableType != null) // Nullable<DateTime>
-            {
-                var defaultValue = Expression.Constant(null, typeof(DateTime?));
-                return Expression.Condition(
-                    isNullOrEmptyCheck,
-                    defaultValue,
-                    Expression.Convert(tryParseBlock, typeof(DateTime?)));
-            }
+    private Expression ChangeSpecificType(IndexExpression sourceValue, Type targetType)
+    {
+        // If the target type is nullable (e.g., Nullable<T>), retrieve its underlying non-nullable type (T).
+        // This is necessary because Expression.Convert cannot directly convert a non-nullable value to a nullable type.
+        // By first converting to the underlying type, we ensure compatibility before handling the nullable conversion.
+        var nonNullableType = Nullable.GetUnderlyingType(targetType);
+        Type actualType = nonNullableType ?? targetType;
 
-            return tryParseBlock;
-        }
+        // Check if sourceValue is null
+        var isSourceNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
 
-        // General conversion logic for other types
-        if (nonNullableType is null)
-        {
-            var changeTypeCall = Expression.Call(
-                typeof(Convert),
-                nameof(Convert.ChangeType),
-                Type.EmptyTypes,
-                sourceValue,
-                Expression.Constant(targetType));
+        // Convert sourceValue to string only if non-null (mirrors data?.ToString())
+        Expression sourceString = Expression.Condition(
+            isSourceNullCheck,
+            Expression.Constant(null, typeof(string)),
+            Expression.Call(
+                Expression.Convert(sourceValue, typeof(object)),
+                typeof(object).GetMethod("ToString", Type.EmptyTypes)!));
 
-            var convertedValue = Expression.ConvertChecked(changeTypeCall, targetType);
+        // TryParse logic
+        var result = Expression.Variable(actualType, "result");
+        var tryParse = Expression.Call(
+            actualType,
+            "TryParse",
+            Type.EmptyTypes,
+            sourceString,
+            result);
 
-            return convertedValue;
-        }
-        else
-        {
-            var isNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
-            var defaultValue = Expression.Convert(
-                Expression.Call(
-                    typeof(Activator),
-                    nameof(Activator.CreateInstance),
-                    Type.EmptyTypes,
-                    Expression.Constant(nonNullableType)),
-                nonNullableType);
+        // Block to execute TryParse and return the result
+        var parseResultBlock = Expression.Block([result], tryParse, result);
 
-            var changeTypeCall = Expression.Call(
-                typeof(Convert),
-                nameof(Convert.ChangeType),
-                Type.EmptyTypes,
-                sourceValue,
-                Expression.Constant(nonNullableType));
-
-            var conversion = Expression.ConvertChecked(changeTypeCall, nonNullableType);
-            var fallbackDefaultValue = Expression.Condition(
-                isNullCheck,
-                defaultValue,
-                conversion);
-
-            var convertedValue = Expression.Convert(fallbackDefaultValue, targetType);
-
-            return convertedValue;
-        }
+        return nonNullableType is null ? parseResultBlock : Expression.Convert(parseResultBlock, targetType);
     }
 
     /// <summary>
@@ -207,15 +142,17 @@ public sealed partial class CompositeQuery
     /// </remarks>
     private List<TEntity> SimpleProcessToList<TEntity>(List<IDictionary<string, object>> inputData)
     {
-        var returnType = typeof(List<TEntity>);
+        Type returnType = typeof(List<TEntity>),
+            entityType = typeof(TEntity),
+            inputEntryType = typeof(IDictionary<string, object>),
+            inputIterType = typeof(IEnumerator<IDictionary<string, object>>);
 
         // Enumerator for iterating over inputData
-        ParameterExpression inputDictItorVariable =
-                Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "inputDictItorVariable"),
+        ParameterExpression inputDictIterVariable = Expression.Variable(inputIterType, "inputDictIterVariable"),
             // Current row being processed in the loop
-            currentInputRowParameter = Expression.Parameter(typeof(IDictionary<string, object>), "currentInputRowParameter"),
+            currentInputRowParameter = Expression.Parameter(inputEntryType, "currentInputRowParameter"),
             // Entity being constructed/modified for the current row
-            currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntityVariable"),
+            currentEntityVariable = Expression.Variable(entityType, "currentEntityVariable"),
             // Collection that accumulates all processed entities
             outputVariable = Expression.Variable(returnType, "outputVariable");
 
@@ -223,12 +160,14 @@ public sealed partial class CompositeQuery
         var breakLabel = Expression.Label();
         var whileLoopBody = Expression.Loop(
             Expression.IfThenElse(
-                Expression.Call(inputDictItorVariable, ItorMoveNextMethod), // If MoveNext returns true (more rows),
+                Expression.Call(inputDictIterVariable, IterMoveNextMethod), // If MoveNext returns true (more rows),
                 Expression.Block(
                     [currentInputRowParameter, currentEntityVariable],
                     [
                         // Execute the loop body with the current row
-                        Expression.Assign(currentInputRowParameter, Expression.Property(inputDictItorVariable, "Current")),
+                        Expression.Assign(
+                            currentInputRowParameter,
+                            Expression.Property(inputDictIterVariable, "Current")),
                         Expression.Block(
                             [], // Defines a block with the current entity variable.
                             IterRowProcessor((currentInputRowParameter, currentEntityVariable)),
@@ -242,16 +181,18 @@ public sealed partial class CompositeQuery
 
         var whileBlock = Expression.TryFinally(
             whileLoopBody, // The loop processing all rows
-            Expression.Call(inputDictItorVariable, DisposeMethod)); // Ensures the enumerator is disposed after completion
+            Expression.Call(
+                inputDictIterVariable,
+                DisposeMethod)); // Ensures the enumerator is disposed after completion
 
         var fullBlock = Expression.Block(
-            [outputVariable, inputDictItorVariable], // Declares variables used in the block
+            [outputVariable, inputDictIterVariable], // Declares variables used in the block
             [
                 // Initializes outputCollection with a new instance of T
                 Expression.Assign(outputVariable, Expression.New(returnType)),
                 // Sets up the enumerator for inputData
                 Expression.Assign(
-                    inputDictItorVariable,
+                    inputDictIterVariable,
                     Expression.Call(Expression.Constant(inputData), GetEnumeratorForIEnumDictStrObj)),
                 // Executes the loop with cleanup
                 whileBlock,
@@ -295,15 +236,17 @@ public sealed partial class CompositeQuery
             // Defines the type of the intermediate dictionary used for uniqueness.
             dictObjEntityType = typeof(Dictionary<object, TEntity>),
             // Specifies the type of the key used in the dictionary, extracted from each row for indexing.
-            dictKeyType = typeof(object);
+            dictKeyType = typeof(object),
+            entityType = typeof(TEntity),
+            inputEntryType = typeof(IDictionary<string, object>),
+            inputIterType = typeof(IEnumerator<IDictionary<string, object>>);
 
         // Enumerator for iterating over inputData
-        ParameterExpression dictInputEnumeratorVariable =
-                Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "inputDictItorVariable"),
+        ParameterExpression dictInputEnumeratorVariable = Expression.Variable(inputIterType, "inputDictIterVariable"),
             // Current row being processed in the loop
-            currentInputRowParameter = Expression.Parameter(typeof(IDictionary<string, object>), "currentInputRowParameter"),
+            currentInputRowParameter = Expression.Parameter(inputEntryType, "currentInputRowParameter"),
             // Entity being constructed/modified for the current row
-            currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntityVariable"),
+            currentEntityVariable = Expression.Variable(entityType, "currentEntityVariable"),
             // Collection that accumulates all processed entities
             outputVariable = Expression.Variable(returnType, "outputVariable"),
             // Intermediate dictionary that ensures uniqueness of entities by key
@@ -319,8 +262,8 @@ public sealed partial class CompositeQuery
 
         // Sets the current row from the input data enumerator.
         Expression assignCurrentInputRowFromInputEnumerator = Expression.Assign(
-            currentInputRowParameter,
-            Expression.Property(dictInputEnumeratorVariable, "Current")),
+                currentInputRowParameter,
+                Expression.Property(dictInputEnumeratorVariable, "Current")),
 
             // Sets the dictionary key from the row’s "Extend0_Id" value.
             assignKeyVariableFromPrimaryKey = Expression.Assign(
@@ -337,7 +280,7 @@ public sealed partial class CompositeQuery
                     keyVariable)),
                 Expression.Block(
                     [], // Ensures variables is scoped for this operation
-                        // Applies the row processor to construct or modify the entity.
+                    // Applies the row processor to construct or modify the entity.
                     IterRowProcessor((currentInputRowParameter, currentEntityVariable)),
                     // Adds the processed entity to the dictionary with its key.
                     Expression.Call(
@@ -356,9 +299,15 @@ public sealed partial class CompositeQuery
         // Constructs the loop body that processes each row until the enumerator is exhausted.
         var whileLoopBody = Expression.Loop(
             Expression.IfThenElse(
-                Expression.Call(dictInputEnumeratorVariable, ItorMoveNextMethod), // Checks if more rows exist by calling MoveNext
+                Expression.Call(
+                    dictInputEnumeratorVariable,
+                    IterMoveNextMethod), // Checks if more rows exist by calling MoveNext
                 Expression.Block(
-                    [currentInputRowParameter, currentEntityVariable, keyVariable], // Local variables for this iteration
+                    [
+                        currentInputRowParameter,
+                        currentEntityVariable,
+                        keyVariable
+                    ], // Local variables for this iteration
                     [
                         // Assigns the current row from the enumerator to iterationRowParameter.
                         assignCurrentInputRowFromInputEnumerator,
@@ -374,12 +323,14 @@ public sealed partial class CompositeQuery
 
         var whileBlock = Expression.TryFinally(
             whileLoopBody, // The loop processing all rows
-            Expression.Call(dictInputEnumeratorVariable, DisposeMethod)); // Ensures the enumerator is disposed after completion
+            Expression.Call(
+                dictInputEnumeratorVariable,
+                DisposeMethod)); // Ensures the enumerator is disposed after completion
 
         // Initializes the dictionary with a new instance.
         Expression initializeDictVariable = Expression.Assign(
-            dictObjEntityVariable,
-            Expression.New(dictObjEntityType)),
+                dictObjEntityVariable,
+                Expression.New(dictObjEntityType)),
 
             // Sets up the enumerator for the input data list.
             setupInputDataEnumerator = Expression.Assign(
@@ -396,7 +347,9 @@ public sealed partial class CompositeQuery
                 Expression.Property(dictObjEntityVariable, "Values"));
 
         var fullBlock = Expression.Block(
-            [dictObjEntityVariable, dictInputEnumeratorVariable, outputVariable], // Declares variables used in the block
+            [
+                dictObjEntityVariable, dictInputEnumeratorVariable, outputVariable
+            ], // Declares variables used in the block
             [
                 // Initializes dictObjEntity with a new instance of T
                 initializeDictVariable,
@@ -441,7 +394,8 @@ public sealed partial class CompositeQuery
     ///     The <see cref="IterRowProcessor" /> collection must be defined elsewhere (e.g., as a field or property) and
     ///     provide the logic for transforming each row into an entity and adding it to the output collection.
     /// </remarks>
-    private Dictionary<ITuple, List<TEntity>> NestedUniqueProcessToList<TEntity>(List<IDictionary<string, object>> inputData)
+    private Dictionary<ITuple, List<TEntity>> NestedUniqueProcessToList<TEntity>(
+        List<IDictionary<string, object>> inputData)
     {
         // Defines the type of the final output collection
         Type returnType = typeof(Dictionary<ITuple, List<TEntity>>),
@@ -452,13 +406,16 @@ public sealed partial class CompositeQuery
             // Defines the type of the intermediate dictionary used for uniqueness.
             dictObjEntityType = typeof(Dictionary<object, TEntity>),
             // Specifies the type of the key used in the dictionary, extracted from each row for indexing.
-            dictKeyType = typeof(object);
+            dictKeyType = typeof(object),
+            outerIterType = typeof(Dictionary<ITuple, Dictionary<object, TEntity>>.Enumerator),
+            outerEntryType = typeof(KeyValuePair<ITuple, Dictionary<object, TEntity>>);
 
         // Enumerator for iterating over inputData
         ParameterExpression dictInputEnumeratorVariable =
                 Expression.Variable(typeof(IEnumerator<IDictionary<string, object>>), "dictInputEnumeratorVariable"),
             // Current row being processed in the loop
-            currentInputRowParameter = Expression.Parameter(typeof(IDictionary<string, object>), "currentInputRowParameter"),
+            currentInputRowParameter =
+                Expression.Parameter(typeof(IDictionary<string, object>), "currentInputRowParameter"),
             // Entity being constructed/modified for the current row
             currentEntityVariable = Expression.Variable(typeof(TEntity), "currentEntityVariable"),
             // Collection that accumulates all processed entities
@@ -469,9 +426,9 @@ public sealed partial class CompositeQuery
             outerKeyVariable = Expression.Variable(outerKeyType, "outerKeyVariable"),
             innerKeyVariable = Expression.Variable(dictKeyType, "keyVariable"),
             // Enumerator for iterating over the outer dictionary of entities
-            outerDictEnumeratorVariable = Expression.Variable(typeof(Dictionary<ITuple, Dictionary<object, TEntity>>.Enumerator), "outerDictItorVariable"),
+            outerDictIterVariable = Expression.Variable(outerIterType, "outerDictIterVariable"),
             // Current key-value pair from the outer dictionary being processed
-            outerDictEntryParameter = Expression.Parameter(typeof(KeyValuePair<ITuple, Dictionary<object, TEntity>>), "outerDictEntryParameter");
+            outerDictEntryParameter = Expression.Parameter(outerEntryType, "outerDictEntryParameter");
 
         // Accesses the inner dictionary in the outer dictionary via the outer key.
         IndexExpression outerKeyAccessor = Expression.MakeIndex(
@@ -485,14 +442,18 @@ public sealed partial class CompositeQuery
                 [innerKeyVariable]);
 
         // Generate ValueTuple type dynamically
-        var outerKeyConstructor = Type.GetType($"{typeof(ValueTuple).FullName}`{GroupingKeys.Count + AggregationKeys.Count}")!
-            .MakeGenericType([.. GroupingKeys.Values, .. AggregationKeys.Values])
-            .GetConstructor([.. GroupingKeys.Values, .. AggregationKeys.Values])!;
+        var outerKeyConstructor =
+            Type.GetType($"{typeof(ValueTuple).FullName}`{GroupingKeys.Count + AggregationKeys.Count}")!
+                .MakeGenericType([.. GroupingKeys.Values, .. AggregationKeys.Values])
+                .GetConstructor([.. GroupingKeys.Values, .. AggregationKeys.Values])!;
 
         // Create constructor arguments from currentInputRowParameter
         var outerKeyArguments = GroupingKeys
             .Union(AggregationKeys)
-            .Select(grp => ChangeType(Expression.Property(currentInputRowParameter, "Item", Expression.Constant(grp.Key)), grp.Value))
+            .Select(grp =>
+                ChangeType(
+                    Expression.Property(currentInputRowParameter, "Item", Expression.Constant(grp.Key)),
+                    grp.Value))
             .ToArray();
 
         // Sets the current row from the input data enumerator.
@@ -535,7 +496,7 @@ public sealed partial class CompositeQuery
                     innerKeyVariable)),
                 Expression.Block(
                     [], // Ensures variables is scoped for this operation
-                        // Applies the row processor to construct or modify the entity.
+                    // Applies the row processor to construct or modify the entity.
                     IterRowProcessor((currentInputRowParameter, currentEntityVariable)),
                     // Adds the processed entity to the dictionary with its key.
                     Expression.Call(
@@ -554,9 +515,16 @@ public sealed partial class CompositeQuery
         // Constructs the loop body that processes each row until the enumerator is exhausted.
         var whileLoopBody = Expression.Loop(
             Expression.IfThenElse(
-                Expression.Call(dictInputEnumeratorVariable, ItorMoveNextMethod), // Checks if more rows exist by calling MoveNext
+                Expression.Call(
+                    dictInputEnumeratorVariable,
+                    IterMoveNextMethod), // Checks if more rows exist by calling MoveNext
                 Expression.Block(
-                    [currentInputRowParameter, currentEntityVariable, outerKeyVariable, innerKeyVariable], // Local variables for this iteration
+                    [
+                        currentInputRowParameter,
+                        currentEntityVariable,
+                        outerKeyVariable,
+                        innerKeyVariable
+                    ], // Local variables for this iteration
                     [
                         // Sets the current row from the input data enumerator.
                         assignCurrentInputRowFromInputEnumerator,
@@ -576,7 +544,9 @@ public sealed partial class CompositeQuery
 
         var whileBlock = Expression.TryFinally(
             whileLoopBody, // The loop processing all rows
-            Expression.Call(dictInputEnumeratorVariable, DisposeMethod)); // Ensures the enumerator is disposed after completion
+            Expression.Call(
+                dictInputEnumeratorVariable,
+                DisposeMethod)); // Ensures the enumerator is disposed after completion
 
         // Initializes the outer dictionary with a new instance.
         Expression initializeOuterDict = Expression.Assign(
@@ -595,13 +565,13 @@ public sealed partial class CompositeQuery
 
             // Sets up the enumerator for the outer dictionary to flatten it.
             setupOuterDictEnumerator = Expression.Assign(
-                outerDictEnumeratorVariable,
+                outerDictIterVariable,
                 Expression.Call(outerDictObjEntityVariable, outerDictObjEntityType.GetMethod("GetEnumerator")!)),
 
             // Assigns the current entry from the outer dictionary enumerator.
             assignCurrentOuterEntryFromOuterDictEnumerator = Expression.Assign(
                 outerDictEntryParameter,
-                Expression.Property(outerDictEnumeratorVariable, "Current")),
+                Expression.Property(outerDictIterVariable, "Current")),
 
             // Adds the current key and its inner values as a list to the output.
             addOuterKeyAndValuesToOutput = Expression.Call(
@@ -615,7 +585,7 @@ public sealed partial class CompositeQuery
             // Flattens the outer dictionary into the output list using a loop.
             flattenOuterDictLoop = Expression.Loop(
                 Expression.IfThenElse(
-                    Expression.Call(outerDictEnumeratorVariable, ItorMoveNextMethod),
+                    Expression.Call(outerDictIterVariable, IterMoveNextMethod),
                     Expression.Block(
                         [outerDictEntryParameter],
                         [
@@ -627,11 +597,13 @@ public sealed partial class CompositeQuery
 
             // Disposes the outer dictionary enumerator after flattening.
             disposeOuterDictEnumerator = Expression.Call(
-                outerDictEnumeratorVariable,
+                outerDictIterVariable,
                 DisposeMethod);
 
         var fullBlock = Expression.Block(
-            [outerDictObjEntityVariable, dictInputEnumeratorVariable, outerDictEnumeratorVariable, outputVariable], // Declares variables used in the block
+            [
+                outerDictObjEntityVariable, dictInputEnumeratorVariable, outerDictIterVariable, outputVariable
+            ], // Declares variables used in the block
             [
                 // Initializes dictObjEntity with a new instance of T
                 initializeOuterDict,

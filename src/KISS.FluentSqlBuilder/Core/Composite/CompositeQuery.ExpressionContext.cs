@@ -5,19 +5,19 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 /// </summary>
 public sealed partial class CompositeQuery
 {
-    private static MethodInfo ItorMoveNextMethod { get; } = typeof(IEnumerator).GetMethod("MoveNext")!;
+    private static MethodInfo IterMoveNextMethod { get; } = typeof(IEnumerator).GetMethod("MoveNext", Type.EmptyTypes)!;
 
-    private static MethodInfo DisposeMethod { get; } = typeof(IDisposable).GetMethod("Dispose")!;
+    private static MethodInfo DisposeMethod { get; } = typeof(IDisposable).GetMethod("Dispose", Type.EmptyTypes)!;
 
     /// <summary>
-    ///     Gets the MethodInfo for the GetEnumerator method of <see cref="IEnumerable{IDictionary{string, object}}" />.
+    ///     Gets the MethodInfo for the GetEnumerator method of <see cref="IEnumerable{IDictionary}" />.
     ///     This is used to create an enumerator for iterating over collections of dictionaries in expression trees.
     /// </summary>
     /// <remarks>
     ///     Cached as a static property to avoid repeated reflection calls,
     ///     improving performance in expression tree construction.
     ///     The specific type
-    ///     <see cref="IEnumerable{IDictionary{string, object}}" /> ensures compatibility with dictionary-based data rows.
+    ///     <see cref="IEnumerable{IDictionary}" /> ensures compatibility with dictionary-based data rows.
     /// </remarks>
     private static MethodInfo GetEnumeratorForIEnumDictStrObj { get; } =
         typeof(IEnumerable<IDictionary<string, object>>).GetMethod("GetEnumerator")!;
@@ -25,10 +25,12 @@ public sealed partial class CompositeQuery
     /// <summary>
     ///     A function that define how to process each row.
     /// </summary>
-    public Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression> IterRowProcessor { get; set; } = default!;
+    public Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression>
+        IterRowProcessor { get; set; } = default!;
 
     /// <summary>
     ///     A function that define how to process each row.
     /// </summary>
-    public List<Func<(ParameterExpression IterRowParameter, IndexExpression Indexer), Expression>> JoinRowProcessors { get; } = [];
+    public List<Func<(ParameterExpression IterRowParameter, IndexExpression Indexer), Expression>>
+        JoinRowProcessors { get; } = [];
 }
