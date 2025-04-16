@@ -11,6 +11,21 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 public abstract partial record JoinHandler<TRelation>
 {
     /// <summary>
+    ///     Translates a binary expression into SQL.
+    ///     Handles logical operations, comparisons, and array indexing.
+    /// </summary>
+    /// <param name="binaryExpression">The binary expression to translate.</param>
+    protected override void Translate(BinaryExpression binaryExpression)
+    {
+        Append("INNER JOIN");
+        AppendLine($"{Composite.GetTableName(RelationType)} {Composite.GetAliasMapping(RelationType)}", true);
+        AppendLine(" ON ", true);
+        Translate(binaryExpression.Left);
+        Append(BinaryOperandMap[binaryExpression.NodeType]);
+        Translate(binaryExpression.Right);
+    }
+
+    /// <summary>
     ///     Translates a member expression into a SQL column reference.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>

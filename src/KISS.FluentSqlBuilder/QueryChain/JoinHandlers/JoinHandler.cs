@@ -24,30 +24,22 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 public abstract partial record JoinHandler<TRelation>(
     Expression LeftKeySelector,
     Expression RightKeySelector,
-    Expression MapSelector) : QueryHandler
+    Expression MapSelector) : QueryHandler(Expression.Equal(LeftKeySelector, RightKeySelector), SqlStatement.Join)
 {
+    private Type RelationType { get; } = typeof(TRelation);
+
     /// <summary>
     ///     Processes the JOIN operation by generating the SQL JOIN statement
     ///     and setting up the result mapping.
     /// </summary>
     protected override void Process()
     {
-        var relationType = typeof(TRelation);
-        var alias = Composite.GetAliasMapping(relationType);
-        var sourceProperties = relationType.GetProperties()
+        var alias = Composite.GetAliasMapping(RelationType);
+        var sourceProperties = RelationType.GetProperties()
             .Where(p => p.CanWrite)
             .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}")
             .ToList();
 
         Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
-
-        Append("INNER JOIN");
-        AppendLine($"{Composite.GetTableName(relationType)} {alias}", true);
-        AppendLine(" ON ", true);
-        Translate(LeftKeySelector);
-        Append(" = ");
-        Translate(RightKeySelector);
-
-        Composite.SqlStatements[SqlStatement.Join].Add($"{StatementBuilder}");
     }
 }

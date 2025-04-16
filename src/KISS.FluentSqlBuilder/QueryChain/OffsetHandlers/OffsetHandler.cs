@@ -9,12 +9,12 @@ namespace KISS.FluentSqlBuilder.QueryChain.OffsetHandlers;
 ///     The number of rows to skip.
 ///     This value determines how many records to skip before starting to return results.
 /// </param>
-public sealed record OffsetHandler(int Offset) : QueryHandler
+public sealed record OffsetHandler(int Offset) : QueryHandler(Expression.Block(), SqlStatement.Offset)
 {
     /// <summary>
     ///     Processes the OFFSET clause by adding the row offset
     ///     to the query's OFFSET statements.
     /// </summary>
-    protected override void Process()
+    protected override void TranslateExpression()
         => Composite.SqlStatements[SqlStatement.Offset].Add($"{Offset}");
 }

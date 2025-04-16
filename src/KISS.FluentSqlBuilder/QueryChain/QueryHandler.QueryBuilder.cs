@@ -27,7 +27,7 @@ public abstract partial record QueryHandler
     /// </summary>
     /// <param name="value">The string to append to the SQL statement.</param>
     protected void Append(string value)
-    => StatementBuilder.Append(value);
+        => StatementBuilder.Append(value);
 
     /// <summary>
     ///     Appends a string value to the SQL statement with optional indentation.

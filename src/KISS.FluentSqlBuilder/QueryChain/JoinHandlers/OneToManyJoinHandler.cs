@@ -39,7 +39,7 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
     ///     This method creates the necessary expressions to map joined data
     ///     to collections in the result object's properties.
     /// </summary>
-    protected override void BuildExpression()
+    protected override void ExpressionIntegration()
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {

@@ -9,11 +9,11 @@ namespace KISS.FluentSqlBuilder.QueryChain.FetchHandlers;
 ///     An expression specifying the number of rows to fetch.
 ///     This expression can be a constant or a dynamic value.
 /// </param>
-public sealed record FetchHandler(Expression Offset) : QueryHandler
-{
-    /// <summary>
-    ///     Processes the FETCH clause by adding the fetch expression
-    ///     to the query's FETCH statements.
-    /// </summary>
-    protected override void Process() { }
-}
+// public sealed record FetchHandler(Expression Offset) : QueryHandler
+// {
+//     /// <summary>
+//     ///     Processes the FETCH clause by adding the fetch expression
+//     ///     to the query's FETCH statements.
+//     /// </summary>
+//     protected override void Process() { }
+// }

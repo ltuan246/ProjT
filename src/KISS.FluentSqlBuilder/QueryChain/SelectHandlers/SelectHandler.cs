@@ -7,7 +7,7 @@ namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 /// </summary>
 /// <typeparam name="TSource">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record SelectHandler<TSource, TReturn> : QueryHandler
+public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(Expression.Block(), SqlStatement.Select)
 {
     /// <summary>
     ///     Gets the type representing the database record set.
@@ -26,7 +26,7 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
     ///     Processes the SELECT clause by generating SQL statements for selecting
     ///     columns from the source entity and mapping them to the return type.
     /// </summary>
-    protected override void Process()
+    protected override void TranslateExpression()
     {
         var alias = Composite.GetAliasMapping(SourceEntity);
         var sourceProperties = SourceEntity.GetProperties()
@@ -42,7 +42,7 @@ public sealed record SelectHandler<TSource, TReturn> : QueryHandler
     ///     to the return type. This method creates the necessary expression tree
     ///     for converting database rows into strongly-typed objects.
     /// </summary>
-    protected override void BuildExpression()
+    protected override void ExpressionIntegration()
     {
         Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)
         {

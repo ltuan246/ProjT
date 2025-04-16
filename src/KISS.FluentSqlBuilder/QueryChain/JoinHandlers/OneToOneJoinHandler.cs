@@ -18,7 +18,7 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
     /// <summary>
     ///     Builds the expression for mapping joined results to the output type.
     /// </summary>
-    protected override void BuildExpression()
+    protected override void ExpressionIntegration()
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
