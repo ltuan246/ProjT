@@ -7,12 +7,15 @@ namespace KISS.FluentSqlBuilder.QueryChain;
 /// </summary>
 public abstract partial record QueryHandler
 {
+    private string Sql
+        => SqlBuilder.ToString();
+
     /// <summary>
     ///     Gets the StringBuilder used to construct the SQL statement.
     ///     This property provides access to the underlying string builder
     ///     for accumulating SQL query components.
     /// </summary>
-    protected StringBuilder StatementBuilder { get; } = new();
+    protected StringBuilder SqlBuilder { get; } = new();
 
     /// <summary>
     ///     Tracks whether there is an open parenthesis in the current SQL statement.
@@ -27,7 +30,7 @@ public abstract partial record QueryHandler
     /// </summary>
     /// <param name="value">The string to append to the SQL statement.</param>
     protected void Append(string value)
-        => StatementBuilder.Append(value);
+        => SqlBuilder.Append(value);
 
     /// <summary>
     ///     Appends a string value to the SQL statement with optional indentation.
@@ -38,14 +41,14 @@ public abstract partial record QueryHandler
     /// <param name="indent">Whether to indent the appended line.</param>
     protected void AppendLine(string value = "", bool indent = false)
     {
-        StatementBuilder.AppendLine();
+        SqlBuilder.AppendLine();
         if (indent)
         {
             const int indentationLevel = 4;
-            StatementBuilder.Append(new string(' ', indentationLevel));
+            SqlBuilder.Append(new string(' ', indentationLevel));
         }
 
-        StatementBuilder.Append(value);
+        SqlBuilder.Append(value);
     }
 
     /// <summary>
@@ -57,7 +60,7 @@ public abstract partial record QueryHandler
     ///     A FormattableString containing the SQL statement with placeholders.
     /// </param>
     protected void AppendFormat(FormattableString formatString)
-        => StatementBuilder.AppendFormat(Composite.SqlFormatting, formatString.Format, formatString.GetArguments());
+        => SqlBuilder.AppendFormat(Composite.SqlFormatting, formatString.Format, formatString.GetArguments());
 
     /// <summary>
     ///     Opens a parenthesis in the SQL statement.
@@ -68,7 +71,7 @@ public abstract partial record QueryHandler
     {
         HasOpenParentheses = true;
         const char openParenthesis = '(';
-        StatementBuilder.Append(openParenthesis);
+        SqlBuilder.Append(openParenthesis);
     }
 
     /// <summary>
@@ -85,6 +88,6 @@ public abstract partial record QueryHandler
 
         HasOpenParentheses = false;
         const char closeParenthesis = ')';
-        StatementBuilder.Append(closeParenthesis);
+        SqlBuilder.Append(closeParenthesis);
     }
 }

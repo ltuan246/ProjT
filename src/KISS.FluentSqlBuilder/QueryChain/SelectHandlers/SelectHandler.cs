@@ -7,7 +7,7 @@ namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 /// </summary>
 /// <typeparam name="TSource">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(Expression.Block(), SqlStatement.Select)
+public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(SqlStatement.Select)
 {
     /// <summary>
     ///     Gets the type representing the database record set.
@@ -26,7 +26,7 @@ public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(Expression
     ///     Processes the SELECT clause by generating SQL statements for selecting
     ///     columns from the source entity and mapping them to the return type.
     /// </summary>
-    protected override void TranslateExpression()
+    protected override void Process()
     {
         var alias = Composite.GetAliasMapping(SourceEntity);
         var sourceProperties = SourceEntity.GetProperties()
@@ -34,7 +34,7 @@ public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(Expression
             .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}")
             .ToList();
 
-        Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
+        Composite.SqlStatements[SqlStatement.Select].Add(string.Join(", ", sourceProperties));
     }
 
     /// <summary>

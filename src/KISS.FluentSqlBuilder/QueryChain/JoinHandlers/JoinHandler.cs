@@ -24,7 +24,7 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 public abstract partial record JoinHandler<TRelation>(
     Expression LeftKeySelector,
     Expression RightKeySelector,
-    Expression MapSelector) : QueryHandler(Expression.Equal(LeftKeySelector, RightKeySelector), SqlStatement.Join)
+    Expression MapSelector) : QueryHandler(SqlStatement.Join, Expression.Equal(LeftKeySelector, RightKeySelector))
 {
     private Type RelationType { get; } = typeof(TRelation);
 
@@ -40,6 +40,6 @@ public abstract partial record JoinHandler<TRelation>(
             .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}")
             .ToList();
 
-        Composite.SqlStatements[SqlStatement.Select].Add($"{string.Join(", ", sourceProperties)}");
+        Composite.SqlStatements[SqlStatement.Select].Add(string.Join(", ", sourceProperties));
     }
 }

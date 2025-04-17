@@ -41,7 +41,7 @@ public abstract record ExpressionTranslator
     ///     This method serves as the entry point for expression translation.
     /// </summary>
     /// <param name="expression">The expression to translate.</param>
-    protected void Translate(Expression expression)
+    protected void Translate(Expression? expression)
     {
         switch (expression)
         {
@@ -75,6 +75,9 @@ public abstract record ExpressionTranslator
 
             case LambdaExpression lambdaExpression:
                 Translate(lambdaExpression);
+                break;
+
+            default:
                 break;
         }
     }

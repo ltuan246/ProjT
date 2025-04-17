@@ -13,4 +13,4 @@ namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 ///     The alias to assign to the aggregate result.
 ///     This name will be used to reference the result in the query.
 /// </param>
-public sealed partial record SelectAggregateHandler(Expression Selector, string Alias) : QueryHandler(Selector, SqlStatement.SelectAggregate);
+public sealed partial record SelectAggregateHandler(Expression Selector, string Alias) : QueryHandler(SqlStatement.SelectAggregate, Selector);

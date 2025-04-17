@@ -5,7 +5,7 @@ namespace KISS.FluentSqlBuilder.QueryChain;
 ///     This class serves as the foundation for all query component handlers, providing a structured
 ///     approach to processing different parts of a SQL query (SELECT, WHERE, JOIN, etc.).
 /// </summary>
-public abstract partial record QueryHandler(Expression Selector, SqlStatement Statement) : ExpressionTranslator
+public abstract partial record QueryHandler(SqlStatement Statement, Expression? Selector = null) : ExpressionTranslator
 {
     /// <summary>
     ///     Gets or sets the next handler in the chain, enabling sequential processing of query components.
@@ -70,7 +70,11 @@ public abstract partial record QueryHandler(Expression Selector, SqlStatement St
     protected virtual void TranslateExpression()
     {
         Translate(Selector);
-        Composite.SqlStatements[Statement].Add($"{StatementBuilder}");
+
+        if (!string.IsNullOrEmpty(Sql))
+        {
+            Composite.SqlStatements[Statement].Add(Sql);
+        }
     }
 
     /// <summary>

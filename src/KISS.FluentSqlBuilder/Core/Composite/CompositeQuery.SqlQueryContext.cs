@@ -39,7 +39,7 @@ public sealed partial class CompositeQuery
     ///     This collection maintains separate lists for different SQL clauses
     ///     (SELECT, FROM, JOIN, etc.) to ensure proper query construction.
     /// </summary>
-    public Dictionary<SqlStatement, List<FormattableString>> SqlStatements { get; } = new()
+    public Dictionary<SqlStatement, List<string>> SqlStatements { get; } = new()
     {
         { SqlStatement.Select, [] },
         { SqlStatement.From, [] },

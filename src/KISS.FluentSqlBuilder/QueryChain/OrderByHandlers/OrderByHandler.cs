@@ -5,4 +5,4 @@ namespace KISS.FluentSqlBuilder.QueryChain.OrderByHandlers;
 ///     Provides functionality to sort query results by specified columns.
 /// </summary>
 /// <param name="Selector">The expression selecting the columns to sort by.</param>
-public sealed partial record OrderByHandler(Expression Selector) : QueryHandler(Selector, SqlStatement.OrderBy);
+public sealed partial record OrderByHandler(Expression Selector) : QueryHandler(SqlStatement.OrderBy, Selector);

@@ -132,73 +132,76 @@ public sealed partial record WhereHandler
     /// <param name="methodCallExpression">The method call expression to translate.</param>
     protected override void Translate(MethodCallExpression methodCallExpression)
     {
-        const string inRange = nameof(SqlFunctions.InRange);
-        const string anyIn = nameof(SqlFunctions.AnyIn);
-        const string notIn = nameof(SqlFunctions.NotIn);
-
-        var mi = typeof(SqlFunctions)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .Single(mt => mt.IsGenericMethod && mt.Name == methodCallExpression.Method.Name);
-
-        switch (mi.Name)
+        if (methodCallExpression.Method.DeclaringType == typeof(SqlFunctions))
         {
-            case inRange:
-                {
-                    const string betweenOp = " BETWEEN ";
-                    const string andOp = " AND ";
+            const string inRange = nameof(SqlFunctions.InRange);
+            const string anyIn = nameof(SqlFunctions.AnyIn);
+            const string notIn = nameof(SqlFunctions.NotIn);
 
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var beginAsExpression, var endAsExpression])
+            var mi = typeof(SqlFunctions)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .Single(mt => mt.IsGenericMethod && mt.Name == methodCallExpression.Method.Name);
+
+            switch (mi.Name)
+            {
+                case inRange:
                     {
-                        OpenParentheses();
-                        Translate(fieldAsExpression);
+                        const string betweenOp = " BETWEEN ";
+                        const string andOp = " AND ";
 
-                        Append(betweenOp);
-                        Translate(beginAsExpression);
+                        if (methodCallExpression.Arguments is
+                            [var fieldAsExpression, var beginAsExpression, var endAsExpression])
+                        {
+                            OpenParentheses();
+                            Translate(fieldAsExpression);
 
-                        Append(andOp);
-                        Translate(endAsExpression);
-                        CloseParentheses();
+                            Append(betweenOp);
+                            Translate(beginAsExpression);
+
+                            Append(andOp);
+                            Translate(endAsExpression);
+                            CloseParentheses();
+                        }
+
+                        break;
                     }
 
-                    break;
-                }
-
-            case anyIn:
-                {
-                    const string inOp = " IN ";
-
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var valuesAsExpression])
+                case anyIn:
                     {
-                        OpenParentheses();
-                        Translate(fieldAsExpression);
+                        const string inOp = " IN ";
 
-                        Append(inOp);
-                        Translate(valuesAsExpression);
-                        CloseParentheses();
+                        if (methodCallExpression.Arguments is
+                            [var fieldAsExpression, var valuesAsExpression])
+                        {
+                            OpenParentheses();
+                            Translate(fieldAsExpression);
+
+                            Append(inOp);
+                            Translate(valuesAsExpression);
+                            CloseParentheses();
+                        }
+
+                        break;
                     }
 
-                    break;
-                }
-
-            case notIn:
-                {
-                    const string notInOp = " NOT IN ";
-
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var valuesAsExpression])
+                case notIn:
                     {
-                        OpenParentheses();
-                        Translate(fieldAsExpression);
+                        const string notInOp = " NOT IN ";
 
-                        Append(notInOp);
-                        Translate(valuesAsExpression);
-                        CloseParentheses();
+                        if (methodCallExpression.Arguments is
+                            [var fieldAsExpression, var valuesAsExpression])
+                        {
+                            OpenParentheses();
+                            Translate(fieldAsExpression);
+
+                            Append(notInOp);
+                            Translate(valuesAsExpression);
+                            CloseParentheses();
+                        }
+
+                        break;
                     }
-
-                    break;
-                }
+            }
         }
     }
 }

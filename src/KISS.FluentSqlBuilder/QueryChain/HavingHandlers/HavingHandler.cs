@@ -9,4 +9,4 @@ namespace KISS.FluentSqlBuilder.QueryChain.HavingHandlers;
 ///     An expression defining the aggregate conditions to filter the grouped results.
 ///     This expression typically contains aggregate functions and comparison operators.
 /// </param>
-public sealed partial record HavingHandler(Expression Predicate) : QueryHandler(Predicate, SqlStatement.Having);
+public sealed partial record HavingHandler(Expression Predicate) : QueryHandler(SqlStatement.Having, Predicate);

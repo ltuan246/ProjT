@@ -17,7 +17,7 @@ namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 ///     An expression defining how to create and initialize the return object.
 ///     This expression typically contains object initialization syntax.
 /// </param>
-public sealed partial record NewSelectHandler<TSource, TReturn>(Expression Selector) : QueryHandler(Selector, SqlStatement.Select)
+public sealed partial record NewSelectHandler<TSource, TReturn>(Expression Selector) : QueryHandler(SqlStatement.Select, Selector)
 {
     /// <summary>
     ///     Processes the SELECT clause with object initialization.
@@ -27,7 +27,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>(Expression Selec
     protected override void TranslateExpression()
     {
         Translate(Selector);
-        var sql = StatementBuilder.ToString();
+        var sql = SqlBuilder.ToString();
         _ = sql;
     }
 }

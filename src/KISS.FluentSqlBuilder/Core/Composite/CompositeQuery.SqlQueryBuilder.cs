@@ -82,7 +82,7 @@ public sealed partial class CompositeQuery
     ///     and expressions from the stored statements.
     /// </summary>
     private void SetSelect()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Select])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Select])
             .AccessFirst(fs =>
             {
                 Append("SELECT");
@@ -112,7 +112,7 @@ public sealed partial class CompositeQuery
     ///     from the stored statements.
     /// </summary>
     private void SetJoin()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Join])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Join])
             .AccessFirst(fs =>
             {
                 AppendLine($"{fs}");
@@ -129,7 +129,7 @@ public sealed partial class CompositeQuery
     ///     from the stored statements.
     /// </summary>
     private void SetWhere()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Where])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Where])
             .AccessFirst(fs =>
             {
                 Append("WHERE");
@@ -147,7 +147,7 @@ public sealed partial class CompositeQuery
     ///     Common Table Expressions (CTEs) for complex grouping scenarios.
     /// </summary>
     private void SetGroupBy()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.GroupBy])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.GroupBy])
             .AccessFirst(_ =>
             {
                 SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
@@ -191,7 +191,7 @@ public sealed partial class CompositeQuery
 
                 outerSelectBuilder.Append("CTE.*");
 
-                new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.SelectAggregate])
+                new EnumeratorProcessor<string>(SqlStatements[SqlStatement.SelectAggregate])
                     .AccessFirst(fs =>
                     {
                         if (innerSelectBuilder.Length > 0)
@@ -207,7 +207,7 @@ public sealed partial class CompositeQuery
                     })
                     .Execute();
 
-                new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Having])
+                new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Having])
                     .AccessFirst(fs =>
                     {
                         groupByFilteringBuilder.Append($" HAVING {fs}");
@@ -240,7 +240,7 @@ public sealed partial class CompositeQuery
     ///     conditions from the stored statements.
     /// </summary>
     private void SetOrderBy()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.OrderBy])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.OrderBy])
             .AccessFirst(fs =>
             {
                 Append("ORDER BY");
@@ -258,7 +258,7 @@ public sealed partial class CompositeQuery
     ///     value from the stored statements.
     /// </summary>
     private void SetLimit()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Limit])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Limit])
             .AccessFirst(fs =>
             {
                 Append("LIMIT");
@@ -272,7 +272,7 @@ public sealed partial class CompositeQuery
     ///     value from the stored statements.
     /// </summary>
     private void SetOffset()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Offset])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Offset])
             .AccessFirst(fs =>
             {
                 Append("OFFSET");
