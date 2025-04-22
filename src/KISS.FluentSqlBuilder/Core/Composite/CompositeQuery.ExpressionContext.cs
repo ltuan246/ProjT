@@ -3,7 +3,7 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 /// <summary>
 ///     A context for storing reusable instances used in expression tree construction.
 /// </summary>
-public sealed partial class CompositeQuery
+public sealed partial record CompositeQuery
 {
     private static MethodInfo IterMoveNextMethod { get; } = typeof(IEnumerator).GetMethod("MoveNext", Type.EmptyTypes)!;
 

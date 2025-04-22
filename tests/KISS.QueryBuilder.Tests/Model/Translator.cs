@@ -5,36 +5,36 @@ public sealed record Translator : ExpressionTranslator
     // Property to store the translated SQL output
     public string TranslatedSql { get; private set; } = string.Empty;
 
-    protected override void Translate(BinaryExpression binaryExpression)
+    protected override void Visit(BinaryExpression binaryExpression)
     {
-        base.Translate(binaryExpression);
+        base.Visit(binaryExpression);
 
-        Translate(binaryExpression.Left);
+        base.Visit(binaryExpression.Left);
         string left = TranslatedSql;
-        Translate(binaryExpression.Right);
+        base.Visit(binaryExpression.Right);
         string right = TranslatedSql;
         TranslatedSql = $"{left}{BinaryOperandMap[binaryExpression.NodeType]}{right}";
     }
 
-    protected override void Translate(UnaryExpression unaryExpression)
+    protected override void Visit(UnaryExpression unaryExpression)
     {
-        base.Translate(unaryExpression);
+        base.Visit(unaryExpression);
 
-        Translate(unaryExpression.Operand);
+        base.Visit(unaryExpression.Operand);
         string operand = TranslatedSql;
         TranslatedSql =
             $"{unaryExpression.NodeType switch { ExpressionType.Not => "NOT", _ => unaryExpression.NodeType.ToString() }} {operand}";
     }
 
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
-        base.Translate(memberExpression);
+        base.Visit(memberExpression);
         TranslatedSql = memberExpression.Member.Name; // Simplified: just the property name
     }
 
-    protected override void Translate(ConstantExpression constantExpression)
+    protected override void Visit(ConstantExpression constantExpression)
     {
-        base.Translate(constantExpression);
+        base.Visit(constantExpression);
 
         var val = constantExpression.Value switch
         {
@@ -46,21 +46,21 @@ public sealed record Translator : ExpressionTranslator
         TranslatedSql = val!;
     }
 
-    protected override void Translate(NewExpression newExpression)
+    protected override void Visit(NewExpression newExpression)
     {
-        base.Translate(newExpression);
+        base.Visit(newExpression);
         TranslatedSql = $"NEW {newExpression.Type.Name}"; // Simplified representation
     }
 
-    protected override void Translate(MemberInitExpression memberInitExpression)
+    protected override void Visit(MemberInitExpression memberInitExpression)
     {
-        base.Translate(memberInitExpression);
+        base.Visit(memberInitExpression);
 
         var bindings = string.Join(", ", memberInitExpression.Bindings.Select(b =>
         {
             if (b is MemberAssignment assignment)
             {
-                Translate(assignment.Expression);
+                base.Visit(assignment.Expression);
                 return $"{b.Member.Name} = {TranslatedSql}";
             }
 
@@ -70,33 +70,33 @@ public sealed record Translator : ExpressionTranslator
         TranslatedSql = $"NEW {memberInitExpression.Type.Name} {{ {bindings} }}";
     }
 
-    protected override void Translate(MethodCallExpression methodCallExpression)
+    protected override void Visit(MethodCallExpression methodCallExpression)
     {
-        base.Translate(methodCallExpression);
+        base.Visit(methodCallExpression);
 
         var args = string.Join(", ", methodCallExpression.Arguments.Select(arg =>
         {
-            Translate(arg);
+            base.Visit(arg);
             return TranslatedSql;
         }));
 
         if (string.IsNullOrEmpty(args) && methodCallExpression.Object is not null)
         {
-            Translate(methodCallExpression.Object);
+            base.Visit(methodCallExpression.Object);
             args = TranslatedSql;
         }
 
         TranslatedSql = $"{methodCallExpression.Method.Name}({args})";
     }
 
-    protected override void Translate(LambdaExpression lambdaExpression)
+    protected override void Visit(LambdaExpression lambdaExpression)
     {
-        base.Translate(lambdaExpression);
+        base.Visit(lambdaExpression);
 
-        Translate(lambdaExpression.Body);
+        base.Visit(lambdaExpression.Body);
         TranslatedSql = $"({string.Join(", ", lambdaExpression.Parameters.Select(p => p.Name))}) => {TranslatedSql}";
     }
 
     // Expose Translate for testing
-    public void Visit(Expression expression) => Translate(expression);
+    protected override void Visit(Expression? expression) => base.Visit(expression);
 }

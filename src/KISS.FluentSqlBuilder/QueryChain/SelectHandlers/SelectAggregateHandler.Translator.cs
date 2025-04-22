@@ -12,7 +12,7 @@ public sealed partial record SelectAggregateHandler
     ///     Handles property and field access within aggregate functions.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {
@@ -33,11 +33,11 @@ public sealed partial record SelectAggregateHandler
     ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
-    protected override void Translate(UnaryExpression unaryExpression)
+    protected override void Visit(UnaryExpression unaryExpression)
     {
         if (unaryExpression is { Operand: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 
@@ -46,11 +46,11 @@ public sealed partial record SelectAggregateHandler
     ///     Processes the body of lambda expressions used in aggregates.
     /// </summary>
     /// <param name="lambdaExpression">The lambda expression to translate.</param>
-    protected override void Translate(LambdaExpression lambdaExpression)
+    protected override void Visit(LambdaExpression lambdaExpression)
     {
         if (lambdaExpression is { Body: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 
@@ -59,12 +59,12 @@ public sealed partial record SelectAggregateHandler
     ///     Handles SQL function calls and custom aggregate methods.
     /// </summary>
     /// <param name="methodCallExpression">The method call expression to translate.</param>
-    protected override void Translate(MethodCallExpression methodCallExpression)
+    protected override void Visit(MethodCallExpression methodCallExpression)
     {
         if (methodCallExpression is { Arguments: [{ } expression] })
         {
             Append($"{methodCallExpression.Method.Name}(");
-            Translate(expression);
+            Visit(expression);
             Append($") AS {Alias} ");
         }
     }

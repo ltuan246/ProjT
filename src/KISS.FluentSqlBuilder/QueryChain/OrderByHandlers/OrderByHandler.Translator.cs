@@ -13,7 +13,7 @@ public sealed partial record OrderByHandler
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
     /// <exception cref="NotSupportedException">Thrown when the expression is not supported.</exception>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {

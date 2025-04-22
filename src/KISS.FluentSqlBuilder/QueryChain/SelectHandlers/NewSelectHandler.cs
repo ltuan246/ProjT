@@ -26,7 +26,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>(Expression Selec
     /// </summary>
     protected override void TranslateExpression()
     {
-        Translate(Selector);
+        Visit(Selector);
         var sql = SqlBuilder.ToString();
         _ = sql;
     }

@@ -15,21 +15,21 @@ public abstract partial record JoinHandler<TRelation>
     ///     Handles logical operations, comparisons, and array indexing.
     /// </summary>
     /// <param name="binaryExpression">The binary expression to translate.</param>
-    protected override void Translate(BinaryExpression binaryExpression)
+    protected override void Visit(BinaryExpression binaryExpression)
     {
         Append("INNER JOIN");
         AppendLine($"{Composite.GetTableName(RelationType)} {Composite.GetAliasMapping(RelationType)}", true);
         AppendLine(" ON ", true);
-        Translate(binaryExpression.Left);
+        Visit(binaryExpression.Left);
         Append(BinaryOperandMap[binaryExpression.NodeType]);
-        Translate(binaryExpression.Right);
+        Visit(binaryExpression.Right);
     }
 
     /// <summary>
     ///     Translates a member expression into a SQL column reference.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {
@@ -46,11 +46,11 @@ public abstract partial record JoinHandler<TRelation>
     ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
-    protected override void Translate(UnaryExpression unaryExpression)
+    protected override void Visit(UnaryExpression unaryExpression)
     {
         if (unaryExpression is { Operand: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 }

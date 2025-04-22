@@ -12,7 +12,7 @@ public sealed partial record WhereHandler
     ///     parameter members, constant members, and method call results.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         switch (memberExpression.Expression)
         {
@@ -52,7 +52,7 @@ public sealed partial record WhereHandler
                     }
                     else
                     {
-                        Translate(memberExpression.Expression);
+                        Visit(memberExpression.Expression);
                     }
 
                     break;
@@ -65,7 +65,7 @@ public sealed partial record WhereHandler
     ///     Converts constant values into their string representation for SQL.
     /// </summary>
     /// <param name="constantExpression">The constant expression to translate.</param>
-    protected override void Translate(ConstantExpression constantExpression)
+    protected override void Visit(ConstantExpression constantExpression)
         => AppendFormat($"{constantExpression.Value}");
 
     /// <summary>
@@ -73,7 +73,7 @@ public sealed partial record WhereHandler
     ///     Handles logical operations, comparisons, and array indexing.
     /// </summary>
     /// <param name="binaryExpression">The binary expression to translate.</param>
-    protected override void Translate(BinaryExpression binaryExpression)
+    protected override void Visit(BinaryExpression binaryExpression)
     {
         if (binaryExpression.NodeType is ExpressionType.ArrayIndex)
         {
@@ -99,9 +99,9 @@ public sealed partial record WhereHandler
                     }
             }
 
-            Translate(binaryExpression.Left);
+            Visit(binaryExpression.Left);
             Append(BinaryOperandMap[binaryExpression.NodeType]);
-            Translate(binaryExpression.Right);
+            Visit(binaryExpression.Right);
             CloseParentheses();
         }
     }
@@ -111,11 +111,11 @@ public sealed partial record WhereHandler
     ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
-    protected override void Translate(UnaryExpression unaryExpression)
+    protected override void Visit(UnaryExpression unaryExpression)
     {
         if (unaryExpression is { Operand: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 
@@ -124,7 +124,7 @@ public sealed partial record WhereHandler
     ///     Handles special SQL functions like InRange, AnyIn, and NotIn.
     /// </summary>
     /// <param name="methodCallExpression">The method call expression to translate.</param>
-    protected override void Translate(MethodCallExpression methodCallExpression)
+    protected override void Visit(MethodCallExpression methodCallExpression)
     {
         switch (methodCallExpression)
         {
@@ -144,13 +144,13 @@ public sealed partial record WhereHandler
                                 [var fieldAsExpression, var beginAsExpression, var endAsExpression])
                             {
                                 OpenParentheses();
-                                Translate(fieldAsExpression);
+                                Visit(fieldAsExpression);
 
                                 Append(betweenOp);
-                                Translate(beginAsExpression);
+                                Visit(beginAsExpression);
 
                                 Append(andOp);
-                                Translate(endAsExpression);
+                                Visit(endAsExpression);
                                 CloseParentheses();
                             }
 
@@ -165,10 +165,10 @@ public sealed partial record WhereHandler
                                 [var fieldAsExpression, var valuesAsExpression])
                             {
                                 OpenParentheses();
-                                Translate(fieldAsExpression);
+                                Visit(fieldAsExpression);
 
                                 Append(inOp);
-                                Translate(valuesAsExpression);
+                                Visit(valuesAsExpression);
                                 CloseParentheses();
                             }
 
@@ -183,10 +183,10 @@ public sealed partial record WhereHandler
                                 [var fieldAsExpression, var valuesAsExpression])
                             {
                                 OpenParentheses();
-                                Translate(fieldAsExpression);
+                                Visit(fieldAsExpression);
 
                                 Append(notInOp);
-                                Translate(valuesAsExpression);
+                                Visit(valuesAsExpression);
                                 CloseParentheses();
                             }
 

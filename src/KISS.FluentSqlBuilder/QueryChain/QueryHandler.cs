@@ -69,7 +69,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     /// </summary>
     protected virtual void TranslateExpression()
     {
-        Translate(Selector);
+        Visit(Selector);
 
         if (!string.IsNullOrEmpty(Sql))
         {
