@@ -9,15 +9,4 @@ namespace KISS.FluentSqlBuilder.QueryChain.WhereHandlers;
 ///     The LINQ expression that defines the WHERE conditions.
 ///     This expression will be translated into SQL-compatible form.
 /// </param>
-public sealed partial record WhereHandler(Expression Predicate) : QueryHandler
-{
-    /// <summary>
-    ///     Processes the WHERE clause by translating the predicate expression
-    ///     into SQL and adding it to the query is WHERE statements.
-    /// </summary>
-    protected override void Process()
-    {
-        Translate(Predicate);
-        Composite.SqlStatements[SqlStatement.Where].Add($"{StatementBuilder}");
-    }
-}
+public sealed partial record WhereHandler(Expression Predicate) : QueryHandler(SqlStatement.Where, Predicate);

@@ -12,7 +12,7 @@ public sealed partial record HavingHandler
     ///     Handles property and field access within aggregate conditions.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {
@@ -25,7 +25,7 @@ public sealed partial record HavingHandler
     ///     Converts constant values into their string representation for SQL.
     /// </summary>
     /// <param name="constantExpression">The constant expression to translate.</param>
-    protected override void Translate(ConstantExpression constantExpression)
+    protected override void Visit(ConstantExpression constantExpression)
         => AppendFormat($"{constantExpression.Value}");
 
     /// <summary>
@@ -33,11 +33,11 @@ public sealed partial record HavingHandler
     ///     Handles mathematical and comparison operations within aggregate conditions.
     /// </summary>
     /// <param name="binaryExpression">The binary expression to translate.</param>
-    protected override void Translate(BinaryExpression binaryExpression)
+    protected override void Visit(BinaryExpression binaryExpression)
     {
-        Translate(binaryExpression.Left);
+        Visit(binaryExpression.Left);
         Append(BinaryOperandMap[binaryExpression.NodeType]);
-        Translate(binaryExpression.Right);
+        Visit(binaryExpression.Right);
     }
 
     /// <summary>
@@ -45,11 +45,11 @@ public sealed partial record HavingHandler
     ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
-    protected override void Translate(UnaryExpression unaryExpression)
+    protected override void Visit(UnaryExpression unaryExpression)
     {
         if (unaryExpression is { Operand: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 
@@ -58,11 +58,11 @@ public sealed partial record HavingHandler
     ///     Processes the body of lambda expressions used in aggregate conditions.
     /// </summary>
     /// <param name="lambdaExpression">The lambda expression to translate.</param>
-    protected override void Translate(LambdaExpression lambdaExpression)
+    protected override void Visit(LambdaExpression lambdaExpression)
     {
         if (lambdaExpression is { Body: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 
@@ -71,12 +71,12 @@ public sealed partial record HavingHandler
     ///     Handles SQL function calls and custom aggregate methods.
     /// </summary>
     /// <param name="methodCallExpression">The method call expression to translate.</param>
-    protected override void Translate(MethodCallExpression methodCallExpression)
+    protected override void Visit(MethodCallExpression methodCallExpression)
     {
         if (methodCallExpression is { Arguments: [{ } expression] })
         {
             Append($"{methodCallExpression.Method.Name}(");
-            Translate(expression);
+            Visit(expression);
             Append(")");
         }
     }

@@ -12,7 +12,7 @@ public sealed partial record WhereHandler
     ///     parameter members, constant members, and method call results.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         switch (memberExpression.Expression)
         {
@@ -43,8 +43,7 @@ public sealed partial record WhereHandler
                     break;
                 }
 
-            // Accessing a field/property of a constant object
-            case ConstantExpression constantExpression:
+            default:
                 {
                     var (evaluated, value) = Composite.GetValue(memberExpression);
                     if (evaluated)
@@ -53,27 +52,9 @@ public sealed partial record WhereHandler
                     }
                     else
                     {
-                        Translate(constantExpression);
+                        Visit(memberExpression.Expression);
                     }
 
-                    break;
-                }
-
-            // Accessing an object creation, method invocation, or method call (e.g., new Object().Property, obj.Method().Property)
-            case NewExpression:
-            case InvocationExpression:
-            case MethodCallExpression:
-                {
-                    // Accessing the property or field (memberExpression.Member.Name) on the object or result of the method (memberExpression.Expression).
-                    var member = Expression.Property(memberExpression.Expression, memberExpression.Member.Name);
-                    var value = Expression.Lambda(member).Compile().DynamicInvoke();
-                    AppendFormat($"{value}");
-                    break;
-                }
-
-            default:
-                {
-                    Translate(memberExpression.Expression);
                     break;
                 }
         }
@@ -84,7 +65,7 @@ public sealed partial record WhereHandler
     ///     Converts constant values into their string representation for SQL.
     /// </summary>
     /// <param name="constantExpression">The constant expression to translate.</param>
-    protected override void Translate(ConstantExpression constantExpression)
+    protected override void Visit(ConstantExpression constantExpression)
         => AppendFormat($"{constantExpression.Value}");
 
     /// <summary>
@@ -92,7 +73,7 @@ public sealed partial record WhereHandler
     ///     Handles logical operations, comparisons, and array indexing.
     /// </summary>
     /// <param name="binaryExpression">The binary expression to translate.</param>
-    protected override void Translate(BinaryExpression binaryExpression)
+    protected override void Visit(BinaryExpression binaryExpression)
     {
         if (binaryExpression.NodeType is ExpressionType.ArrayIndex)
         {
@@ -118,10 +99,23 @@ public sealed partial record WhereHandler
                     }
             }
 
-            Translate(binaryExpression.Left);
+            Visit(binaryExpression.Left);
             Append(BinaryOperandMap[binaryExpression.NodeType]);
-            Translate(binaryExpression.Right);
+            Visit(binaryExpression.Right);
             CloseParentheses();
+        }
+    }
+
+    /// <summary>
+    ///     Translates a unary expression into SQL for aggregate operations.
+    ///     Handles operations like negation and type conversion.
+    /// </summary>
+    /// <param name="unaryExpression">The unary expression to translate.</param>
+    protected override void Visit(UnaryExpression unaryExpression)
+    {
+        if (unaryExpression is { Operand: { } expression })
+        {
+            Visit(expression);
         }
     }
 
@@ -130,75 +124,81 @@ public sealed partial record WhereHandler
     ///     Handles special SQL functions like InRange, AnyIn, and NotIn.
     /// </summary>
     /// <param name="methodCallExpression">The method call expression to translate.</param>
-    protected override void Translate(MethodCallExpression methodCallExpression)
+    protected override void Visit(MethodCallExpression methodCallExpression)
     {
-        const string inRange = nameof(SqlFunctions.InRange);
-        const string anyIn = nameof(SqlFunctions.AnyIn);
-        const string notIn = nameof(SqlFunctions.NotIn);
-
-        var mi = typeof(SqlFunctions)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .Single(mt => mt.IsGenericMethod && mt.Name == methodCallExpression.Method.Name);
-
-        switch (mi.Name)
+        switch (methodCallExpression)
         {
-            case inRange:
+            case { Method: { } t } when t.DeclaringType == typeof(SqlFunctions):
+                const string inRange = nameof(SqlFunctions.InRange);
+                const string anyIn = nameof(SqlFunctions.AnyIn);
+                const string notIn = nameof(SqlFunctions.NotIn);
+
+                switch (t.Name)
                 {
-                    const string betweenOp = " BETWEEN ";
-                    const string andOp = " AND ";
+                    case inRange:
+                        {
+                            const string betweenOp = " BETWEEN ";
+                            const string andOp = " AND ";
 
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var beginAsExpression, var endAsExpression])
-                    {
-                        OpenParentheses();
-                        Translate(fieldAsExpression);
+                            if (methodCallExpression.Arguments is
+                                [var fieldAsExpression, var beginAsExpression, var endAsExpression])
+                            {
+                                OpenParentheses();
+                                Visit(fieldAsExpression);
 
-                        Append(betweenOp);
-                        Translate(beginAsExpression);
+                                Append(betweenOp);
+                                Visit(beginAsExpression);
 
-                        Append(andOp);
-                        Translate(endAsExpression);
-                        CloseParentheses();
-                    }
+                                Append(andOp);
+                                Visit(endAsExpression);
+                                CloseParentheses();
+                            }
 
-                    break;
+                            break;
+                        }
+
+                    case anyIn:
+                        {
+                            const string inOp = " IN ";
+
+                            if (methodCallExpression.Arguments is
+                                [var fieldAsExpression, var valuesAsExpression])
+                            {
+                                OpenParentheses();
+                                Visit(fieldAsExpression);
+
+                                Append(inOp);
+                                Visit(valuesAsExpression);
+                                CloseParentheses();
+                            }
+
+                            break;
+                        }
+
+                    case notIn:
+                        {
+                            const string notInOp = " NOT IN ";
+
+                            if (methodCallExpression.Arguments is
+                                [var fieldAsExpression, var valuesAsExpression])
+                            {
+                                OpenParentheses();
+                                Visit(fieldAsExpression);
+
+                                Append(notInOp);
+                                Visit(valuesAsExpression);
+                                CloseParentheses();
+                            }
+
+                            break;
+                        }
                 }
 
-            case anyIn:
-                {
-                    const string inOp = " IN ";
+                break;
 
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var valuesAsExpression])
-                    {
-                        OpenParentheses();
-                        Translate(fieldAsExpression);
-
-                        Append(inOp);
-                        Translate(valuesAsExpression);
-                        CloseParentheses();
-                    }
-
-                    break;
-                }
-
-            case notIn:
-                {
-                    const string notInOp = " NOT IN ";
-
-                    if (methodCallExpression.Arguments is
-                        [var fieldAsExpression, var valuesAsExpression])
-                    {
-                        OpenParentheses();
-                        Translate(fieldAsExpression);
-
-                        Append(notInOp);
-                        Translate(valuesAsExpression);
-                        CloseParentheses();
-                    }
-
-                    break;
-                }
+            default:
+                var (evaluated, value) = Composite.GetValue(methodCallExpression);
+                break;
         }
     }
 }

@@ -1,0 +1,44 @@
+name: Benchmarks
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed # Trigger only when PR is closed (includes merges)
+
+jobs:
+  benchmark:
+    # Only run if the PR was merged (not just closed without merging)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest # Consistent runner; adjust as needed (e.g., windows-latest)
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up .NET SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' # Match your project's .NET version
+
+      # Restore dependencies for the benchmark project
+      - name: Restore dependencies
+        run: dotnet restore ./benchmarks/KISS.QueryBuilder.Benchmarks/KISS.QueryBuilder.Benchmarks.csproj
+
+      # Build the benchmark project in Release mode
+      - name: Build
+        run: dotnet build ./benchmarks/KISS.QueryBuilder.Benchmarks/KISS.QueryBuilder.Benchmarks.csproj -c Release --no-restore
+
+      # Run benchmarks
+      - name: Run Benchmarks
+        run: dotnet run -c Release --no-build --project ./benchmarks/KISS.QueryBuilder.Benchmarks/KISS.QueryBuilder.Benchmarks.csproj
+        working-directory: ./benchmarks/KISS.QueryBuilder.Benchmarks
+
+      # Upload benchmark results as artifacts
+      - name: Upload Benchmark Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: ./benchmarks/KISS.QueryBuilder.Benchmarks/BenchmarkDotNet.Artifacts/*

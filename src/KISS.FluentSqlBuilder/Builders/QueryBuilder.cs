@@ -56,6 +56,17 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
     }
 
     /// <inheritdoc />
+    public IWhereBuilder<TRecordset, TReturn> Where(bool condition, Expression<Func<TRecordset, bool>> predicate)
+    {
+        if (condition)
+        {
+            Handler.SetNext(new WhereHandler(predicate.Body));
+        }
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IGroupByBuilder<TRecordset, TReturn> GroupBy(Expression<Func<TRecordset, IComparable>> selector)
     {
         Handler.SetNext(new GroupByHandler(selector.Body));
@@ -289,6 +300,17 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(Expression<Func<TFirst, bool>> predicate)
     {
         Handler.SetNext(new WhereHandler(predicate.Body));
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(bool condition, Expression<Func<TFirst, bool>> predicate)
+    {
+        if (condition)
+        {
+            Handler.SetNext(new WhereHandler(predicate.Body));
+        }
+
         return this;
     }
 

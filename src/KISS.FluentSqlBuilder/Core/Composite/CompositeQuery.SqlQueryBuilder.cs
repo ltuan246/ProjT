@@ -5,7 +5,7 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 ///     This class handles the construction of SQL queries by assembling various SQL clauses
 ///     and managing query formatting and structure.
 /// </summary>
-public sealed partial class CompositeQuery
+public sealed partial record CompositeQuery
 {
     /// <summary>
     ///     Appends a formatted string to the SQL query being built.
@@ -20,16 +20,9 @@ public sealed partial class CompositeQuery
     ///     This method is used for adding SQL fragments with proper formatting and structure.
     /// </summary>
     /// <param name="value">The SQL string to append to the query.</param>
-    /// <param name="indent">Whether to add indentation to the new line.</param>
-    private void AppendLine(string value = "", bool indent = false)
+    private void AppendLine(string value = "")
     {
         SqlBuilder.AppendLine();
-        if (indent)
-        {
-            const int indentationLevel = 4;
-            SqlBuilder.Append(new string(' ', indentationLevel));
-        }
-
         SqlBuilder.Append(value);
     }
 
@@ -55,6 +48,20 @@ public sealed partial class CompositeQuery
     }
 
     /// <summary>
+    ///     Retrieves the database table name associated with a given type using the SqlTableAttribute.
+    /// </summary>
+    /// <param name="type">The type (class) for which to retrieve the table name.</param>
+    /// <returns>The name of the table as specified by the SqlTableAttribute on the type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the specified type does not have a SqlTableAttribute applied.</exception>
+    public string GetTableName(Type type)
+    {
+        var attr = type.GetCustomAttribute<SqlTableAttribute>();
+        return attr == null
+            ? throw new InvalidOperationException($"Type {type.Name} must have a SqlTableAttribute.")
+            : attr.Name;
+    }
+
+    /// <summary>
     ///     Builds the complete SQL query by assembling all query clauses in the correct order.
     ///     This method orchestrates the construction of the final SQL query string.
     /// </summary>
@@ -75,7 +82,7 @@ public sealed partial class CompositeQuery
     ///     and expressions from the stored statements.
     /// </summary>
     private void SetSelect()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Select])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Select])
             .AccessFirst(fs =>
             {
                 Append("SELECT");
@@ -96,7 +103,7 @@ public sealed partial class CompositeQuery
     {
         var (table, alias) = TableAliases.First();
         Append("FROM");
-        AppendLine($"{table.Name}s AS {alias}");
+        AppendLine($"{GetTableName(table)} AS {alias}");
         AppendLine();
     }
 
@@ -105,7 +112,7 @@ public sealed partial class CompositeQuery
     ///     from the stored statements.
     /// </summary>
     private void SetJoin()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Join])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Join])
             .AccessFirst(fs =>
             {
                 AppendLine($"{fs}");
@@ -122,7 +129,7 @@ public sealed partial class CompositeQuery
     ///     from the stored statements.
     /// </summary>
     private void SetWhere()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Where])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Where])
             .AccessFirst(fs =>
             {
                 Append("WHERE");
@@ -140,7 +147,7 @@ public sealed partial class CompositeQuery
     ///     Common Table Expressions (CTEs) for complex grouping scenarios.
     /// </summary>
     private void SetGroupBy()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.GroupBy])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.GroupBy])
             .AccessFirst(_ =>
             {
                 SqlBuilder.Insert(0, "WITH CommonTableExpression AS (");
@@ -184,7 +191,7 @@ public sealed partial class CompositeQuery
 
                 outerSelectBuilder.Append("CTE.*");
 
-                new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.SelectAggregate])
+                new EnumeratorProcessor<string>(SqlStatements[SqlStatement.SelectAggregate])
                     .AccessFirst(fs =>
                     {
                         if (innerSelectBuilder.Length > 0)
@@ -200,7 +207,7 @@ public sealed partial class CompositeQuery
                     })
                     .Execute();
 
-                new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Having])
+                new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Having])
                     .AccessFirst(fs =>
                     {
                         groupByFilteringBuilder.Append($" HAVING {fs}");
@@ -233,7 +240,7 @@ public sealed partial class CompositeQuery
     ///     conditions from the stored statements.
     /// </summary>
     private void SetOrderBy()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.OrderBy])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.OrderBy])
             .AccessFirst(fs =>
             {
                 Append("ORDER BY");
@@ -251,7 +258,7 @@ public sealed partial class CompositeQuery
     ///     value from the stored statements.
     /// </summary>
     private void SetLimit()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Limit])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Limit])
             .AccessFirst(fs =>
             {
                 Append("LIMIT");
@@ -265,7 +272,7 @@ public sealed partial class CompositeQuery
     ///     value from the stored statements.
     /// </summary>
     private void SetOffset()
-        => new EnumeratorProcessor<FormattableString>(SqlStatements[SqlStatement.Offset])
+        => new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Offset])
             .AccessFirst(fs =>
             {
                 Append("OFFSET");

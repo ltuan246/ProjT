@@ -5,16 +5,9 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 ///     This class serves as the core component for building and executing composite SQL queries,
 ///     supporting both simple and complex query scenarios with type-safe result processing.
 /// </summary>
-/// <param name="connection">The <see cref="DbConnection" /> used to execute the query.</param>
-public sealed partial class CompositeQuery(DbConnection connection) : ICompositeQueryOperations
+/// <param name="Connection">The <see cref="DbConnection" /> used to execute the query.</param>
+public sealed partial record CompositeQuery(DbConnection Connection) : ICompositeQueryOperations
 {
-    /// <summary>
-    ///     Gets the database connection used for executing SQL queries.
-    ///     This connection is initialized via the constructor and remains constant
-    ///     throughout the instance's lifetime, ensuring consistent database access.
-    /// </summary>
-    private DbConnection Connection { get; } = connection;
-
     /// <summary>
     ///     Executes the constructed SQL query against the database and returns the results
     ///     as a list of the specified type. This method handles both simple and complex
@@ -30,6 +23,7 @@ public sealed partial class CompositeQuery(DbConnection connection) : IComposite
     /// </returns>
     public List<TReturn> GetList<TReturn>()
     {
+        System.Diagnostics.Debug.WriteLine(Sql);
         // Executes the SQL query using the Connection, passing the constructed Sql string and Parameters
         var dtRows = Connection.Query(Sql, Parameters)
             .Cast<IDictionary<string, object>>()

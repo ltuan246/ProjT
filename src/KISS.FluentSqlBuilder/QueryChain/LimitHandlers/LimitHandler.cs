@@ -9,12 +9,12 @@ namespace KISS.FluentSqlBuilder.QueryChain.LimitHandlers;
 ///     The number of rows to fetch.
 ///     This value determines the maximum number of records returned by the query.
 /// </param>
-public sealed record LimitHandler(int Rows) : QueryHandler
+public sealed record LimitHandler(int Rows) : QueryHandler(SqlStatement.Limit)
 {
     /// <summary>
     ///     Processes the LIMIT clause by adding the row limit
     ///     to the query's LIMIT statements.
     /// </summary>
-    protected override void Process()
+    protected override void TranslateExpression()
         => Composite.SqlStatements[SqlStatement.Limit].Add($"{Rows}");
 }

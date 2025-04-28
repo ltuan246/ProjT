@@ -5,7 +5,7 @@ namespace KISS.FluentSqlBuilder.QueryChain;
 ///     This class serves as the foundation for all query component handlers, providing a structured
 ///     approach to processing different parts of a SQL query (SELECT, WHERE, JOIN, etc.).
 /// </summary>
-public abstract partial record QueryHandler : ExpressionTranslator
+public abstract partial record QueryHandler(SqlStatement Statement, Expression? Selector = null)
 {
     /// <summary>
     ///     Gets or sets the next handler in the chain, enabling sequential processing of query components.
@@ -50,7 +50,8 @@ public abstract partial record QueryHandler : ExpressionTranslator
         Composite = composite;
         // Invokes the derived class's specific processing logic for this handler.
         Process();
-        BuildExpression();
+        TranslateExpression();
+        ExpressionIntegration();
         // Passes the CompositeQuery to the next handler in the chain, if one exists, to continue processing.
         NextHandler?.Handle(composite);
     }
@@ -60,12 +61,26 @@ public abstract partial record QueryHandler : ExpressionTranslator
     ///     This abstract method allows each handler to define its own processing logic for specific
     ///     query components (SELECT, WHERE, JOIN, etc.).
     /// </summary>
-    protected abstract void Process();
+    protected virtual void Process() { }
+
+    /// <summary>
+    ///     Translates the stored expression (Selector) into a SQL statement fragment
+    ///     and appends it to the Composite's SQL statements collection for the specified statement type.
+    /// </summary>
+    protected virtual void TranslateExpression()
+    {
+        Visit(Selector);
+
+        if (!string.IsNullOrEmpty(Sql))
+        {
+            Composite.SqlStatements[Statement].Add(Sql);
+        }
+    }
 
     /// <summary>
     ///     Builds an expression processor to translate the handler's query component into executable SQL.
     ///     This virtual method provides a hook for handlers to define how their specific expressions
     ///     are processed and integrated into the final SQL query.
     /// </summary>
-    protected virtual void BuildExpression() { }
+    protected virtual void ExpressionIntegration() { }
 }

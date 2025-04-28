@@ -13,32 +13,11 @@ public sealed partial record GroupByHandler
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
     /// <exception cref="NotSupportedException">Thrown when the expression is not supported.</exception>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {
             string alias = Composite.GetAliasMapping(parameterExpression.Type);
-            string fieldName = $"{alias}_{memberExpression.Member.Name}";
-            Composite.GroupingKeys[fieldName] = memberExpression.Type;
-            Append($"{fieldName}");
-        }
-        else
-        {
-            throw new NotSupportedException("Expression not supported.");
-        }
-    }
-
-    /// <summary>
-    ///     Translates a unary expression into SQL for GROUP BY clauses.
-    ///     Handles operations like type conversion and negation.
-    /// </summary>
-    /// <param name="unaryExpression">The unary expression to translate.</param>
-    /// <exception cref="NotSupportedException">Thrown when the expression is not supported.</exception>
-    protected override void Translate(UnaryExpression unaryExpression)
-    {
-        if (unaryExpression is { Operand: MemberExpression memberExpression })
-        {
-            string alias = Composite.GetAliasMapping(memberExpression.Member.DeclaringType!);
             string fieldName = $"{alias}_{memberExpression.Member.Name}";
             Composite.GroupingKeys[fieldName] = memberExpression.Type;
             Append($"{fieldName}");

@@ -12,18 +12,13 @@ public sealed partial record SelectAggregateHandler
     ///     Handles property and field access within aggregate functions.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {
             Append($"{Composite.GetAliasMapping(parameterExpression.Type)}_{memberExpression.Member.Name}");
             switch (memberExpression.Member)
             {
-                // Accessing a static field, get its type and value using reflection
-                case FieldInfo fieldInfo:
-                    var fieldType = fieldInfo.FieldType;
-                    Composite.AggregationKeys[Alias] = fieldType;
-                    break;
                 // Accessing a static property, get its type and value using reflection
                 case PropertyInfo propertyInfo:
                     var propType = propertyInfo.PropertyType;
@@ -34,35 +29,15 @@ public sealed partial record SelectAggregateHandler
     }
 
     /// <summary>
-    ///     Translates a constant expression into SQL for aggregate operations.
-    ///     Converts constant values into their string representation for SQL.
-    /// </summary>
-    /// <param name="constantExpression">The constant expression to translate.</param>
-    protected override void Translate(ConstantExpression constantExpression)
-        => AppendFormat($"{constantExpression.Value}");
-
-    /// <summary>
-    ///     Translates a binary expression into SQL for aggregate operations.
-    ///     Handles mathematical and comparison operations within aggregates.
-    /// </summary>
-    /// <param name="binaryExpression">The binary expression to translate.</param>
-    protected override void Translate(BinaryExpression binaryExpression)
-    {
-        Translate(binaryExpression.Left);
-        Append(BinaryOperandMap[binaryExpression.NodeType]);
-        Translate(binaryExpression.Right);
-    }
-
-    /// <summary>
     ///     Translates a unary expression into SQL for aggregate operations.
     ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
-    protected override void Translate(UnaryExpression unaryExpression)
+    protected override void Visit(UnaryExpression unaryExpression)
     {
         if (unaryExpression is { Operand: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 
@@ -71,11 +46,11 @@ public sealed partial record SelectAggregateHandler
     ///     Processes the body of lambda expressions used in aggregates.
     /// </summary>
     /// <param name="lambdaExpression">The lambda expression to translate.</param>
-    protected override void Translate(LambdaExpression lambdaExpression)
+    protected override void Visit(LambdaExpression lambdaExpression)
     {
         if (lambdaExpression is { Body: { } expression })
         {
-            Translate(expression);
+            Visit(expression);
         }
     }
 
@@ -84,12 +59,12 @@ public sealed partial record SelectAggregateHandler
     ///     Handles SQL function calls and custom aggregate methods.
     /// </summary>
     /// <param name="methodCallExpression">The method call expression to translate.</param>
-    protected override void Translate(MethodCallExpression methodCallExpression)
+    protected override void Visit(MethodCallExpression methodCallExpression)
     {
         if (methodCallExpression is { Arguments: [{ } expression] })
         {
             Append($"{methodCallExpression.Method.Name}(");
-            Translate(expression);
+            Visit(expression);
             Append($") AS {Alias} ");
         }
     }

@@ -21,7 +21,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     ///     parameter members, constant members, and method call results.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
-    protected override void Translate(MemberExpression memberExpression)
+    protected override void Visit(MemberExpression memberExpression)
     {
         switch (memberExpression.Expression)
         {
@@ -70,7 +70,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
                     }
                     else
                     {
-                        Translate(constantExpression);
+                        Visit(constantExpression);
                     }
 
                     break;
@@ -90,7 +90,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
 
             default:
                 {
-                    Translate(memberExpression.Expression);
+                    Visit(memberExpression.Expression);
                     break;
                 }
         }
@@ -101,7 +101,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     ///     Handles the creation of new objects with property assignments.
     /// </summary>
     /// <param name="newExpression">The new expression to translate.</param>
-    protected override void Translate(NewExpression newExpression)
+    protected override void Visit(NewExpression newExpression)
     {
         var selectList = newExpression.Members!
             .Select(m => m.Name)
@@ -127,30 +127,35 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     ///     Handles the initialization of object properties with values from the source.
     /// </summary>
     /// <param name="memberInitExpression">The member initialization expression to translate.</param>
-    protected override void Translate(MemberInitExpression memberInitExpression)
+    protected override void Visit(MemberInitExpression memberInitExpression)
     {
         new EnumeratorProcessor<MemberBinding>(memberInitExpression.Bindings)
             .AccessFirst(m =>
             {
+                // if (m is MemberAssignment
+                //     { Expression: MemberExpression { Expression: ParameterExpression parameter } member } assignment)
+                // {
+                //     string alias = Composite.GetAliasMapping(parameter.Type);
+                //     string sourceMemberName = $"{alias}.{member.Member.Name}";
+                //     Append($"{sourceMemberName} AS {assignment.Member.Name}");
+                // }
+
                 if (m is MemberAssignment
-                    { Expression: MemberExpression { Expression: ParameterExpression parameter1 } member1 } assignment1)
+                    { Expression: MemberExpression { Expression: ParameterExpression parameter } member } assignment)
                 {
-                    string alias = Composite.GetAliasMapping(parameter1.Type);
-                    string sourceMemberName = $"{alias}.{member1.Member.Name}";
-                    Append($"{sourceMemberName} AS {assignment1.Member.Name}");
                 }
             })
             .AccessRemaining(m =>
             {
                 if (m is MemberAssignment
-                    { Expression: MemberExpression { Expression: ParameterExpression parameter2 } member2 } assignment2)
+                    { Expression: MemberExpression { Expression: ParameterExpression parameter } member } assignment)
                 {
                     Append(", ");
                     AppendLine(string.Empty, true);
 
-                    string alias = Composite.GetAliasMapping(parameter2.Type);
-                    string sourceMemberName = $"{alias}.{member2.Member.Name}";
-                    Append($"{sourceMemberName} AS {assignment2.Member.Name}");
+                    string alias = Composite.GetAliasMapping(parameter.Type);
+                    string sourceMemberName = $"{alias}.{member.Member.Name}";
+                    Append($"{sourceMemberName} AS {assignment.Member.Name}");
                 }
             })
             .Execute();
@@ -161,7 +166,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
-    protected override void Translate(UnaryExpression unaryExpression)
+    protected override void Visit(UnaryExpression unaryExpression)
     {
         if (unaryExpression is { Operand: MemberExpression memberExpression })
         {
@@ -178,7 +183,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     ///     Converts constant values into their string representation for SQL.
     /// </summary>
     /// <param name="constantExpression">The constant expression to translate.</param>
-    protected override void Translate(ConstantExpression constantExpression)
+    protected override void Visit(ConstantExpression constantExpression)
     {
         Append($"{constantExpression.Value}");
     }

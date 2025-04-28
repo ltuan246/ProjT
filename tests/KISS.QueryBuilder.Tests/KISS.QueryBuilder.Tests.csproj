@@ -9,22 +9,15 @@
         <None Update="appSettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\Weather.csv">
+        <None Update="Assets\weather.db">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\HearthstoneCards\cards.csv">
+        <None Update="Assets\locations.csv">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\HearthstoneCards\cards_flat.csv">
+        <None Update="Assets\daily_weather.csv">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="Assets\HearthstoneCards\dust_costs.csv">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Assets\" />
     </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ namespace KISS.FluentSqlBuilder.Builders.AggregationBuilders;
 /// <param name="AggregationType">The type of aggregation operation to perform (e.g., SUM, MAX, MIN).</param>
 /// <param name="Selector">An expression selecting the property to aggregate.</param>
 /// <typeparam name="TRecordset">The type representing the database table or view being queried.</typeparam>
+[ExcludeFromCodeCoverage]
 public sealed record AggregationComparer<TRecordset>(
     SqlAggregation AggregationType,
     Expression<Func<TRecordset, IComparable?>> Selector)

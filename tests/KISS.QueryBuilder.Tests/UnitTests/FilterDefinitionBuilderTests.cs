@@ -3,41 +3,74 @@ namespace KISS.QueryBuilder.Tests.UnitTests;
 [Collection(nameof(SqliteTestsCollection))]
 public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 {
-    private SqliteConnection Connection { get; init; } = fixture.Connection;
+    private SqliteConnection Connection { get; } = fixture.Connection;
+
+    [Theory]
+    [InlineData(true, 1)]
+    [InlineData(false, 201)]
+    public void Fetch_FluentBuilder_ReturnsExpectedWeathers(bool condition, int expected)
+    {
+        // Arrange
+        const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872";
+
+        // Act
+        var weathers = Connection.Retrieve<WeatherModel>()
+            .From<Location>()
+            .InnerJoin<Astronomy>( // Map one-to-one relationship
+                e => e.Id,
+                r => r.LocationId,
+                e => e.Astro)
+            .InnerJoin<DailyWeather>( // Map one-to-one relationship
+                (Location e) => e.Id,
+                r => r.LocationId,
+                e => e.DailyWeathers)
+            .Where(condition, (Location w) => w.Id == exId)
+            .ToList();
+
+        // Assert
+        Assert.Equal(expected, weathers.Count);
+    }
 
     [Fact]
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
     {
         // Arrange
-        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
+        const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exTzId = "Europe/Andorra";
+        const double exLatitude = 42.5, exLongitude = 1.517;
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
+        IList<Location> locations = Connection.Retrieve<Location>()
+            .From<Location>()
             .Where(w => w.Id == exId)
             .ToList();
 
         // Assert
-        Assert.Single(weathers);
-        Assert.Collection(weathers, weather => Assert.Equal(exId, weather.Id));
+        Assert.Single(locations);
+        Assert.Collection(locations,
+            location =>
+            {
+                Assert.Equal(exId, location.Id);
+                Assert.Equal(exLatitude, location.Latitude);
+                Assert.Equal(exLongitude, location.Longitude);
+                Assert.Equal(exTzId, location.TzId);
+            });
     }
 
     [Fact]
     public void NotEqualTo_FluentBuilder_ReturnsDataIfTrue()
     {
         // Arrange
-        Guid exId = new("2DFA8730-2541-11EF-83FE-B1C709C359B7");
-        const string exCountry = "Argentina";
+        const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exTzId = "Europe/Andorra";
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
+        IList<Location> locations = Connection.Retrieve<Location>()
+            .From<Location>()
             .Where(w => w.Id == exId)
-            .Where(w => w.Country != exCountry)
+            .Where(w => w.TzId != exTzId)
             .ToList();
 
         // Assert
-        Assert.Empty(weathers);
+        Assert.Empty(locations);
     }
 
     [Fact]
@@ -47,14 +80,14 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const float exTemperatureCelsius = 29;
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
-            .Where(w => w.TemperatureCelsius > exTemperatureCelsius)
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .Where(w => w.AvgTempC > exTemperatureCelsius)
             .ToList();
 
         // Assert
-        Assert.Equal(9, weathers.Count);
-        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius > exTemperatureCelsius));
+        Assert.Equal(433, weathers.Count);
+        Assert.All(weathers, weather => Assert.True(weather.AvgTempC > exTemperatureCelsius));
     }
 
     [Fact]
@@ -64,14 +97,14 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const float exTemperatureCelsius = 29;
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
-            .Where(w => w.TemperatureCelsius >= exTemperatureCelsius)
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .Where(w => w.AvgTempC >= exTemperatureCelsius)
             .ToList();
 
         // Assert
-        Assert.Equal(10, weathers.Count);
-        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius >= exTemperatureCelsius));
+        Assert.Equal(441, weathers.Count);
+        Assert.All(weathers, weather => Assert.True(weather.AvgTempC >= exTemperatureCelsius));
     }
 
     [Fact]
@@ -81,14 +114,14 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const float exTemperatureCelsius = 10;
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
-            .Where(w => w.TemperatureCelsius < exTemperatureCelsius)
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .Where(w => w.AvgTempC < exTemperatureCelsius)
             .ToList();
 
         // Assert
-        Assert.Equal(27, weathers.Count);
-        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius < exTemperatureCelsius));
+        Assert.Equal(1612, weathers.Count);
+        Assert.All(weathers, weather => Assert.True(weather.AvgTempC < exTemperatureCelsius));
     }
 
     [Fact]
@@ -98,84 +131,86 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
         const float exTemperatureCelsius = 10;
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
-            .Where(w => w.TemperatureCelsius <= exTemperatureCelsius)
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .Where(w => w.AvgTempC <= exTemperatureCelsius)
             .ToList();
 
         // Assert
-        Assert.Equal(32, weathers.Count);
-        Assert.All(weathers, weather => Assert.True(weather.TemperatureCelsius <= exTemperatureCelsius));
+        Assert.Equal(1628, weathers.Count);
+        Assert.All(weathers, weather => Assert.True(weather.AvgTempC <= exTemperatureCelsius));
     }
 
     [Fact]
     public void InOperator_FluentBuilder_ReturnsDataWhereValueExistsInList()
     {
         // Arrange
-        string[] exCountries = ["Vietnam", "Canada"];
+        string[] exConditionTexts = ["Sunny", "Cloudy"];
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
-            .Where(w => SqlFunctions.AnyIn(w.Country, exCountries))
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .Where(w => SqlFunctions.AnyIn(w.ConditionText, exConditionTexts))
             .ToList();
 
         // Assert
-        Assert.Equal(20, weathers.Count);
-        Assert.All(weathers, weather => Assert.Contains(weather.Country, exCountries));
+        Assert.Equal(1556, weathers.Count);
+        Assert.All(weathers, weather => Assert.Contains(weather.ConditionText, exConditionTexts));
     }
 
     [Fact]
     public void NotInOperator_FluentBuilder_ReturnsDataWhereValueExistsInList()
     {
         // Arrange
-        string[] exCountries = ["Vietnam", "Canada"];
+        string[] exConditionTexts = ["Sunny", "Cloudy"];
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
-            .Where(w => SqlFunctions.NotIn(w.Country, exCountries))
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .Where(w => SqlFunctions.NotIn(w.ConditionText, exConditionTexts))
             .ToList();
 
         // Assert
-        Assert.Equal(80, weathers.Count);
-        Assert.DoesNotContain(weathers, weather => exCountries.Contains(weather.Country));
+        Assert.Equal(4273, weathers.Count);
+        Assert.DoesNotContain(weathers, weather => exConditionTexts.Contains(weather.ConditionText));
     }
 
     [Fact]
     public void BetweenOperator_FluentBuilder_ReturnsDataThatMatchValuesInRange()
     {
         // Arrange
-        DateTime exDtBegin = new(2024, 5, 19);
-        DateTime exDtEnd = new(2024, 5, 21);
+        DateTime exDateBegin = new(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc);
+        DateTime exDateEnd = new(2025, 3, 7, 0, 0, 0, DateTimeKind.Utc);
+        long exDateBeginEpoch = EpochTime.GetIntDate(exDateBegin), exDateEndEpoch = EpochTime.GetIntDate(exDateEnd);
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
-            .Where(w => SqlFunctions.InRange(w.LastUpdated, exDtBegin, exDtEnd))
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .Where(w => SqlFunctions.InRange(w.DateEpoch, exDateBeginEpoch, exDateEndEpoch))
             .ToList();
 
         // Assert
-        Assert.Equal(10, weathers.Count);
-        Assert.All(weathers, weather => Assert.InRange(weather.LastUpdated, exDtBegin, exDtEnd));
+        Assert.Equal(1407, weathers.Count);
+        Assert.All(weathers, weather => Assert.InRange(weather.DateEpoch, exDateBeginEpoch, exDateEndEpoch));
     }
 
     [Fact]
     public void OrOperator_FluentBuilder_ReturnsDataIfAnyOneConditionIsTrue()
     {
         // Arrange
-        Guid[] exIds = [new("2DFA8730-2541-11EF-83FE-B1C709C359B7"), new("2DFA8731-2541-11EF-83FE-B1C709C359B7")];
+        string[] exIds = [new("b804d8ae-791b-4c51-a164-e823146297d4"), new("7489b710-5661-4068-b904-899e7f0df0b7")];
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
             .Select(w => new()
             {
                 Id = w.Id,
-                TemperatureCelsius = w.TemperatureCelsius,
-                WindMph = w.WindMph,
-                LastUpdated = w.LastUpdated
+                LocationId = w.LocationId,
+                Date = w.Date,
+                ConditionText = w.ConditionText,
+                ConditionIcon = w.ConditionIcon
             })
             .ToList();
 
@@ -188,20 +223,21 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     public void SelectLimit_FluentBuilder_ReturnsDataIfAnyOneConditionIsTrue()
     {
         // Arrange
-        Guid[] exIds = [new("2DFA8730-2541-11EF-83FE-B1C709C359B7"), new("2DFA8731-2541-11EF-83FE-B1C709C359B7")];
+        string[] exIds = [new("b804d8ae-791b-4c51-a164-e823146297d4"), new("7489b710-5661-4068-b904-899e7f0df0b7")];
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
             .Select(w => new()
             {
                 Id = w.Id,
-                TemperatureCelsius = w.TemperatureCelsius,
-                WindMph = w.WindMph,
-                LastUpdated = w.LastUpdated
+                LocationId = w.LocationId,
+                Date = w.Date,
+                ConditionText = w.ConditionText,
+                ConditionIcon = w.ConditionIcon
             })
-            .OrderBy(w => w.WindMph)
+            .OrderBy(w => w.Date)
             .Limit(1)
             .ToList();
 
@@ -218,20 +254,21 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     public void SelectOffset_FluentBuilder_ReturnsDataIfAnyOneConditionIsTrue()
     {
         // Arrange
-        Guid[] exIds = [new("2DFA8730-2541-11EF-83FE-B1C709C359B7"), new("2DFA8731-2541-11EF-83FE-B1C709C359B7")];
+        string[] exIds = [new("b804d8ae-791b-4c51-a164-e823146297d4"), new("7489b710-5661-4068-b904-899e7f0df0b7")];
 
         // Act
-        IList<Weather> weathers = Connection.Retrieve<Weather>()
-            .From<Weather>()
+        IList<DailyWeather> weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
             .Where(w => w.Id == exIds[0] || w.Id == exIds[1])
             .Select(w => new()
             {
                 Id = w.Id,
-                TemperatureCelsius = w.TemperatureCelsius,
-                WindMph = w.WindMph,
-                LastUpdated = w.LastUpdated
+                LocationId = w.LocationId,
+                Date = w.Date,
+                ConditionText = w.ConditionText,
+                ConditionIcon = w.ConditionIcon
             })
-            .OrderBy(w => w.WindMph)
+            .OrderBy(w => w.Date)
             .Limit(1)
             .Offset(1)
             .ToList();
@@ -246,88 +283,74 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     }
 
     [Fact]
-    public void Join_FluentBuilder_ReturnsExpectedCards()
+    public void Join_FluentBuilder_ReturnsExpectedData()
     {
         // Arrange
-        const string exId = "BRM_010t2";
-        const string exCardFlatType = "MINION";
+        const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exMoonPhase = "New Moon";
 
         // Act
-        var cards = Connection.Retrieve<CardModel>()
-            .From<Card>()
-            .InnerJoin<CardFlat>( // Map one-to-one relationship
+        IList<WeatherModel> weathers = Connection.Retrieve<WeatherModel>()
+            .From<Location>()
+            .InnerJoin<Astronomy>( // Map one-to-one relationship
                 e => e.Id,
-                r => r.Id,
-                e => e.CardFlat)
-            .InnerJoin<DustCost>( // Map one-to-many relationship
-                (Card e) => e.Id,
-                r => r.CardId,
-                e => e.DustCost)
-            .Where((Card c) => c.Id == exId)
+                r => r.LocationId,
+                e => e.Astro)
+            .InnerJoin<DailyWeather>( // Map one-to-one relationship
+                (Location e) => e.Id,
+                r => r.LocationId,
+                e => e.DailyWeathers)
+            .Where((Location c) => c.Id == exId)
             .ToList();
 
         // Assert
-        Assert.Single(cards);
-        Assert.Collection(cards,
+        Assert.Single(weathers);
+        Assert.Collection(weathers,
             c =>
             {
                 Assert.Equal(exId, c.Id);
 
-                Assert.NotNull(c.CardFlat);
-                Assert.Equal(exCardFlatType, c.CardFlat.Type);
+                Assert.NotNull(c.Astro);
+                Assert.Equal(exMoonPhase, c.Astro.MoonPhase);
 
-                Assert.NotNull(c.DustCost);
-                Assert.Equal(4, c.DustCost.Count);
-                Assert.Collection(c.DustCost,
-                    dc => Assert.Equal("CRAFTING_NORMAL", dc.Action),
-                    dc => Assert.Equal("CRAFTING_GOLDEN", dc.Action),
-                    dc => Assert.Equal("DISENCHANT_NORMAL", dc.Action),
-                    dc => Assert.Equal("DISENCHANT_GOLDEN", dc.Action));
+                Assert.NotNull(c.DailyWeathers);
+                Assert.Equal(841, c.DailyWeathers.Count);
+                Assert.Equal(1282, c.DailyWeathers[0].ConditionCode);
+                Assert.Equal("Moderate or heavy snow with thunder", c.DailyWeathers[0].ConditionText);
             });
     }
 
     [Fact]
-    public void GroupBy_FluentBuilder_ReturnsExpectedCards()
+    public void GroupBy_FluentBuilder_ReturnsExpectedData()
     {
-        // Arrange
-        // const string exId = "BRM_010t2";
-
         // Act
-        var cards = Connection.Retrieve<CardModel>()
-            .From<Card>()
-            .InnerJoin<CardFlat>( // Map one-to-one relationship
-                e => e.Id,
-                r => r.Id,
-                e => e.CardFlat)
-            .InnerJoin<DustCost>( // Map one-to-many relationship
-                (Card e) => e.Id,
-                r => r.CardId,
-                e => e.DustCost)
-            .GroupBy(w => w.Type)
-            // .Select(SqlAggregation.Sum, w => w.Cost!, "Total")
+        var weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .GroupBy(c => c.LocationId)
             .ToDictionary();
+
+        Assert.Equal(201, weathers.Count);
+        Assert.All(weathers, weather => Assert.Equal(29, weather.Value.Count));
     }
 
     [Fact]
-    public void Having_FluentBuilder_ReturnsExpectedCards()
+    public void Having_FluentBuilder_ReturnsExpectedData()
     {
         // Arrange
-        // const string exId = "BRM_010t2";
+        const double exTotalSnowCm = 20;
 
         // Act
-        var cards = Connection.Retrieve<CardModel>()
-            .From<Card>()
-            .InnerJoin<CardFlat>( // Map one-to-one relationship
-                e => e.Id,
-                r => r.Id,
-                e => e.CardFlat)
-            .InnerJoin<DustCost>( // Map one-to-many relationship
-                (Card e) => e.Id,
-                r => r.CardId,
-                e => e.DustCost)
-            .GroupBy(w => w.Type)
-            .Having(agg => agg.Sum(x => x.Cost) > 1)
-            .SelectAggregate(agg => agg.Sum(x => x.Cost), "SumCost")
+        var weathers = Connection.Retrieve<DailyWeather>()
+            .From<DailyWeather>()
+            .GroupBy(c => c.LocationId)
+            .Having(agg => agg.Sum(x => x.TotalSnowCm) > exTotalSnowCm)
+            .SelectAggregate(agg => agg.Sum(x => x.TotalSnowCm), "TotalSnowCm")
+            .SelectAggregate(agg => agg.Max(x => x.TotalSnowCm), "MaxSnowCm")
+            .SelectAggregate(agg => agg.Min(x => x.TotalSnowCm), "MinSnowCm")
+            .SelectAggregate(agg => agg.Avg(x => x.TotalSnowCm), "AvgSnowCm")
+            .SelectAggregate(agg => agg.Count(x => 1), "Cnt")
             .ToDictionary();
+
+        Assert.Equal(10, weathers.Count);
+        Assert.All(weathers, weather => Assert.True((double)weather.Key[1]! > exTotalSnowCm));
     }
 }
