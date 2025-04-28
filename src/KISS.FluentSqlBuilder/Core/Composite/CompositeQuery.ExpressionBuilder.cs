@@ -3,7 +3,7 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 /// <summary>
 ///     A context for storing reusable instances used in expression tree construction.
 /// </summary>
-public sealed partial record CompositeQuery
+public sealed partial class CompositeQuery
 {
     /// <summary>
     ///     Creates a collection of <see cref="MemberBinding" /> instances by mapping properties
