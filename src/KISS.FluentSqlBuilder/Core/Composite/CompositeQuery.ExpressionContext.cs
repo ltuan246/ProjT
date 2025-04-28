@@ -3,7 +3,7 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 /// <summary>
 ///     A context for storing reusable instances used in expression tree construction.
 /// </summary>
-public sealed partial record CompositeQuery
+public sealed partial class CompositeQuery
 {
     private static MethodInfo IterMoveNextMethod { get; } = typeof(IEnumerator).GetMethod("MoveNext", Type.EmptyTypes)!;
 
@@ -32,8 +32,6 @@ public sealed partial record CompositeQuery
 
     private static MethodCallExpression MoveNextOnInEntryEnumerator { get; } = Expression.Call(InEntryIterExVariable, IterMoveNextMethod);
 
-    private BlockExpression ProcessRowsIfExist { get; set; } = Expression.Block();
-
     private static MethodCallExpression DisposeInEntryEnumerator { get; } = Expression.Call(InEntryIterExVariable, DisposeMethod);
 
     private static LabelTarget BreakLabel { get; } = Expression.Label();
@@ -43,6 +41,8 @@ public sealed partial record CompositeQuery
     private static BinaryExpression AssignCurrentInputRowFromInputEnumerator { get; } = Expression.Assign(
         CurrentEntryExParameter,
         Expression.Property(InEntryIterExVariable, "Current"));
+
+    private BlockExpression ProcessRowsIfExist { get; set; } = Expression.Block();
 
     /// <summary>
     ///     A function that define how to process each row.

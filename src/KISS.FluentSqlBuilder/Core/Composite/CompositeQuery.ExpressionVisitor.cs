@@ -6,7 +6,7 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 ///     determining which parts of the expression tree can be evaluated at runtime and
 ///     converting them into SQL-compatible form.
 /// </summary>
-public sealed partial record CompositeQuery
+public sealed partial class CompositeQuery : ExpressionVisitor
 {
     /// <summary>
     ///     Gets a stack used to track expressions during traversal.
@@ -31,7 +31,7 @@ public sealed partial record CompositeQuery
     ///     The modified expression if changes were made during traversal,
     ///     or the original expression if no modifications were needed.
     /// </returns>
-    public Expression? Visit(Expression? node)
+    public override Expression? Visit(Expression? node)
     {
         // Handle null expressions
         if (node is null)
@@ -143,7 +143,7 @@ public sealed partial record CompositeQuery
         //     GetValue Result: (false, "") (unless Visit later determines otherwise)
         var ret = node is { NodeType: ExpressionType.Extension, CanReduce: false }
             ? node // Returns unchanged; not inherently "Evaluable" beyond its form.
-            : Visit(node); // Visits sub-expressions to further assess "Evaluable" status.
+            : base.Visit(node); // Visits sub-expressions to further assess "Evaluable" status.
 
         // Removes the node from the stack; "Evaluable" is set, and tracking is done.
         ExpressionStack.Pop();
