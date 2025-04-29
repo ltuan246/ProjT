@@ -12,14 +12,14 @@ public sealed partial class CompositeQuery
     ///     This property combines all SQL statements in the correct order and applies
     ///     any necessary formatting.
     /// </summary>
-    private string Sql
+    public string Sql
         => SqlBuilder.ToString();
 
     /// <summary>
     ///     Gets the collection of dynamic parameters used in the SQL query.
     ///     These parameters are used for safe parameter binding and preventing SQL injection.
     /// </summary>
-    private DynamicParameters Parameters
+    public DynamicParameters Parameters
         => SqlFormatting.Parameters;
 
     /// <summary>

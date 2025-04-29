@@ -5,7 +5,11 @@ namespace KISS.FluentSqlBuilder.QueryProxy;
 ///     This interface provides methods for executing SQL queries and retrieving results
 ///     in different formats, with built-in query setup and execution logic.
 /// </summary>
-public interface ICompositeQueryOperations
+/// <typeparam name="TReturn">
+///     The type of objects to return, representing the query result rows.
+///     This type must match the structure of the query results.
+/// </typeparam>
+public interface ICompositeQueryOperations<TReturn>
 {
     /// <summary>
     ///     Executes the constructed SQL query and returns the results as a list of the specified type.
@@ -15,7 +19,7 @@ public interface ICompositeQueryOperations
     ///     A list of <typeparamref name="TReturn"/> objects containing the query results.
     ///     The results are automatically mapped from the database columns to the specified type.
     /// </returns>
-    List<TReturn> GetList<TReturn>();
+    List<TReturn> GetList();
 
     /// <summary>
     ///     Executes the constructed SQL query and returns the results as a dictionary,
@@ -26,5 +30,5 @@ public interface ICompositeQueryOperations
     ///     A dictionary where the key is an <see cref="ITuple"/> containing the grouping keys,
     ///     and the value is a list of <typeparamref name="TReturn"/> objects for that group.
     /// </returns>
-    Dictionary<ITuple, List<TReturn>> GetDictionary<TReturn>();
+    Dictionary<ITuple, List<TReturn>> GetDictionary();
 }

@@ -1,9 +1,9 @@
 ﻿namespace KISS.QueryBuilder.Tests.UnitTests;
 
 [Collection(nameof(SqliteTestsCollection))]
-public sealed class CompositeQueryTests(SqliteTestsFixture fixture)
+public sealed class CompositeQueryTests()
 {
-    private CompositeQuery Query { get; } = new(fixture.Connection);
+    private CompositeQuery Query { get; } = new();
 
     [Fact]
     public void GetValue_UnvisitedConstant_EvaluatesToValue()
