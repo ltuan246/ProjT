@@ -104,7 +104,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList<TReturn>();
+        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList();
 }
 
 /// <summary>
@@ -166,7 +166,7 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
 
     /// <inheritdoc />
     public Dictionary<ITuple, List<TReturn>> ToDictionary() =>
-        new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetDictionary<TReturn>();
+        new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetDictionary();
 }
 
 /// <summary>
@@ -273,7 +273,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList<TReturn>();
+        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList();
 }
 
 /// <summary>
@@ -361,5 +361,5 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList<TReturn>();
+        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList();
 }
