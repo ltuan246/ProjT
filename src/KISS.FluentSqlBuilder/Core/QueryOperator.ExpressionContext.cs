@@ -9,8 +9,6 @@ namespace KISS.FluentSqlBuilder.Core;
 /// </typeparam>
 public sealed partial record QueryOperator<TReturn>
 {
-    private static MethodInfo IterMoveNextMethod { get; } = typeof(IEnumerator).GetMethod("MoveNext", Type.EmptyTypes)!;
-
     private static MethodInfo DisposeMethod { get; } = typeof(IDisposable).GetMethod("Dispose", Type.EmptyTypes)!;
 
     /// <summary>
@@ -30,11 +28,13 @@ public sealed partial record QueryOperator<TReturn>
 
     private static Type OutEntityType { get; } = typeof(TReturn);
 
-    private ParameterExpression CurrentEntityExVariable { get; set; } = Expression.Variable(OutEntityType, "CurrentEntityExVariable");
+    private ParameterExpression CurrentEntityExVariable { get; set; } =
+        Expression.Variable(OutEntityType, "CurrentEntityExVariable");
 
     private static Type OutEntitiesType { get; } = typeof(List<TReturn>);
 
-    private ParameterExpression OutEntitiesExVariable { get; set; } = Expression.Variable(OutEntitiesType, "OutEntitiesExVariable");
+    private ParameterExpression OutEntitiesExVariable { get; set; } =
+        Expression.Variable(OutEntitiesType, "OutEntitiesExVariable");
 
     private ParameterExpression? OutDictEntityTypeExVariable { get; set; }
 
@@ -47,17 +47,21 @@ public sealed partial record QueryOperator<TReturn>
     /// </summary>
     private Type? OutDictEntityType { get; set; }
 
-    private BinaryExpression InitializeOutputVariable => Expression.Assign(OutEntitiesExVariable, Expression.New(OutEntitiesType));
+    private BinaryExpression InitializeOutputVariable =>
+        Expression.Assign(OutEntitiesExVariable, Expression.New(OutEntitiesType));
 
     private ParameterExpression CurrentEntryExParameter => Composite.CurrentEntryExParameter;
 
     private static Type InEntryIterType { get; } = typeof(IEnumerator<IDictionary<string, object>>);
 
-    private static ParameterExpression InEntryIterExVariable { get; } = Expression.Variable(InEntryIterType, "InEntryIterExVariable");
+    private static ParameterExpression InEntryIterExVariable { get; } =
+        Expression.Variable(InEntryIterType, "InEntryIterExVariable");
 
-    private static MethodCallExpression MoveNextOnInEntryEnumerator { get; } = Expression.Call(InEntryIterExVariable, IterMoveNextMethod);
+    private static MethodCallExpression MoveNextOnInEntryEnumerator { get; } =
+        Expression.Call(InEntryIterExVariable, TypeUtils.IterMoveNextMethod);
 
-    private static MethodCallExpression DisposeInEntryEnumerator { get; } = Expression.Call(InEntryIterExVariable, DisposeMethod);
+    private static MethodCallExpression DisposeInEntryEnumerator { get; } =
+        Expression.Call(InEntryIterExVariable, DisposeMethod);
 
     private static LabelTarget BreakLabel { get; } = Expression.Label();
 
@@ -86,6 +90,6 @@ public sealed partial record QueryOperator<TReturn>
 
     private BinaryExpression SetupInputDataEnumerator
         => Expression.Assign(
-                InEntryIterExVariable,
-                Expression.Call(Expression.Constant(InputData), GetEnumeratorForIEnumDictStrObj));
+            InEntryIterExVariable,
+            Expression.Call(Expression.Constant(InputData), GetEnumeratorForIEnumDictStrObj));
 }
