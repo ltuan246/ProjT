@@ -39,7 +39,7 @@ public class CompositeQueryProxy<TReturn> : DispatchProxy
             .Cast<IDictionary<string, object>>()
             .ToList();
 
-        QueryOperator<TReturn> queryOperator = new(composite, dtRows);
+        QueryOperator<TReturn> queryOperator = new(handler, composite, dtRows);
 
         // Creates a DispatchProxy instance that implements ICompositeQueryOperations, using this class as the proxy type.
         var proxy = Create<ICompositeQueryOperations<TReturn>, CompositeQueryProxy<TReturn>>();

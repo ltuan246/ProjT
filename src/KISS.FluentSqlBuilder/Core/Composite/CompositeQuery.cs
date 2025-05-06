@@ -6,4 +6,12 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 ///     supporting both simple and complex query scenarios with type-safe result processing.
 /// </summary>
 /// <param name="connection">The <see cref="DbConnection" /> used to execute the query.</param>
-public sealed partial class CompositeQuery;
+public sealed partial class CompositeQuery
+{
+    private static Type InEntryType { get; } = typeof(IDictionary<string, object>);
+
+    /// <summary>
+    /// CurrentEntryExParameter.
+    /// </summary>
+    public ParameterExpression CurrentEntryExParameter { get; } = Expression.Parameter(InEntryType, "CurrentEntryExParameter");
+}

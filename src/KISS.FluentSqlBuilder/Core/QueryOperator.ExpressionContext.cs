@@ -26,38 +26,30 @@ public sealed partial record QueryOperator<TReturn>
     private static MethodInfo GetEnumeratorForIEnumDictStrObj { get; } =
         typeof(IEnumerable<IDictionary<string, object>>).GetMethod("GetEnumerator")!;
 
+    private Type? InEntityType { get; set; }
+
     private static Type OutEntityType { get; } = typeof(TReturn);
 
-    private static ParameterExpression CurrentEntityExVariable { get; } = Expression.Variable(OutEntityType, "CurrentEntityExVariable");
+    private ParameterExpression CurrentEntityExVariable { get; set; } = Expression.Variable(OutEntityType, "CurrentEntityExVariable");
 
     private static Type OutEntitiesType { get; } = typeof(List<TReturn>);
 
-    private static ParameterExpression OutEntitiesExVariable { get; } = Expression.Variable(OutEntitiesType, "OutEntitiesExVariable");
+    private ParameterExpression OutEntitiesExVariable { get; set; } = Expression.Variable(OutEntitiesType, "OutEntitiesExVariable");
 
-    private static Type OutDictEntityType { get; } = typeof(Dictionary<object, TReturn>);
-
-    private static ParameterExpression OutDictEntityTypeExVariable { get; } = Expression.Variable(OutDictEntityType, "OutDictEntityTypeExVariable");
+    private ParameterExpression? OutDictEntityTypeExVariable { get; set; }
 
     private static Type OutDictKeyType { get; } = typeof(object);
 
-    private static ParameterExpression OutDictKeyExVariable { get; } = Expression.Variable(OutDictKeyType, "OutDictKeyExVariable");
+    private ParameterExpression? OutDictKeyExVariable { get; set; }
 
-    private static IndexExpression OutKeyAccessor { get; } = Expression.MakeIndex(
-        OutDictEntityTypeExVariable,
-        OutDictEntityType.GetProperty("Item")!,
-        [OutDictKeyExVariable]);
+    /// <summary>
+    /// OutDictEntityType.
+    /// </summary>
+    private Type? OutDictEntityType { get; set; }
 
-    private static ConstantExpression PrimaryKey { get; } = Expression.Constant("Extend0_Id");
+    private BinaryExpression InitializeOutputVariable => Expression.Assign(OutEntitiesExVariable, Expression.New(OutEntitiesType));
 
-    private static BinaryExpression InitializeDictVariable { get; } = Expression.Assign(
-        OutDictEntityTypeExVariable,
-        Expression.New(OutDictEntityType));
-
-    private static BinaryExpression InitializeOutputVariable { get; } = Expression.Assign(OutEntitiesExVariable, Expression.New(OutEntitiesType));
-
-    private static Type InEntryType { get; } = typeof(IDictionary<string, object>);
-
-    private static ParameterExpression CurrentEntryExParameter { get; } = Expression.Parameter(InEntryType, "CurrentEntryExParameter");
+    private ParameterExpression CurrentEntryExParameter => Composite.CurrentEntryExParameter;
 
     private static Type InEntryIterType { get; } = typeof(IEnumerator<IDictionary<string, object>>);
 
@@ -71,24 +63,10 @@ public sealed partial record QueryOperator<TReturn>
 
     private static GotoExpression ExitsLoop { get; } = Expression.Break(BreakLabel);
 
-    private static BinaryExpression AssignCurrentInputRowFromInputEnumerator { get; } = Expression.Assign(
-        CurrentEntryExParameter,
-        Expression.Property(InEntryIterExVariable, "Current"));
-
-    private BlockExpression ProcessRowsIfExist { get; set; } = Expression.Block();
-
-    /// <summary>
-    ///     A function that define how to process each row.
-    /// </summary>
-    public Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression>
-        IterRowProcessor
-        => Composite.IterRowProcessor;
-
-    /// <summary>
-    ///     A function that define how to process each row.
-    /// </summary>
-    public List<Expression> ApplyJoinProcessorsToInnerKeyAccessor
-        => [.. Composite.JoinRowProcessors.Select(processor => processor((CurrentEntryExParameter, OutKeyAccessor)))];
+    private BinaryExpression AssignCurrentInputRowFromInputEnumerator
+        => Expression.Assign(
+            CurrentEntryExParameter,
+            Expression.Property(InEntryIterExVariable, "Current"));
 
     /// <summary>
     ///     Gets the dictionary that maps grouping key names to their types.
@@ -110,54 +88,4 @@ public sealed partial record QueryOperator<TReturn>
         => Expression.Assign(
                 InEntryIterExVariable,
                 Expression.Call(Expression.Constant(InputData), GetEnumeratorForIEnumDictStrObj));
-
-    private TryExpression WhileBlock
-        => Expression.TryFinally(
-                Expression.Loop(
-                    Expression.IfThenElse(
-                        MoveNextOnInEntryEnumerator, // If MoveNext returns true (more rows),
-                        ProcessRowsIfExist,
-                        ExitsLoop), // Otherwise, break out of the loop
-                    BreakLabel),
-                DisposeInEntryEnumerator);
-
-    private BinaryExpression AssignKeyVariableFromPrimaryKey
-        => Expression.Assign(
-            OutDictKeyExVariable,
-            ChangeType(
-                Expression.Property(CurrentEntryExParameter, "Item", PrimaryKey),
-                OutDictKeyType));
-
-    // Processes and adds the entity to the dictionary if the key is new.
-    private ConditionalExpression InitializeEntityIfKeyMissing
-        => Expression.IfThen(
-            Expression.Not(Expression.Call(
-                OutDictEntityTypeExVariable,
-                OutDictEntityType.GetMethod("ContainsKey")!,
-                OutDictKeyExVariable)),
-            Expression.Block(
-                [], // Ensures variables is scoped for this operation
-                    // Applies the row processor to construct or modify the entity.
-                IterRowProcessor((CurrentEntryExParameter, CurrentEntityExVariable)),
-                // Adds the processed entity to the dictionary with its key.
-                Expression.Call(
-                    OutDictEntityTypeExVariable,
-                    OutDictEntityType.GetMethod("Add")!,
-                    OutDictKeyExVariable,
-                    CurrentEntityExVariable)));
-
-    private MethodCallExpression ProcessAddValuesToOutput
-        => Expression.Call(
-            OutEntitiesExVariable,
-            OutEntitiesType.GetMethod("AddRange")!,
-            Expression.Property(OutDictEntityTypeExVariable, "Values"));
-
-    private BlockExpression ProcessCurrentInputRowToOutputEntity
-        => Expression.Block(
-            [], // Defines a block with the current entity variable.
-            IterRowProcessor((CurrentEntryExParameter, CurrentEntityExVariable)),
-            Expression.Call(
-                OutEntitiesExVariable, // Calls the Add method on the output list.
-                OutEntitiesType.GetMethod("Add")!, // Retrieves the Add method via reflection.
-                CurrentEntityExVariable));
 }

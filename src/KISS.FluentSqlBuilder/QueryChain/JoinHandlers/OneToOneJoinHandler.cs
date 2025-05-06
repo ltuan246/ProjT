@@ -13,7 +13,7 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
     Expression LeftKeySelector,
     Expression RightKeySelector,
-    Expression MapSelector) : JoinHandler<TRelation>(LeftKeySelector, RightKeySelector, MapSelector)
+    Expression MapSelector) : JoinHandler<TRelation, TReturn>(LeftKeySelector, RightKeySelector)
 {
     /// <summary>
     ///     Builds the expression for mapping joined results to the output type.
@@ -22,17 +22,23 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
-            Expression Init((ParameterExpression IterRowParameter, IndexExpression CurrentEntityVariable) p)
-            {
-                return Expression.Block(
-                    Expression.Assign(
-                        Expression.Property(p.CurrentEntityVariable, memberExpression.Member.Name),
-                        Expression.MemberInit(
-                            Expression.New(typeof(TRelation)),
-                            Composite.CreateIterRowBindings(p.IterRowParameter, typeof(TRelation), typeof(TRelation)))));
-            }
+            Composite.OutDictEntityTypeExVariable ??= Expression.Variable(OutDictEntityType, "OutDictEntityTypeExVariable");
+            Composite.OutDictKeyExVariable ??= Expression.Variable(OutDictKeyType, "OutDictKeyExVariable");
 
-            Composite.JoinRowProcessors.Add(Init);
+            var outKeyAccessor = Expression.MakeIndex(
+                Composite.OutDictEntityTypeExVariable!,
+                OutDictEntityType.GetProperty("Item")!,
+                [OutDictKeyExVariable]);
+
+            var init = Expression.Block(
+                   Expression.Assign(
+                       Expression.Property(outKeyAccessor, memberExpression.Member.Name),
+                       Expression.MemberInit(
+                           Expression.New(RelationType),
+                           Composite.CreateIterRowBindings(Composite.CurrentEntryExParameter, RelationType, RelationType))));
+
+            Composite.JoinRowProcessors.Add(init);
+            JoinRowBlock = init;
         }
     }
 }

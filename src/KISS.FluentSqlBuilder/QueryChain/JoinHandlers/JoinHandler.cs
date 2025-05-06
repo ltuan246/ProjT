@@ -9,6 +9,10 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 ///     The type of the relation (source table or entity).
 ///     This type is used to generate proper table names and column mappings.
 /// </typeparam>
+/// <typeparam name="TReturn">
+///     The combined type to return.
+///     This type represents the result of the join operation.
+/// </typeparam>
 /// <param name="LeftKeySelector">
 ///     An expression selecting the key from the left relation for the join condition.
 ///     This defines the left side of the join equality.
@@ -21,12 +25,39 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 ///     An expression mapping the joined result into the output type.
 ///     This defines how the joined data should be mapped to the result object.
 /// </param>
-public abstract partial record JoinHandler<TRelation>(
+public abstract partial record JoinHandler<TRelation, TReturn>(
     Expression LeftKeySelector,
-    Expression RightKeySelector,
-    Expression MapSelector) : QueryHandler(SqlStatement.Join, Expression.Equal(LeftKeySelector, RightKeySelector))
+    Expression RightKeySelector) : QueryHandler(SqlStatement.Join, Expression.Equal(LeftKeySelector, RightKeySelector)), IJoinHandler
 {
-    private Type RelationType { get; } = typeof(TRelation);
+    /// <summary>
+    /// OutDictEntityType.
+    /// </summary>
+    public Type OutDictEntityType { get; } = typeof(Dictionary<object, TReturn>);
+
+    /// <summary>
+    /// OutDictEntityType.
+    /// </summary>
+    public ParameterExpression OutDictEntityTypeExVariable => Composite.OutDictEntityTypeExVariable!;
+
+    /// <summary>
+    /// OutDictKeyType.
+    /// </summary>
+    public Type OutDictKeyType { get; } = typeof(object);
+
+    /// <summary>
+    /// OutDictEntityType.
+    /// </summary>
+    public ParameterExpression OutDictKeyExVariable => Composite.OutDictKeyExVariable!;
+
+    /// <summary>
+    /// RelationType.
+    /// </summary>
+    public Type RelationType { get; } = typeof(TRelation);
+
+    /// <summary>
+    /// JoinRowBlock.
+    /// </summary>
+    public BlockExpression JoinRowBlock { get; set; } = Expression.Block();
 
     /// <summary>
     ///     Processes the JOIN operation by generating the SQL JOIN statement

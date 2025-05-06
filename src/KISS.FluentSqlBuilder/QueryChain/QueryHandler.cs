@@ -12,7 +12,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     ///     This property implements the chain-of-responsibility pattern by allowing handlers to be linked
     ///     together in a sequence for processing different parts of a query.
     /// </summary>
-    private QueryHandler? NextHandler { get; set; }
+    public QueryHandler? NextHandler { get; set; }
 
     /// <summary>
     ///     Gets the CompositeQuery instance being processed by this handler.

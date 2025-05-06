@@ -40,6 +40,26 @@ public sealed partial class CompositeQuery
     }
 
     /// <summary>
+    /// Creates a block expression that initializes the target variable with a new instance
+    /// of the specified output entity type, using member bindings generated from the source parameter.
+    /// </summary>
+    /// <param name="targetVariable">The variable that will be assigned the newly initialized object.</param>
+    /// <param name="sourceParameter">The parameter expression representing the input entity source.</param>
+    /// <param name="inEntityType">The type of the input entity from which member bindings will be created.</param>
+    /// <param name="outEntityType">The type of the output entity to instantiate and initialize.</param>
+    /// <returns>
+    /// A <see cref="BlockExpression"/> that assigns a newly constructed and member-initialized
+    /// <paramref name="outEntityType"/> object to <paramref name="targetVariable"/>.
+    /// </returns>
+    public BlockExpression InitializeTargetValueBlock(ParameterExpression targetVariable, ParameterExpression sourceParameter, Type inEntityType, Type outEntityType)
+        => Expression.Block(
+            Expression.Assign(
+                targetVariable,
+                Expression.MemberInit(
+                    Expression.New(outEntityType),
+                    CreateIterRowBindings(sourceParameter, inEntityType, outEntityType))));
+
+    /// <summary>
     ///     Converts an <see cref="IndexExpression"/> value, typically sourced from a dictionary-like structure,
     ///     to a specified target type, handling both nullable and non-nullable conversions.
     /// </summary>

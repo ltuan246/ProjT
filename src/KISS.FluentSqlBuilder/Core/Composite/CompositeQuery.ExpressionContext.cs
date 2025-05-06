@@ -6,16 +6,17 @@ namespace KISS.FluentSqlBuilder.Core.Composite;
 public sealed partial class CompositeQuery
 {
     /// <summary>
-    ///     A function that define how to process each row.
+    /// OutDictEntityType.
     /// </summary>
-    public Func<(ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable), Expression>
-        IterRowProcessor
-    { get; set; } = default!;
+    public ParameterExpression? OutDictEntityTypeExVariable { get; set; }
+
+    /// <summary>
+    /// OutDictEntityType.
+    /// </summary>
+    public ParameterExpression? OutDictKeyExVariable { get; set; }
 
     /// <summary>
     ///     A function that define how to process each row.
     /// </summary>
-    public List<Func<(ParameterExpression IterRowParameter, IndexExpression Indexer), Expression>>
-        JoinRowProcessors
-    { get; } = [];
+    public List<Expression> JoinRowProcessors { get; } = [];
 }

@@ -7,20 +7,58 @@ namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 /// </summary>
 /// <typeparam name="TSource">The type representing the database record set.</typeparam>
 /// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(SqlStatement.Select)
+public sealed record SelectHandler<TSource, TReturn> : QueryHandler, ISelectHandler
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SelectHandler{TSource, TReturn}"/> class.
+    /// </summary>
+    public SelectHandler()
+        : base(SqlStatement.Select)
+    {
+        CurrentEntityExVariable = Expression.Variable(OutEntityType, "CurrentEntityExVariable");
+        OutEntitiesExVariable = Expression.Variable(OutEntitiesType, "OutEntitiesExVariable");
+    }
+
     /// <summary>
     ///     Gets the type representing the database record set.
     ///     This type defines the structure of the data being queried from the database.
     /// </summary>
-    private Type SourceEntity { get; } = typeof(TSource);
+    public Type InEntityType { get; } = typeof(TSource);
 
     /// <summary>
     ///     Gets the combined type to return.
     ///     This type defines the structure of the object that will be created
     ///     from the query results.
     /// </summary>
-    private Type RetrieveEntity { get; } = typeof(TReturn);
+    public Type OutEntityType { get; } = typeof(TReturn);
+
+    private Type OutEntitiesType { get; } = typeof(List<TReturn>);
+
+    /// <summary>
+    /// CurrentEntityExVariable.
+    /// </summary>
+    public ParameterExpression CurrentEntityExVariable { get; init; }
+
+    /// <summary>
+    /// OutEntitiesExVariable.
+    /// </summary>
+    public ParameterExpression OutEntitiesExVariable { get; init; }
+
+    /// <summary>
+    /// InitializeEntityIfKeyMissing.
+    /// </summary>
+    public ConditionalExpression InitializeEntityIfKeyMissing
+        => Expression.IfThen(
+            Expression.Constant(true),
+            Expression.Block(
+                [], // Ensures variables is scoped for this operation
+                    // Applies the row processor to construct or modify the entity.
+                Composite.InitializeTargetValueBlock(CurrentEntityExVariable, Composite.CurrentEntryExParameter, InEntityType, OutEntityType),
+                // Adds the processed entity to the dictionary with its key.
+                Expression.Call(
+                    OutEntitiesExVariable, // Calls the Add method on the output list.
+                    OutEntitiesType.GetMethod("Add")!, // Retrieves the Add method via reflection.
+                    CurrentEntityExVariable)));
 
     /// <summary>
     ///     Processes the SELECT clause by generating SQL statements for selecting
@@ -28,32 +66,12 @@ public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(SqlStateme
     /// </summary>
     protected override void Process()
     {
-        var alias = Composite.GetAliasMapping(SourceEntity);
-        var sourceProperties = SourceEntity.GetProperties()
+        var alias = Composite.GetAliasMapping(InEntityType);
+        var sourceProperties = InEntityType.GetProperties()
             .Where(p => p.CanWrite)
             .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}")
             .ToList();
 
         Composite.SqlStatements[SqlStatement.Select].Add(string.Join(", ", sourceProperties));
-    }
-
-    /// <summary>
-    ///     Builds the expression for processing query results and mapping them
-    ///     to the return type. This method creates the necessary expression tree
-    ///     for converting database rows into strongly-typed objects.
-    /// </summary>
-    protected override void ExpressionIntegration()
-    {
-        Expression Init((ParameterExpression IterRowParameter, ParameterExpression CurrentEntityVariable) p)
-        {
-            return Expression.Block(
-                Expression.Assign(
-                    p.CurrentEntityVariable,
-                    Expression.MemberInit(
-                        Expression.New(typeof(TReturn)),
-                        Composite.CreateIterRowBindings(p.IterRowParameter, SourceEntity, RetrieveEntity))));
-        }
-
-        Composite.IterRowProcessor = Init;
     }
 }

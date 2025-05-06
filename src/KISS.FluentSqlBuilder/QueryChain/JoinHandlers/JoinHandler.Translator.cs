@@ -4,11 +4,15 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 ///     A handler for processing join operations in a query chain, linking two relations via key equality.
 ///     Provides functionality to translate member expressions into SQL column references.
 /// </summary>
-/// <typeparam name="TRelation">The type of the relation (source table or entity).</typeparam>
-/// <param name="LeftKeySelector">An expression selecting the key from the left relation for the join condition (e.g., left => left.Id).</param>
-/// <param name="RightKeySelector">An expression selecting the key from the right relation for the join condition (e.g., right => right.Id).</param>
-/// <param name="MapSelector">An expression mapping the joined result into the output type (e.g., left => left.RightRelation).</param>
-public abstract partial record JoinHandler<TRelation>
+/// <typeparam name="TRelation">
+///     The type of the relation (source table or entity).
+///     This type is used to generate proper table names and column mappings.
+/// </typeparam>
+/// <typeparam name="TReturn">
+///     The combined type to return.
+///     This type represents the result of the join operation.
+/// </typeparam>
+public abstract partial record JoinHandler<TRelation, TReturn>
 {
     /// <summary>
     ///     Translates a binary expression into SQL.
