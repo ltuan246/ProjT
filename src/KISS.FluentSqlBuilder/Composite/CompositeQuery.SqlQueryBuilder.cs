@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Core.Composite;
+namespace KISS.FluentSqlBuilder.Composite;
 
 /// <summary>
 ///     A partial class that provides SQL query building functionality for the CompositeQuery class.

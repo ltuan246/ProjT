@@ -14,7 +14,7 @@ global using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 global using CsvHelper.Configuration.Attributes;
 global using KISS.Misc.DataAccess;
 global using KISS.FluentSqlBuilder.Core;
-global using KISS.FluentSqlBuilder.Core.Composite;
+global using KISS.FluentSqlBuilder.Composite;
 global using KISS.FluentSqlBuilder.Visitor;
 global using KISS.QueryBuilder.Tests.Model;
 global using KISS.QueryBuilder.Tests.Model.Memory;

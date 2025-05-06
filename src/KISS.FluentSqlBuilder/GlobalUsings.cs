@@ -11,7 +11,7 @@ global using System.Diagnostics.CodeAnalysis;
 global using System.Runtime.CompilerServices;
 global using Dapper;
 global using KISS.FluentSqlBuilder.Core;
-global using KISS.FluentSqlBuilder.Core.Composite;
+global using KISS.FluentSqlBuilder.Composite;
 global using KISS.FluentSqlBuilder.Utils;
 global using KISS.FluentSqlBuilder.Visitor;
 global using KISS.FluentSqlBuilder.Builders;

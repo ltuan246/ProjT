@@ -15,13 +15,13 @@ public class CompositeQueryProxy<TReturn> : DispatchProxy
     private QueryOperator<TReturn> Operator { get; set; } = default!;
 
     /// <summary>
-    ///     Creates a proxy instance for <see cref="ICompositeQueryOperations" /> that wraps a
+    ///     Creates a proxy instance for <see cref="ICompositeQueryOperations{TReturn}" /> that wraps a
     ///     <see cref="CompositeQuery" />. This method sets up the complete query execution
     ///     pipeline with proper configuration and interception.
     /// </summary>
     /// <param name="connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
     /// <param name="handler">The handler that configures the query before proxy creation.</param>
-    /// <returns>A proxied instance implementing <see cref="ICompositeQueryOperations" />.</returns>
+    /// <returns>A proxied instance implementing <see cref="ICompositeQueryOperations{TReturn}" />.</returns>
     public ICompositeQueryOperations<TReturn> Create(DbConnection connection, QueryHandler handler)
     {
         // Instantiates a new CompositeQuery with the provided database connection.
@@ -57,7 +57,7 @@ public class CompositeQueryProxy<TReturn> : DispatchProxy
     ///     to the real service. This method is called automatically for all method invocations
     ///     on the proxy.
     /// </summary>
-    /// <param name="targetMethod">The method being invoked on the <see cref="ICompositeQueryOperations" /> interface.</param>
+    /// <param name="targetMethod">The method being invoked on the <see cref="ICompositeQueryOperations{TReturn}" /> interface.</param>
     /// <param name="args">The arguments passed to the method during invocation.</param>
     /// <returns>The result of the method invocation, or null if the method returns void.</returns>
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
