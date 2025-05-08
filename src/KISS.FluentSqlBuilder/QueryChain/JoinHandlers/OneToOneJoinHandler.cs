@@ -23,12 +23,11 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
             Composite.OutDictEntityTypeExVariable ??= Expression.Variable(OutDictEntityType, "OutDictEntityTypeExVariable");
-            Composite.OutDictKeyExVariable ??= Expression.Variable(OutDictKeyType, "OutDictKeyExVariable");
 
             var outKeyAccessor = Expression.MakeIndex(
                 Composite.OutDictEntityTypeExVariable!,
                 OutDictEntityType.GetProperty("Item")!,
-                [OutDictKeyExVariable]);
+                [Composite.OutDictKeyExVariable]);
 
             var init = Expression.Block(
                    Expression.Assign(

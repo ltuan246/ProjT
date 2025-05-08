@@ -15,6 +15,11 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     public QueryHandler? NextHandler { get; set; }
 
     /// <summary>
+    /// Evaluator.
+    /// </summary>
+    protected ExpressionEvaluator Evaluator { get; } = new();
+
+    /// <summary>
     ///     Gets the CompositeQuery instance being processed by this handler.
     ///     This property provides access to the query being built and allows handlers
     ///     to modify the query state during processing.

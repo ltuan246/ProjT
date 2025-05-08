@@ -35,21 +35,6 @@ public abstract partial record JoinHandler<TRelation, TReturn>(
     public Type OutDictEntityType { get; } = typeof(Dictionary<object, TReturn>);
 
     /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    public ParameterExpression OutDictEntityTypeExVariable => Composite.OutDictEntityTypeExVariable!;
-
-    /// <summary>
-    /// OutDictKeyType.
-    /// </summary>
-    public Type OutDictKeyType { get; } = typeof(object);
-
-    /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    public ParameterExpression OutDictKeyExVariable => Composite.OutDictKeyExVariable!;
-
-    /// <summary>
     /// RelationType.
     /// </summary>
     public Type RelationType { get; } = typeof(TRelation);

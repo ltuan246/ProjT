@@ -63,7 +63,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
             // Accessing a field/property of a constant object
             case ConstantExpression constantExpression:
                 {
-                    var (evaluated, value) = Composite.GetValue(memberExpression);
+                    var (evaluated, value) = Evaluator.GetValue(memberExpression);
                     if (evaluated)
                     {
                         AppendFormat(value);

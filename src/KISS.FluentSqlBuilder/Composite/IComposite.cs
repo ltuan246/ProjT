@@ -5,4 +5,4 @@ namespace KISS.FluentSqlBuilder.Composite;
 ///     This class serves as the core component for building and executing composite SQL queries,
 ///     supporting both simple and complex query scenarios with type-safe result processing.
 /// </summary>
-public sealed partial record CompositeQuery : IComposite;
+public interface IComposite;

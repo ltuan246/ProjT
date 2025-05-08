@@ -10,85 +10,6 @@ namespace KISS.FluentSqlBuilder.Core;
 public sealed partial record QueryOperator<TReturn>
 {
     /// <summary>
-    ///     Converts an <see cref="IndexExpression"/> value, typically sourced from a dictionary-like structure,
-    ///     to a specified target type, handling both nullable and non-nullable conversions.
-    /// </summary>
-    /// <param name="sourceValue">
-    ///     The source value as an <see cref="IndexExpression"/>,
-    ///     assumed to originate from an <see cref="IDictionary{TKey, TValue}"/>.
-    ///     This value may represent a string, null, or other type requiring conversion.
-    /// </param>
-    /// <param name="targetType">
-    ///     The desired target type for conversion, which may be nullable
-    ///     (e.g., <see cref="Nullable{T}"/>) or non-nullable (e.g., <see cref="Guid"/> or <see cref="int"/>).
-    /// </param>
-    /// <returns>
-    ///     A <see cref="Expression"/> representing the converted value, adjusted to match the
-    ///     <paramref name="targetType"/>. For nullable types, includes null checks to handle null source values
-    ///     appropriately.
-    /// </returns>
-    private Expression ChangeType(IndexExpression sourceValue, Type targetType)
-    {
-        // If the target type is nullable (e.g., Nullable<T>), retrieve its underlying non-nullable type (T).
-        // This is necessary because Expression.Convert cannot directly convert a non-nullable value to a nullable type.
-        // By first converting to the underlying type, we ensure compatibility before handling the nullable conversion.
-        var nonNullableType = Nullable.GetUnderlyingType(targetType);
-        var effectiveTargetType = nonNullableType ?? targetType;
-
-        if (effectiveTargetType == typeof(Guid)
-            || effectiveTargetType == typeof(DateTime)
-            || nonNullableType is not null)
-        {
-            return ChangeSpecificType(sourceValue, targetType);
-        }
-
-        var changeTypeCall = Expression.Call(
-            typeof(Convert),
-            nameof(Convert.ChangeType),
-            Type.EmptyTypes,
-            sourceValue,
-            Expression.Constant(targetType));
-
-        var convertedValue = Expression.ConvertChecked(changeTypeCall, targetType);
-
-        return convertedValue;
-    }
-
-    private Expression ChangeSpecificType(IndexExpression sourceValue, Type targetType)
-    {
-        // If the target type is nullable (e.g., Nullable<T>), retrieve its underlying non-nullable type (T).
-        // This is necessary because Expression.Convert cannot directly convert a non-nullable value to a nullable type.
-        // By first converting to the underlying type, we ensure compatibility before handling the nullable conversion.
-        var nonNullableType = Nullable.GetUnderlyingType(targetType);
-        Type actualType = nonNullableType ?? targetType;
-
-        // Check if sourceValue is null
-        var isSourceNullCheck = Expression.Equal(sourceValue, Expression.Constant(null));
-
-        // Convert sourceValue to string only if non-null (mirrors data?.ToString())
-        Expression sourceString = Expression.Condition(
-            isSourceNullCheck,
-            Expression.Constant(null, typeof(string)),
-            Expression.Call(
-                Expression.Convert(sourceValue, typeof(object)),
-                typeof(object).GetMethod("ToString", Type.EmptyTypes)!));
-
-        // TryParse logic
-        var result = Expression.Variable(actualType, "result");
-        var tryParse = Expression.Call(
-            actualType,
-            "TryParse",
-            Type.EmptyTypes,
-            sourceString,
-            result);
-
-        // Block to execute TryParse and return the result
-        var parseResultBlock = Expression.Block([result], tryParse, result);
-
-        return nonNullableType is null ? parseResultBlock : Expression.Convert(parseResultBlock, targetType);
-    }
-
-    /// <summary>
     ///     Executes the constructed SQL query against the database and returns the results
     ///     as a list of the specified type. This method handles both simple and complex
     ///     query scenarios, automatically selecting the appropriate processing strategy.
@@ -151,10 +72,10 @@ public sealed partial record QueryOperator<TReturn>
                                                                 InEntityType,
                                                                 OutEntityType),
                                                             // Adds the processed entity to the dictionary with its key.
-                                                            Expression.Call(
+                                                            TypeUtils.CallMethod(
                                                                 OutEntitiesExVariable, // Calls the Add method on the output list.
-                                                                OutEntitiesType.GetMethod("Add")!,
-                                                                CurrentEntityExVariable)))
+                                                                "Add",
+                                                                CurrentEntityExVariable))),
                                                 ]),
                                             ExitsLoop), // Otherwise, break out of the loop
                                         BreakLabel),
@@ -166,9 +87,6 @@ public sealed partial record QueryOperator<TReturn>
                     break;
 
                 case IJoinHandler sh:
-                    OutDictEntityTypeExVariable ??= sh.OutDictEntityTypeExVariable;
-                    OutDictKeyExVariable ??= sh.OutDictKeyExVariable;
-                    OutDictEntityType ??= sh.OutDictEntityType;
                     joinRowProcessors.Add(sh.JoinRowBlock);
                     break;
 
@@ -185,77 +103,70 @@ public sealed partial record QueryOperator<TReturn>
 
             (variables, expressions) =
                 ([
-                        InEntryIterExVariable,
+                    InEntryIterExVariable,
+                    OutEntitiesExVariable,
+                    OutDictEntityTypeExVariable,
+                ], // Declares variables used in the block
+                [
+                    // Initialize outputList with a new list
+                    InitializeOutputVariable,
+                    // Sets up the enumerator for inputData
+                    SetupInputDataEnumerator,
+
+                    // InitializeDictVariable: Initializes dictObjEntity with a new instance of T
+                    Expression.Assign(
+                        OutDictEntityTypeExVariable,
+                        Expression.New(OutDictEntityTypeExVariable.Type)),
+                    // Executes the loop with cleanup
+                    Expression.TryFinally(
+                        Expression.Loop(
+                            Expression.IfThenElse(
+                                MoveNextOnInEntryEnumerator, // If MoveNext returns true (more rows),
+                                Expression.Block(
+                                    [
+                                        CurrentEntryExParameter,
+                                        CurrentEntityExVariable,
+                                        OutDictKeyExVariable!
+                                    ],
+                                    [
+                                        // Assigns the current row from the enumerator to iterationRowParameter.
+                                        AssignCurrentInputRowFromInputEnumerator,
+                                        // Extracts and converts the "Extend0_Id" key from the row to a string.
+                                        Expression.Assign(
+                                            OutDictKeyExVariable!,
+                                            TypeUtils.ChangeType(
+                                                Expression.Property(CurrentEntryExParameter, "Item", primaryKey),
+                                                TypeUtils.ObjType)),
+                                        // InitializeEntityIfKeyMissing: Processes the row if its key isn’t already in the dictionary.
+                                        Expression.IfThen(
+                                            Expression.Not(TypeUtils.IsDictContainsKey(OutDictEntityTypeExVariable, OutDictKeyExVariable!)),
+                                            Expression.Block(
+                                                [], // Ensures variables is scoped for this operation
+                                                // Applies the row processor to construct or modify the entity.
+                                                Composite.InitializeTargetValueBlock(
+                                                    CurrentEntityExVariable,
+                                                    Composite.CurrentEntryExParameter,
+                                                    InEntityType!,
+                                                    OutEntityType),
+                                                // Adds the processed entity to the dictionary with its key.
+                                                TypeUtils.CallMethod(OutDictEntityTypeExVariable, "Add", OutDictKeyExVariable!, CurrentEntityExVariable))),
+                                        // Applies additional join processors using the dictionary indexer for related data.
+                                        // .. ApplyJoinProcessorsToInnerKeyAccessor
+                                        .. joinRowProcessors
+                                    ]),
+                                ExitsLoop), // Otherwise, break out of the loop
+                            BreakLabel),
+                        DisposeInEntryEnumerator),
+
+                    // Convert dictionary values to list
+                    TypeUtils.CallMethod(
                         OutEntitiesExVariable,
-                        OutDictEntityTypeExVariable!,
-                    ], // Declares variables used in the block
-                    [
-                        // Initialize outputList with a new list
-                        InitializeOutputVariable,
-                        // Sets up the enumerator for inputData
-                        SetupInputDataEnumerator,
+                        "AddRange",
+                        Expression.Property(OutDictEntityTypeExVariable, "Values")),
 
-                        // InitializeDictVariable: Initializes dictObjEntity with a new instance of T
-                        Expression.Assign(
-                            OutDictEntityTypeExVariable!,
-                            Expression.New(OutDictEntityType!)),
-                        // Executes the loop with cleanup
-                        Expression.TryFinally(
-                            Expression.Loop(
-                                Expression.IfThenElse(
-                                    MoveNextOnInEntryEnumerator, // If MoveNext returns true (more rows),
-                                    Expression.Block(
-                                        [
-                                            CurrentEntryExParameter,
-                                            CurrentEntityExVariable,
-                                            OutDictKeyExVariable!
-                                        ],
-                                        [
-                                            // Assigns the current row from the enumerator to iterationRowParameter.
-                                            AssignCurrentInputRowFromInputEnumerator,
-                                            // Extracts and converts the "Extend0_Id" key from the row to a string.
-                                            Expression.Assign(
-                                                OutDictKeyExVariable!,
-                                                ChangeType(
-                                                    Expression.Property(CurrentEntryExParameter, "Item", primaryKey),
-                                                    OutDictKeyType)),
-                                            // InitializeEntityIfKeyMissing: Processes the row if its key isn’t already in the dictionary.
-                                            Expression.IfThen(
-                                                Expression.Not(Expression.Call(
-                                                    OutDictEntityTypeExVariable,
-                                                    OutDictEntityType!.GetMethod("ContainsKey")!,
-                                                    OutDictKeyExVariable!)),
-                                                Expression.Block(
-                                                    [], // Ensures variables is scoped for this operation
-                                                    // Applies the row processor to construct or modify the entity.
-                                                    Composite.InitializeTargetValueBlock(
-                                                        CurrentEntityExVariable,
-                                                        Composite.CurrentEntryExParameter,
-                                                        InEntityType!,
-                                                        OutEntityType),
-                                                    // Adds the processed entity to the dictionary with its key.
-                                                    Expression.Call(
-                                                        OutDictEntityTypeExVariable,
-                                                        OutDictEntityType!.GetMethod("Add")!,
-                                                        OutDictKeyExVariable!,
-                                                        CurrentEntityExVariable))),
-                                            // Applies additional join processors using the dictionary indexer for related data.
-                                            // .. ApplyJoinProcessorsToInnerKeyAccessor
-                                            .. joinRowProcessors
-                                        ]),
-                                    ExitsLoop), // Otherwise, break out of the loop
-                                BreakLabel),
-                            DisposeInEntryEnumerator),
-
-                        // Convert dictionary values to list
-                        Expression.Call(
-                            OutEntitiesExVariable,
-                            OutEntitiesType.GetMethod("AddRange")!,
-                            Expression.Property(OutDictEntityTypeExVariable!, "Values")),
-
-                        // Return the populated list
-                        OutEntitiesExVariable
-                    ]);
+                    // Return the populated list
+                    OutEntitiesExVariable
+                ]);
         }
 
         var fullBlock = Expression.Block(variables, expressions);
@@ -336,15 +247,15 @@ public sealed partial record QueryOperator<TReturn>
 
         // Generate ValueTuple type dynamically
         var outerKeyConstructor =
-            Type.GetType($"{typeof(ValueTuple).FullName}`{GroupingKeys.Count + AggregationKeys.Count}")!
-                .MakeGenericType([.. GroupingKeys.Values, .. AggregationKeys.Values])
-                .GetConstructor([.. GroupingKeys.Values, .. AggregationKeys.Values])!;
+            Type.GetType($"{TypeUtils.ValueTupleType.FullName}`{Composite.GroupingKeys.Count + Composite.AggregationKeys.Count}")!
+                .MakeGenericType([.. Composite.GroupingKeys.Values, .. Composite.AggregationKeys.Values])
+                .GetConstructor([.. Composite.GroupingKeys.Values, .. Composite.AggregationKeys.Values])!;
 
         // Create constructor arguments from currentInputRowParameter
-        var outerKeyArguments = GroupingKeys
-            .Union(AggregationKeys)
+        var outerKeyArguments = Composite.GroupingKeys
+            .Union(Composite.AggregationKeys)
             .Select(grp =>
-                ChangeType(
+                TypeUtils.ChangeType(
                     Expression.Property(CurrentEntryExParameter, "Item", Expression.Constant(grp.Key)),
                     grp.Value))
             .ToArray();
@@ -357,46 +268,32 @@ public sealed partial record QueryOperator<TReturn>
             // Sets the inner dictionary key from the row’s "Extend0_Id" value.
             assignInnerKeyVariableFromPrimaryKey = Expression.Assign(
                 innerKeyVariable,
-                ChangeType(
+                TypeUtils.ChangeType(
                     Expression.Property(CurrentEntryExParameter, "Item", Expression.Constant("Extend0_Id")),
                     dictKeyType)),
 
             // Initializes a new inner dictionary if the outer key is missing.
             initializeInnerDictIfOuterKeyMissing = Expression.IfThen(
-                Expression.Not(Expression.Call(
-                    outerDictObjEntityVariable,
-                    outerDictObjEntityType.GetMethod("ContainsKey")!,
-                    outerKeyVariable)),
+                Expression.Not(TypeUtils.IsDictContainsKey(outerDictObjEntityVariable, outerKeyVariable)),
                 Expression.Block(
                     [],
                     // Adds the processed entity to the dictionary with its key.
-                    Expression.Call(
-                        outerDictObjEntityVariable,
-                        outerDictObjEntityType.GetMethod("Add")!,
-                        outerKeyVariable,
-                        Expression.New(dictObjEntityType)))),
+                    TypeUtils.CallMethod(outerDictObjEntityVariable, "Add", outerKeyVariable, Expression.New(dictObjEntityType)))),
 
             // Processes and adds the entity to the inner dictionary if the key is new.
             initializeEntityIfInnerKeyMissing = Expression.IfThen(
-                Expression.Not(Expression.Call(
-                    outerKeyAccessor,
-                    dictObjEntityType.GetMethod("ContainsKey")!,
-                    innerKeyVariable)),
+                Expression.Not(TypeUtils.IsDictContainsKey(outerKeyAccessor, innerKeyVariable)),
                 Expression.Block(
                     [], // Ensures variables is scoped for this operation
-                    // Applies the row processor to construct or modify the entity.
-                    // IterRowProcessor((CurrentEntryExParameter, CurrentEntityExVariable)),
+                        // Applies the row processor to construct or modify the entity.
+                        // IterRowProcessor((CurrentEntryExParameter, CurrentEntityExVariable)),
                     Composite.InitializeTargetValueBlock(
                         CurrentEntityExVariable,
                         Composite.CurrentEntryExParameter,
                         InEntityType!,
                         OutEntityType),
                     // Adds the processed entity to the dictionary with its key.
-                    Expression.Call(
-                        outerKeyAccessor,
-                        dictObjEntityType.GetMethod("Add")!,
-                        innerKeyVariable,
-                        CurrentEntityExVariable)));
+                    TypeUtils.CallMethod(outerKeyAccessor, "Add", innerKeyVariable, CurrentEntityExVariable)));
 
         // Initializes the outer dictionary with a new instance.
         Expression initializeOuterDict = Expression.Assign(
@@ -419,9 +316,9 @@ public sealed partial record QueryOperator<TReturn>
                 Expression.Property(outerDictIterVariable, "Current")),
 
             // Adds the current key and its inner values as a list to the output.
-            addOuterKeyAndValuesToOutput = Expression.Call(
+            addOuterKeyAndValuesToOutput = TypeUtils.CallMethod(
                 outputVariable,
-                returnType.GetMethod("Add")!,
+                "Add",
                 Expression.Property(outerDictEntryParameter, "Key"),
                 Expression.New(
                     typeof(List<TReturn>).GetConstructor([typeof(IEnumerable<TReturn>)])!,
@@ -443,7 +340,7 @@ public sealed partial record QueryOperator<TReturn>
             // Disposes the outer dictionary enumerator after flattening.
             disposeOuterDictEnumerator = Expression.Call(
                 outerDictIterVariable,
-                DisposeMethod);
+                TypeUtils.DisposeMethod);
 
         var fullBlock = Expression.Block(
             [

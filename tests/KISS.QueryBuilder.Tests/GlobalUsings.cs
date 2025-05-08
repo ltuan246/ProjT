@@ -16,6 +16,7 @@ global using KISS.Misc.DataAccess;
 global using KISS.FluentSqlBuilder.Core;
 global using KISS.FluentSqlBuilder.Composite;
 global using KISS.FluentSqlBuilder.Visitor;
+global using KISS.FluentSqlBuilder.Utils;
 global using KISS.QueryBuilder.Tests.Model;
 global using KISS.QueryBuilder.Tests.Model.Memory;
 global using KISS.QueryBuilder.Tests.DataSeeding;

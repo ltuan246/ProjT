@@ -11,16 +11,6 @@ public interface IJoinHandler
     Type OutDictEntityType { get; }
 
     /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    ParameterExpression OutDictEntityTypeExVariable { get; }
-
-    /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    ParameterExpression OutDictKeyExVariable { get; }
-
-    /// <summary>
     /// JoinRowBlock.
     /// </summary>
     BlockExpression JoinRowBlock { get; }

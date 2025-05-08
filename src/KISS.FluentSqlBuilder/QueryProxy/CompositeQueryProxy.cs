@@ -26,6 +26,7 @@ public class CompositeQueryProxy<TReturn> : DispatchProxy
     {
         // Instantiates a new CompositeQuery with the provided database connection.
         CompositeQuery composite = new();
+
         // Applies the handler's configuration to the newly created CompositeQuery instance.
         handler.Handle(composite);
 

@@ -45,7 +45,7 @@ public sealed partial record WhereHandler
 
             default:
                 {
-                    var (evaluated, value) = Composite.GetValue(memberExpression);
+                    var (evaluated, value) = Evaluator.GetValue(memberExpression);
                     if (evaluated)
                     {
                         AppendFormat(value);
@@ -197,7 +197,7 @@ public sealed partial record WhereHandler
                 break;
 
             default:
-                var (evaluated, value) = Composite.GetValue(methodCallExpression);
+                var (evaluated, value) = Evaluator.GetValue(methodCallExpression);
                 break;
         }
     }

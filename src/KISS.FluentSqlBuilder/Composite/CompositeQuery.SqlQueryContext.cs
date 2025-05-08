@@ -5,7 +5,7 @@ namespace KISS.FluentSqlBuilder.Composite;
 ///     This class handles the construction and formatting of SQL queries, including parameter management
 ///     and statement organization.
 /// </summary>
-public sealed partial class CompositeQuery
+public sealed partial record CompositeQuery
 {
     /// <summary>
     ///     Gets the final SQL query string generated from the query builder.
