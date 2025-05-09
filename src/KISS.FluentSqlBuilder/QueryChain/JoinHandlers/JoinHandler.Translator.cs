@@ -22,7 +22,7 @@ public abstract partial record JoinHandler<TRelation, TReturn>
     protected override void Visit(BinaryExpression binaryExpression)
     {
         Append("INNER JOIN");
-        AppendLine($"{Composite.GetTableName(RelationType)} {Composite.GetAliasMapping(RelationType)}", true);
+        AppendLine($"{TypeUtils.GetTableName(RelationType)} {Composite.GetAliasMapping(RelationType)}", true);
         AppendLine(" ON ", true);
         Visit(binaryExpression.Left);
         Append(BinaryOperandMap[binaryExpression.NodeType]);

@@ -5,7 +5,9 @@ namespace KISS.FluentSqlBuilder.Composite;
 ///     This class handles the construction of SQL queries by assembling various SQL clauses
 ///     and managing query formatting and structure.
 /// </summary>
-public sealed partial record CompositeQuery
+/// <typeparam name="TIn">The type representing the database record set.</typeparam>
+/// <typeparam name="TOut">The combined type to return.</typeparam>
+public sealed partial record CompositeQuery<TIn, TOut>
 {
     /// <summary>
     ///     Appends a formatted string to the SQL query being built.
@@ -45,20 +47,6 @@ public sealed partial record CompositeQuery
         }
 
         return tableAlias;
-    }
-
-    /// <summary>
-    ///     Retrieves the database table name associated with a given type using the SqlTableAttribute.
-    /// </summary>
-    /// <param name="type">The type (class) for which to retrieve the table name.</param>
-    /// <returns>The name of the table as specified by the SqlTableAttribute on the type.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the specified type does not have a SqlTableAttribute applied.</exception>
-    public string GetTableName(Type type)
-    {
-        var attr = type.GetCustomAttribute<SqlTableAttribute>();
-        return attr == null
-            ? throw new InvalidOperationException($"Type {type.Name} must have a SqlTableAttribute.")
-            : attr.Name;
     }
 
     /// <summary>
@@ -103,7 +91,7 @@ public sealed partial record CompositeQuery
     {
         var (table, alias) = TableAliases.First();
         Append("FROM");
-        AppendLine($"{GetTableName(table)} AS {alias}");
+        AppendLine($"{TypeUtils.GetTableName(table)} AS {alias}");
         AppendLine();
     }
 

@@ -66,11 +66,6 @@ public sealed record TypeUtils
     public static MethodInfo DisposeMethod { get; } = DisposableType.GetMethod(nameof(IDisposable.Dispose), Type.EmptyTypes)!;
 
     /// <summary>
-    /// ObjToStringMethod.
-    /// </summary>
-    public static MethodInfo ObjToStringMethod { get; } = ObjType.GetMethod(nameof(object.ToString), Type.EmptyTypes)!;
-
-    /// <summary>
     ///     Gets the MethodInfo for the GetEnumerator method of <see cref="IEnumerable{IDictionary}" />.
     ///     This is used to create an enumerator for iterating over collections of dictionaries in expression trees.
     /// </summary>
@@ -160,7 +155,7 @@ public sealed record TypeUtils
         Expression sourceString = Expression.Condition(
             isSourceNullCheck,
             Expression.Constant(null, StrType),
-            Expression.Call(Expression.Convert(sourceValue, ObjType), ObjToStringMethod));
+            CallMethod(Expression.Convert(sourceValue, ObjType), "ToString"));
 
         // TryParse logic
         var result = Expression.Variable(actualType, "result");
@@ -203,5 +198,85 @@ public sealed record TypeUtils
         return method == null
             ? throw new InvalidOperationException($"{methodName} method not found on type {instanceType}")
             : Expression.Call(instance, method, arguments);
+    }
+
+    /// <summary>
+    /// Creates a block expression that initializes the target variable with a new instance
+    /// of the specified output entity type, using member bindings generated from the source parameter.
+    /// </summary>
+    /// <param name="targetVariable">The variable that will be assigned the newly initialized object.</param>
+    /// <param name="bindings">
+    ///     An enumerable collection of <see cref="MemberBinding" /> objects,
+    ///     where each binding represents the assignment of a source property value
+    ///     to a corresponding target property.
+    /// </param>
+    /// <returns>
+    /// A <see cref="BlockExpression"/> that assigns a newly constructed and member-initialized
+    /// <paramref name="outEntityType"/> object to <paramref name="targetVariable"/>.
+    /// </returns>
+    public static BinaryExpression InitializeTargetValue(ParameterExpression targetVariable, IEnumerable<MemberBinding> bindings)
+        => Expression.Assign(
+            targetVariable,
+            Expression.MemberInit(Expression.New(targetVariable.Type), bindings));
+
+    /// <summary>
+    /// Creates a block expression that initializes the target variable with a new instance
+    /// of the specified output entity type, using member bindings generated from the source parameter.
+    /// </summary>
+    /// <param name="targetVariable">The variable that will be assigned the newly initialized object.</param>
+    /// <returns>
+    /// A <see cref="BlockExpression"/> that assigns a newly constructed and member-initialized
+    /// <paramref name="outEntityType"/> object to <paramref name="targetVariable"/>.
+    /// </returns>
+    public static BinaryExpression InitializeTargetValue(ParameterExpression targetVariable)
+        => Expression.Assign(targetVariable, Expression.New(targetVariable.Type));
+
+    /// <summary>
+    ///     Creates a collection of <see cref="MemberBinding" /> instances by mapping properties
+    ///     from an iterated row (e.g., a dictionary or dynamic object) to a target type.
+    /// </summary>
+    /// <param name="iterRowVariable">The current row being processed in the loop.</param>
+    /// <param name="sourceType">The type of the source entity providing the data.</param>
+    /// <param name="targetType">The type of the target entity to which properties are bound.</param>
+    /// <param name="aliasName">A table alias for the source type.</param>
+    /// <returns>
+    ///     An enumerable collection of <see cref="MemberBinding" /> objects,
+    ///     where each binding represents the assignment of a source property value
+    ///     to a corresponding target property.
+    /// </returns>
+    public static IEnumerable<MemberBinding> CreateIterRowBindings(
+        ParameterExpression iterRowVariable,
+        Type sourceType,
+        Type targetType,
+        string aliasName)
+    {
+        var sourceProperties = sourceType.GetProperties().Where(p => p.CanWrite).ToList();
+        foreach (var sourceProperty in sourceProperties)
+        {
+            var targetProperty = targetType.GetProperty(sourceProperty.Name);
+            if (targetProperty != null && targetProperty.PropertyType == sourceProperty.PropertyType)
+            {
+                var sourceValue = Expression.Property(
+                    iterRowVariable,
+                    "Item",
+                    Expression.Constant($"{aliasName}_{sourceProperty.Name}"));
+
+                yield return Expression.Bind(targetProperty, ChangeType(sourceValue, targetProperty.PropertyType));
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Retrieves the database table name associated with a given type using the SqlTableAttribute.
+    /// </summary>
+    /// <param name="type">The type (class) for which to retrieve the table name.</param>
+    /// <returns>The name of the table as specified by the SqlTableAttribute on the type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the specified type does not have a SqlTableAttribute applied.</exception>
+    public static string GetTableName(Type type)
+    {
+        var attr = type.GetCustomAttribute<SqlTableAttribute>();
+        return attr == null
+            ? throw new InvalidOperationException($"Type {type.Name} must have a SqlTableAttribute.")
+            : attr.Name;
     }
 }

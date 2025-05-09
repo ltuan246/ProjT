@@ -43,8 +43,6 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
-            Composite.OutDictEntityTypeExVariable ??= Expression.Variable(OutDictEntityType, "OutDictEntityTypeExVariable");
-
             var outKeyAccessor = Expression.MakeIndex(
                 Composite.OutDictEntityTypeExVariable!,
                 OutDictEntityType.GetProperty("Item")!,
@@ -59,7 +57,11 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
             // Create a new TRelation instance
             var relationEntity = Expression.MemberInit(
                 Expression.New(RelationType),
-                Composite.CreateIterRowBindings(Composite.CurrentEntryExParameter, RelationType, RelationType));
+                TypeUtils.CreateIterRowBindings(
+                            Composite.CurrentEntryExParameter,
+                            RelationType,
+                            RelationType,
+                            Composite.GetAliasMapping(RelationType)));
 
             // If null, initialize; then add unconditionally
             var init = Expression.Block(

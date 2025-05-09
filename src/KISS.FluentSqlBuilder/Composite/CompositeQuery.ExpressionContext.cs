@@ -3,26 +3,37 @@ namespace KISS.FluentSqlBuilder.Composite;
 /// <summary>
 ///     A context for storing reusable instances used in expression tree construction.
 /// </summary>
-public sealed partial record CompositeQuery
+/// <typeparam name="TIn">The type representing the database record set.</typeparam>
+/// <typeparam name="TOut">The combined type to return.</typeparam>
+public sealed partial record CompositeQuery<TIn, TOut>
 {
-    /// <summary>
-    /// CurrentEntryExParameter.
-    /// </summary>
+    /// <inheritdoc />
+    public Type InEntityType { get; } = typeof(TIn);
+
+    /// <inheritdoc />
+    public ParameterExpression CurrentEntityExVariable { get; } =
+        Expression.Variable(typeof(TOut), "CurrentEntityExVariable");
+
+    /// <inheritdoc />
+    public ParameterExpression OutEntitiesExVariable { get; } =
+        Expression.Variable(typeof(List<TOut>), "OutEntitiesExVariable");
+
+    /// <inheritdoc />
+    public ParameterExpression InEntryIterExVariable { get; } =
+        Expression.Variable(TypeUtils.DapperRowIteratorType, "InEntryIterExVariable");
+
+    /// <inheritdoc />
     public ParameterExpression CurrentEntryExParameter { get; } =
         Expression.Parameter(TypeUtils.DapperRowType, "CurrentEntryExParameter");
 
-    /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    public ParameterExpression? OutDictEntityTypeExVariable { get; set; }
+    /// <inheritdoc />
+    public ParameterExpression OutDictEntityTypeExVariable { get; } =
+        Expression.Variable(typeof(Dictionary<object, TOut>), "OutDictEntityTypeExVariable");
 
-    /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    public ParameterExpression OutDictKeyExVariable { get; } = Expression.Variable(TypeUtils.ObjType, "OutDictKeyExVariable");
+    /// <inheritdoc />
+    public ParameterExpression OutDictKeyExVariable { get; } =
+        Expression.Variable(TypeUtils.ObjType, "OutDictKeyExVariable");
 
-    /// <summary>
-    ///     A function that define how to process each row.
-    /// </summary>
+    /// <inheritdoc />
     public List<Expression> JoinRowProcessors { get; } = [];
 }

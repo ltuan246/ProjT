@@ -5,7 +5,9 @@ namespace KISS.FluentSqlBuilder.Composite;
 ///     This class handles the construction and formatting of SQL queries, including parameter management
 ///     and statement organization.
 /// </summary>
-public sealed partial record CompositeQuery
+/// <typeparam name="TIn">The type representing the database record set.</typeparam>
+/// <typeparam name="TOut">The combined type to return.</typeparam>
+public sealed partial record CompositeQuery<TIn, TOut>
 {
     /// <summary>
     ///     Gets the final SQL query string generated from the query builder.
@@ -26,7 +28,7 @@ public sealed partial record CompositeQuery
     ///     Gets the StringBuilder instance used to construct the SQL query.
     ///     This builder accumulates SQL statements and clauses during query construction.
     /// </summary>
-    private StringBuilder SqlBuilder { get; } = new();
+    public StringBuilder SqlBuilder { get; } = new();
 
     /// <summary>
     ///     Gets the SQL formatter instance used for custom string formatting
@@ -58,7 +60,7 @@ public sealed partial record CompositeQuery
     ///     This collection is used to maintain consistent table aliases
     ///     throughout the query construction process.
     /// </summary>
-    private Dictionary<Type, string> TableAliases { get; } = [];
+    public Dictionary<Type, string> TableAliases { get; } = [];
 
     /// <summary>
     ///     Gets the dictionary that maps grouping key names to their types.

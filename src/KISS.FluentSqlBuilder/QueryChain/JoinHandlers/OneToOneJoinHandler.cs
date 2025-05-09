@@ -22,8 +22,6 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
-            Composite.OutDictEntityTypeExVariable ??= Expression.Variable(OutDictEntityType, "OutDictEntityTypeExVariable");
-
             var outKeyAccessor = Expression.MakeIndex(
                 Composite.OutDictEntityTypeExVariable!,
                 OutDictEntityType.GetProperty("Item")!,
@@ -34,7 +32,11 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
                        Expression.Property(outKeyAccessor, memberExpression.Member.Name),
                        Expression.MemberInit(
                            Expression.New(RelationType),
-                           Composite.CreateIterRowBindings(Composite.CurrentEntryExParameter, RelationType, RelationType))));
+                           TypeUtils.CreateIterRowBindings(
+                            Composite.CurrentEntryExParameter,
+                            RelationType,
+                            RelationType,
+                            Composite.GetAliasMapping(RelationType)))));
 
             Composite.JoinRowProcessors.Add(init);
             JoinRowBlock = init;
