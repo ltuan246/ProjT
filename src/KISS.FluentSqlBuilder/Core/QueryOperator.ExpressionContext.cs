@@ -8,9 +8,4 @@ namespace KISS.FluentSqlBuilder.Core;
 ///     The type of objects to return, representing the query result rows.
 ///     This type must match the structure of the query results.
 /// </typeparam>
-public sealed partial record QueryOperator<TRecordset, TReturn>
-{
-    private static LabelTarget BreakLabel { get; } = Expression.Label();
-
-    private static GotoExpression ExitsLoop { get; } = Expression.Break(BreakLabel);
-}
+public sealed partial record QueryOperator<TRecordset, TReturn>;

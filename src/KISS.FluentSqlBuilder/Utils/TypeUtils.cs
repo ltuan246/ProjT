@@ -23,7 +23,7 @@ public sealed record TypeUtils
     /// <summary>
     /// DapperRowCollectionType.
     /// </summary>
-    private static Type DapperRowCollectionType { get; } = typeof(IEnumerable<IDictionary<string, object>>);
+    public static Type DapperRowCollectionType { get; } = typeof(IEnumerable<IDictionary<string, object>>);
 
     /// <summary>
     /// DapperRowCollectionType.

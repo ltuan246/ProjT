@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Composite;
+namespace KISS.FluentSqlBuilder.Decorators.JoinDecorators;
 
 /// <summary>
 ///     A sealed class that constructs and executes SQL queries using a database connection.
@@ -7,7 +7,7 @@ namespace KISS.FluentSqlBuilder.Composite;
 /// </summary>
 /// <typeparam name="TIn">The type representing the database record set.</typeparam>
 /// <typeparam name="TOut">The combined type to return.</typeparam>
-public sealed partial record CompositeQuery<TIn, TOut>
+public sealed partial record JoinDecorator<TIn, TOut>
 {
     /// <inheritdoc />
     public ParameterExpression InEntriesExParameter { get; init; }
@@ -23,4 +23,24 @@ public sealed partial record CompositeQuery<TIn, TOut>
 
     /// <inheritdoc />
     public ParameterExpression CurrentEntityExVariable { get; init; }
+
+    /// <summary>
+    /// OutDictEntityType.
+    /// </summary>
+    private ParameterExpression OutDictEntityTypeExVariable { get; init; }
+
+    /// <summary>
+    /// OutDictEntityType.
+    /// </summary>
+    private ParameterExpression OutDictKeyExVariable { get; init; }
+
+    /// <summary>
+    /// OutDictKeyAccessorExVariable.
+    /// </summary>
+    private ParameterExpression OutDictKeyAccessorExVariable { get; init; }
+
+    /// <summary>
+    ///     A function that define how to process each row.
+    /// </summary>
+    private List<Expression> JoinRowProcessors { get; } = [];
 }

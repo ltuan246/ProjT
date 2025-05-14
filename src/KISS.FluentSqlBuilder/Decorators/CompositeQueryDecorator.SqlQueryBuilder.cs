@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Composite;
+namespace KISS.FluentSqlBuilder.Decorators;
 
 /// <summary>
 ///     A sealed class that constructs and executes SQL queries using a database connection.
@@ -7,7 +7,7 @@ namespace KISS.FluentSqlBuilder.Composite;
 /// </summary>
 /// <typeparam name="TIn">The type representing the database record set.</typeparam>
 /// <typeparam name="TOut">The combined type to return.</typeparam>
-public sealed partial record CompositeQuery<TIn, TOut>
+public sealed partial record CompositeQueryDecorator
 {
     /// <summary>
     ///     Appends a formatted string to the SQL query being built.
@@ -53,8 +53,7 @@ public sealed partial record CompositeQuery<TIn, TOut>
     ///     Builds the complete SQL query by assembling all query clauses in the correct order.
     ///     This method orchestrates the construction of the final SQL query string.
     /// </summary>
-    /// <returns>The final SQL query string generated from the query builder.</returns>
-    private string SetQueries()
+    public void SetQueries()
     {
         SetSelect();
         SetFrom();
@@ -64,7 +63,6 @@ public sealed partial record CompositeQuery<TIn, TOut>
         SetOrderBy();
         SetLimit();
         SetOffset();
-        return SqlBuilder.ToString();
     }
 
     /// <summary>

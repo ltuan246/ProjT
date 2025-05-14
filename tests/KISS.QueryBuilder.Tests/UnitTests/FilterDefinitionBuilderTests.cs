@@ -1,5 +1,12 @@
 namespace KISS.QueryBuilder.Tests.UnitTests;
 
+
+public class Item
+{
+    public string? Text { get; set; }
+    public string? SubText { get; set; }
+}
+
 [Collection(nameof(SqliteTestsCollection))]
 public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 {
@@ -34,6 +41,74 @@ public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
     [Fact]
     public void EqualTo_FluentBuilder_ReturnsDataIfTrue()
     {
+        // Variable for an array of Item
+        var arrayVar = Expression.Variable(typeof(Item[]), "arrayVar");
+        // Variable for the indexed item (array[1])
+        var indexedItem = Expression.Variable(typeof(Item), "indexedItem");
+
+        // Main block
+        var block = Expression.Block(
+            new[] { arrayVar, indexedItem }, // Declare variables
+                                             // Initialize array with Item objects
+            Expression.Assign(arrayVar, Expression.NewArrayInit(
+                typeof(Item),
+                Expression.New(typeof(Item).GetConstructor(Type.EmptyTypes)!),
+                Expression.New(typeof(Item).GetConstructor(Type.EmptyTypes)!)
+            )),
+
+            // Define IndexExpression inside the block
+            Expression.Block(
+                // Create IndexExpression for array[1]
+                Expression.Assign(
+                    indexedItem,
+                    Expression.MakeIndex(
+                        arrayVar,
+                        null, // PropertyInfo is null for arrays
+                        new[] { Expression.Constant(1) } // Index 1
+                    )
+                ),
+
+                // BlockB: Set array[1].Text = "I'm in Block B"
+                Expression.Block(
+                    Expression.Assign(
+                        Expression.Property(
+                            indexedItem,
+                            nameof(Item.Text)
+                        ),
+                        Expression.Constant("I'm in Block B")
+                    )
+                ),
+
+                // BlockC: Set array[1].SubText = "Then I'm in Block C"
+                Expression.Block(
+                    Expression.Assign(
+                        Expression.Property(
+                            indexedItem,
+                            nameof(Item.SubText)
+                        ),
+                        Expression.Constant("Then I'm in Block C")
+                    )
+                ),
+
+                // Concatenate Text + SubText
+                Expression.Call(
+                    typeof(string).GetMethod("Concat", new[] { typeof(string), typeof(string) })!,
+                    Expression.Property(
+                        indexedItem,
+                        nameof(Item.Text)
+                    ),
+                    Expression.Property(
+                        indexedItem,
+                        nameof(Item.SubText)
+                    )
+                )
+            )
+        );
+
+        var func = Expression.Lambda<Func<string>>(block).Compile();
+        System.Diagnostics.Debug.WriteLine(func());
+
+
         // Arrange
         const string exId = "23202fb3-a995-4e7e-a91e-eb192e2e9872", exTzId = "Europe/Andorra";
         const double exLatitude = 42.5, exLongitude = 1.517;

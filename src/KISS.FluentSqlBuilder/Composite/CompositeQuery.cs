@@ -7,4 +7,26 @@ namespace KISS.FluentSqlBuilder.Composite;
 /// </summary>
 /// <typeparam name="TIn">The type representing the database record set.</typeparam>
 /// <typeparam name="TOut">The combined type to return.</typeparam>
-public sealed partial record CompositeQuery<TIn, TOut> : IComposite;
+public sealed partial record CompositeQuery<TIn, TOut> : IComposite
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CompositeQuery{TIn, TOut}"/> class.
+    /// </summary>
+    public CompositeQuery()
+    {
+        InEntriesExParameter = Expression.Variable(TypeUtils.DapperRowCollectionType, "InEntriesExParameter");
+        InEntriesExVariable = Expression.Variable(TypeUtils.DapperRowIteratorType, "CurrentEntityExVariable");
+        OutEntitiesExVariable = Expression.Variable(OutEntitiesType, "CurrentEntityExVariable");
+        CurrentEntryExVariable = Expression.Variable(TypeUtils.DapperRowType, "CurrentEntityExVariable");
+        CurrentEntityExVariable = Expression.Variable(OutEntityType, "CurrentEntityExVariable");
+    }
+
+    /// <inheritdoc />
+    public Type InEntityType { get; } = typeof(TIn);
+
+    /// <inheritdoc />
+    public Type OutEntityType { get; } = typeof(TOut);
+
+    /// <inheritdoc />
+    public Type OutEntitiesType { get; } = typeof(List<TOut>);
+}

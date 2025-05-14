@@ -35,3 +35,4 @@ global using KISS.FluentSqlBuilder.QueryChain.OrderByHandlers;
 global using KISS.FluentSqlBuilder.QueryChain.LimitHandlers;
 global using KISS.FluentSqlBuilder.QueryChain.OffsetHandlers;
 global using KISS.FluentSqlBuilder.QueryProxy;
+global using KISS.FluentSqlBuilder.Decorators;

@@ -13,5 +13,5 @@ public interface IJoinHandler
     /// <summary>
     /// JoinRowBlock.
     /// </summary>
-    BlockExpression JoinRowBlock { get; }
+    Expression JoinRowBlock { get; }
 }

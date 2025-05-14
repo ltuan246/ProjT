@@ -42,7 +42,15 @@ public abstract partial record JoinHandler<TRelation, TReturn>(
     /// <summary>
     /// JoinRowBlock.
     /// </summary>
-    public BlockExpression JoinRowBlock { get; set; } = Expression.Block();
+    public Expression JoinRowBlock { get; set; } = Expression.Block();
+
+    /// <inheritdoc />
+    public override void Handle(ref IComposite composite)
+    {
+        // Assigns the provided CompositeQuery to this handler for processing.
+        composite = new CompositeQueryDecorator(composite);
+        base.Handle(ref composite);
+    }
 
     /// <summary>
     ///     Processes the JOIN operation by generating the SQL JOIN statement

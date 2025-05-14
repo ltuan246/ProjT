@@ -43,32 +43,26 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
-            var outKeyAccessor = Expression.MakeIndex(
-                Composite.OutDictEntityTypeExVariable!,
-                OutDictEntityType.GetProperty("Item")!,
-                [Composite.OutDictKeyExVariable]);
-
             // Access or initialize the Relation property (List<TRelation>)
-            var relationProperty = Expression.Property(outKeyAccessor, memberExpression.Member.Name);
-            var listType = typeof(List<TRelation>);
+            var relationProperty = Expression.Property(Composite.OutDictKeyAccessorExVariable, memberExpression.Member.Name);
             var nullCheck = Expression.Equal(relationProperty, Expression.Constant(null));
-            var assignList = Expression.Assign(relationProperty, Expression.New(listType));
+            var assignList = Expression.Assign(relationProperty, Expression.New(relationProperty.Type));
 
             // Create a new TRelation instance
             var relationEntity = Expression.MemberInit(
                 Expression.New(RelationType),
                 TypeUtils.CreateIterRowBindings(
-                            Composite.CurrentEntryExParameter,
-                            RelationType,
-                            RelationType,
-                            Composite.GetAliasMapping(RelationType)));
+                    Composite.CurrentEntryExVariable,
+                    RelationType,
+                    RelationType,
+                    Composite.GetAliasMapping(RelationType)));
 
             // If null, initialize; then add unconditionally
             var init = Expression.Block(
                 Expression.IfThen(nullCheck, assignList), // Only assign if null
                 Expression.Call(
                     relationProperty,
-                    listType.GetMethod("Add")!,
+                    relationProperty.Type.GetMethod("Add")!,
                     relationEntity)); // Always add afterward
 
             Composite.JoinRowProcessors.Add(init);

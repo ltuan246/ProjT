@@ -8,16 +8,23 @@ namespace KISS.FluentSqlBuilder.Composite;
 public interface IComposite
 {
     /// <summary>
-    ///     Gets the StringBuilder instance used to construct the SQL query.
-    ///     This builder accumulates SQL statements and clauses during query construction.
+    ///     Gets the final SQL query string generated from the query builder.
+    ///     This property combines all SQL statements in the correct order and applies
+    ///     any necessary formatting.
     /// </summary>
-    StringBuilder SqlBuilder { get; }
+    string Sql { get; }
 
     /// <summary>
-    ///     Gets the SQL formatter instance used for custom string formatting
-    ///     and parameter handling in SQL queries.
+    ///     Gets the collection of dynamic parameters used in the SQL query.
+    ///     These parameters are used for safe parameter binding and preventing SQL injection.
     /// </summary>
-    SqlFormatter SqlFormatting { get; }
+    DynamicParameters Parameters { get; }
+
+    /// <summary>
+    ///     This collection maintains separate lists for different SQL clauses
+    ///     (SELECT, FROM, JOIN, etc.) to ensure proper query construction.
+    /// </summary>
+    Dictionary<SqlStatement, List<string>> SqlStatements { get; }
 
     /// <summary>
     ///     Gets the dictionary that maps table types to their SQL aliases.
@@ -27,18 +34,6 @@ public interface IComposite
     Dictionary<Type, string> TableAliases { get; }
 
     /// <summary>
-    ///     Gets the dictionary that organizes SQL statements by their type.
-    ///     This collection maintains separate lists for different SQL clauses
-    ///     (SELECT, FROM, JOIN, etc.) to ensure proper query construction.
-    /// </summary>
-    Dictionary<SqlStatement, List<string>> SqlStatements { get; }
-
-    /// <summary>
-    /// CurrentEntryExParameter.
-    /// </summary>
-    ParameterExpression CurrentEntryExParameter { get; }
-
-    /// <summary>
     /// CurrentEntryExParameter.
     /// </summary>
     Type InEntityType { get; }
@@ -46,7 +41,22 @@ public interface IComposite
     /// <summary>
     /// CurrentEntryExParameter.
     /// </summary>
-    ParameterExpression CurrentEntityExVariable { get; }
+    Type OutEntityType { get; }
+
+    /// <summary>
+    /// CurrentEntryExParameter.
+    /// </summary>
+    Type OutEntitiesType { get; }
+
+    /// <summary>
+    /// CurrentEntryExParameter.
+    /// </summary>
+    ParameterExpression InEntriesExParameter { get; }
+
+    /// <summary>
+    /// CurrentEntryExParameter.
+    /// </summary>
+    ParameterExpression InEntriesExVariable { get; }
 
     /// <summary>
     /// CurrentEntryExParameter.
@@ -56,45 +66,10 @@ public interface IComposite
     /// <summary>
     /// CurrentEntryExParameter.
     /// </summary>
-    ParameterExpression InEntryIterExVariable { get; }
+    ParameterExpression CurrentEntryExVariable { get; }
 
     /// <summary>
-    ///     Gets the dictionary that maps grouping key names to their types.
-    ///     This collection is used to maintain type information for
-    ///     grouping operations in the query.
+    /// CurrentEntryExParameter.
     /// </summary>
-    Dictionary<string, Type> GroupingKeys { get; }
-
-    /// <summary>
-    ///     Gets the dictionary that maps aggregation key names to their types.
-    ///     This collection is used to maintain type information for
-    ///     aggregation operations in the query.
-    /// </summary>
-    Dictionary<string, Type> AggregationKeys { get; }
-
-    /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    ParameterExpression OutDictEntityTypeExVariable { get; }
-
-    /// <summary>
-    /// OutDictEntityType.
-    /// </summary>
-    ParameterExpression OutDictKeyExVariable { get; }
-
-    /// <summary>
-    ///     A function that define how to process each row.
-    /// </summary>
-    List<Expression> JoinRowProcessors { get; }
-
-    /// <summary>
-    ///     Retrieves or creates a table alias for the specified type in the query context.
-    ///     This method ensures consistent alias usage throughout the query construction.
-    /// </summary>
-    /// <param name="type">The type for which to retrieve or generate a table alias.</param>
-    /// <returns>
-    ///     A string representing the alias associated with the specified type.
-    ///     If no alias exists, a new one is generated and stored.
-    /// </returns>
-    string GetAliasMapping(Type type);
+    ParameterExpression CurrentEntityExVariable { get; }
 }
