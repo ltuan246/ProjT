@@ -19,7 +19,7 @@ public sealed partial record GroupByHandler
         {
             string alias = Composite.GetAliasMapping(parameterExpression.Type);
             string fieldName = $"{alias}_{memberExpression.Member.Name}";
-            Composite.GroupingKeys[fieldName] = memberExpression.Type;
+            // Composite.GroupingKeys[fieldName] = memberExpression.Type;
             Append($"{fieldName}");
         }
         else

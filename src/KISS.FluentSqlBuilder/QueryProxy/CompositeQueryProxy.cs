@@ -27,18 +27,16 @@ public class CompositeQueryProxy<TRecordset, TReturn> : DispatchProxy
     public ICompositeQueryOperations<TRecordset, TReturn> Create(DbConnection connection, QueryHandler handler)
     {
         // Instantiates a new CompositeQuery with the provided database connection.
-        IComposite composite = new SqlComposite<TRecordset, TReturn>();
+        IComposite composite = new CompositeQuery<TRecordset, TReturn>();
 
         // Applies the handler's configuration to the newly created CompositeQuery instance.
-        handler.Handle(ref composite);
+        composite = handler.Handle(composite);
 
-        // Prepares the CompositeQuery by setting up its queries before the method is invoked.
-        composite.SetQueries();
-
-        System.Diagnostics.Debug.WriteLine(composite.Sql);
+        var sql = composite.Sql;
+        System.Diagnostics.Debug.WriteLine(sql);
 
         // Executes the SQL query using the Connection, passing the constructed Sql string and Parameters
-        var dtRows = connection.Query(composite.Sql, composite.Parameters)
+        var dtRows = connection.Query(sql, composite.Parameters)
             .Cast<IDictionary<string, object>>()
             .ToList();
 

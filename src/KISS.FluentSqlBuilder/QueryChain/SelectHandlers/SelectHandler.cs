@@ -16,6 +16,21 @@ public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(SqlStateme
     public Type InEntityType { get; } = typeof(TSource);
 
     /// <summary>
+    ///     Gets the CompositeQuery instance being processed by this handler.
+    ///     This property provides access to the query being built and allows handlers
+    ///     to modify the query state during processing.
+    /// </summary>
+    public new SelectDecorator<TSource, TReturn> Composite { get; set; } = default!;
+
+    /// <inheritdoc />
+    public override IComposite Handle(IComposite composite)
+    {
+        // Assigns the provided CompositeQuery to this handler for processing.
+        Composite = new SelectDecorator<TSource, TReturn>(composite);
+        return base.Handle(Composite);
+    }
+
+    /// <summary>
     ///     Processes the SELECT clause by generating SQL statements for selecting
     ///     columns from the source entity and mapping them to the return type.
     /// </summary>

@@ -22,7 +22,7 @@ public sealed partial record SelectAggregateHandler
                 // Accessing a static property, get its type and value using reflection
                 case PropertyInfo propertyInfo:
                     var propType = propertyInfo.PropertyType;
-                    Composite.AggregationKeys[Alias] = propType;
+                    // Composite.AggregationKeys[Alias] = propType;
                     break;
             }
         }

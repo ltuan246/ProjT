@@ -25,10 +25,8 @@ public sealed partial record QueryOperator<TRecordset, TReturn>
     /// </returns>
     public List<TReturn> GetList()
     {
-        (BlockExpression fullBlock, ParameterExpression inputDataExParameter) = Composite.CreateExpressionBlock();
-
         // Compiles the expression tree
-        var lambda = Expression.Lambda<Func<List<IDictionary<string, object>>, List<TReturn>>>(fullBlock, inputDataExParameter).Compile();
+        var lambda = Expression.Lambda<Func<List<IDictionary<string, object>>, List<TReturn>>>(Composite.Block, Composite.InEntriesExParameter).Compile();
 
         // Executes the expression tree, returning the result
         return lambda(InputData);

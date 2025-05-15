@@ -49,7 +49,8 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     ///     This method implements the core processing logic of the chain-of-responsibility pattern.
     /// </summary>
     /// <param name="composite">The CompositeQuery instance to be processed by the handler chain.</param>
-    public virtual void Handle(ref IComposite composite)
+    /// <returns>composite.</returns>
+    public virtual IComposite Handle(IComposite composite)
     {
         // Assigns the provided CompositeQuery to this handler for processing.
         Composite = composite;
@@ -58,8 +59,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
         TranslateExpression();
         ExpressionIntegration();
         // Passes the CompositeQuery to the next handler in the chain, if one exists, to continue processing.
-        NextHandler?.Handle(ref composite);
-        // return NextHandler?.Handle(Composite) ?? Composite;
+        return NextHandler?.Handle(Composite) ?? Composite;
     }
 
     /// <summary>

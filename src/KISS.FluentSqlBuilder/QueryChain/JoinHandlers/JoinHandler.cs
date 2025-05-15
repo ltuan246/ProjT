@@ -40,16 +40,23 @@ public abstract partial record JoinHandler<TRelation, TReturn>(
     public Type RelationType { get; } = typeof(TRelation);
 
     /// <summary>
+    ///     Gets the CompositeQuery instance being processed by this handler.
+    ///     This property provides access to the query being built and allows handlers
+    ///     to modify the query state during processing.
+    /// </summary>
+    public new JoinDecorator<TRelation, TReturn> Composite { get; set; } = default!;
+
+    /// <summary>
     /// JoinRowBlock.
     /// </summary>
     public Expression JoinRowBlock { get; set; } = Expression.Block();
 
     /// <inheritdoc />
-    public override void Handle(ref IComposite composite)
+    public override IComposite Handle(IComposite composite)
     {
         // Assigns the provided CompositeQuery to this handler for processing.
-        composite = new CompositeQueryDecorator(composite);
-        base.Handle(ref composite);
+        Composite = new JoinDecorator<TRelation, TReturn>(composite);
+        return base.Handle(Composite);
     }
 
     /// <summary>

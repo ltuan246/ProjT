@@ -21,6 +21,18 @@ public interface IComposite
     DynamicParameters Parameters { get; }
 
     /// <summary>
+    ///     Gets the StringBuilder instance used to construct the SQL query.
+    ///     This builder accumulates SQL statements and clauses during query construction.
+    /// </summary>
+    StringBuilder SqlBuilder { get; }
+
+    /// <summary>
+    ///     Gets the SQL formatter instance used for custom string formatting
+    ///     and parameter handling in SQL queries.
+    /// </summary>
+    SqlFormatter SqlFormatting { get; }
+
+    /// <summary>
     ///     This collection maintains separate lists for different SQL clauses
     ///     (SELECT, FROM, JOIN, etc.) to ensure proper query construction.
     /// </summary>
@@ -72,4 +84,20 @@ public interface IComposite
     /// CurrentEntryExParameter.
     /// </summary>
     ParameterExpression CurrentEntityExVariable { get; }
+
+    /// <summary>
+    /// CurrentEntryExParameter.
+    /// </summary>
+    BlockExpression Block { get; }
+
+    /// <summary>
+    ///     Retrieves or creates a table alias for the specified type in the query context.
+    ///     This method ensures consistent alias usage throughout the query construction.
+    /// </summary>
+    /// <param name="type">The type for which to retrieve or generate a table alias.</param>
+    /// <returns>
+    ///     A string representing the alias associated with the specified type.
+    ///     If no alias exists, a new one is generated and stored.
+    /// </returns>
+    string GetAliasMapping(Type type);
 }
