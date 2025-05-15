@@ -1,7 +1,7 @@
 namespace KISS.FluentSqlBuilder.QueryProxy;
 
 /// <summary>
-///     A generic proxy class that intercepts method calls for <see cref="SqlComposite" /> instances,
+///     A generic proxy class that intercepts method calls for <see cref="IComposite" /> instances,
 ///     using the <see cref="DispatchProxy" /> mechanism to provide additional behavior. This class
 ///     enables dynamic query building and execution by intercepting calls to query operations.
 /// </summary>
@@ -10,18 +10,18 @@ namespace KISS.FluentSqlBuilder.QueryProxy;
 public class CompositeQueryProxy<TRecordset, TReturn> : DispatchProxy
 {
     /// <summary>
-    ///     Holds the target <see cref="SqlComposite" /> instance that this proxy delegates to.
+    ///     Holds the target <see cref="IComposite" /> instance that this proxy delegates to.
     ///     This property stores the actual query implementation that will be executed.
     /// </summary>
     private QueryOperator<TRecordset, TReturn> Operator { get; set; } = default!;
 
     /// <summary>
     ///     Creates a proxy instance for <see cref="ICompositeQueryOperations{TReturn}" /> that wraps a
-    ///     <see cref="SqlComposite" />. This method sets up the complete query execution
+    ///     <see cref="IComposite" />. This method sets up the complete query execution
     ///     pipeline with proper configuration and interception.
     /// </summary>
     /// <typeparam name="TRecordset">The type representing the database table or view.</typeparam>
-    /// <param name="connection">The database connection used to initialize the <see cref="SqlComposite" />.</param>
+    /// <param name="connection">The database connection used to initialize the <see cref="IComposite" />.</param>
     /// <param name="handler">The handler that configures the query before proxy creation.</param>
     /// <returns>A proxied instance implementing <see cref="ICompositeQueryOperations{TReturn}" />.</returns>
     public ICompositeQueryOperations<TRecordset, TReturn> Create(DbConnection connection, QueryHandler handler)
