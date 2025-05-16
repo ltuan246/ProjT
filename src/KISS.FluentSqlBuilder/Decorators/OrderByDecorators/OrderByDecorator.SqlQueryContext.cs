@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Decorators.JoinDecorators;
+namespace KISS.FluentSqlBuilder.Decorators.OrderByDecorators;
 
 /// <summary>
 ///     A sealed class that constructs and executes SQL queries using a database connection.
@@ -7,7 +7,7 @@ namespace KISS.FluentSqlBuilder.Decorators.JoinDecorators;
 /// </summary>
 /// <typeparam name="TIn">The type representing the database record set.</typeparam>
 /// <typeparam name="TOut">The combined type to return.</typeparam>
-public sealed partial record JoinDecorator
+public sealed partial record OrderByDecorator
 {
     /// <inheritdoc />
     public override string Sql
@@ -15,33 +15,17 @@ public sealed partial record JoinDecorator
         get
         {
             SqlBuilder.Clear();
+            Append(Inner.Sql);
 
-            new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Select])
+            new EnumeratorProcessor<string>(SqlStatements[SqlStatement.OrderBy])
                 .AccessFirst(fs =>
                 {
-                    Append("SELECT");
+                    Append("ORDER BY");
                     AppendLine($"{fs}");
                 })
                 .AccessRemaining(fs =>
                 {
                     AppendLine($", {fs}");
-                })
-                .AccessLast(() => AppendLine())
-                .Execute();
-
-            var alias = GetAliasMapping(InEntityType);
-            Append("FROM");
-            AppendLine($"{TypeUtils.GetTableName(InEntityType)} AS {alias}");
-            AppendLine();
-
-            new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Join])
-                .AccessFirst(fs =>
-                {
-                    AppendLine($"{fs}");
-                })
-                .AccessRemaining(fs =>
-                {
-                    AppendLine($"{fs}");
                 })
                 .AccessLast(() => AppendLine())
                 .Execute();

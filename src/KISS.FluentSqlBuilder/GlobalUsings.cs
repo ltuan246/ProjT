@@ -37,3 +37,7 @@ global using KISS.FluentSqlBuilder.QueryChain.OffsetHandlers;
 global using KISS.FluentSqlBuilder.QueryProxy;
 global using KISS.FluentSqlBuilder.Decorators.SelectDecorators;
 global using KISS.FluentSqlBuilder.Decorators.JoinDecorators;
+global using KISS.FluentSqlBuilder.Decorators.WhereDecorators;
+global using KISS.FluentSqlBuilder.Decorators.OrderByDecorators;
+global using KISS.FluentSqlBuilder.Decorators.LimitDecorators;
+global using KISS.FluentSqlBuilder.Decorators.OffsetDecorators;

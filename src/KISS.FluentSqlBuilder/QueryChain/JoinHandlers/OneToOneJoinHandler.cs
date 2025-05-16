@@ -24,7 +24,7 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
         {
             var init = Expression.Block(
                    Expression.Assign(
-                       Expression.Property(Composite.OutDictKeyAccessorExVariable, memberExpression.Member.Name),
+                       Expression.Property(((JoinDecorator)Composite).OutDictKeyAccessorExVariable, memberExpression.Member.Name),
                        Expression.MemberInit(
                            Expression.New(RelationType),
                            TypeUtils.CreateIterRowBindings(
@@ -33,8 +33,7 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
                             RelationType,
                             Composite.GetAliasMapping(RelationType)))));
 
-            Composite.JoinRowProcessors.Add(init);
-            JoinRowBlock = init;
+            ((JoinDecorator)Composite).JoinRowProcessors.Add(init);
         }
     }
 }

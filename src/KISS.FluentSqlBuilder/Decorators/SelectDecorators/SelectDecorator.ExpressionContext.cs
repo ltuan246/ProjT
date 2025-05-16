@@ -9,23 +9,10 @@ namespace KISS.FluentSqlBuilder.Decorators.SelectDecorators;
 /// <typeparam name="TOut">The combined type to return.</typeparam>
 public sealed partial record SelectDecorator<TIn, TOut>
 {
-    /// <inheritdoc />
-    public ParameterExpression InEntriesExParameter { get; init; }
-
-    /// <inheritdoc />
-    public ParameterExpression InEntriesExVariable { get; init; }
-
-    /// <inheritdoc />
-    public ParameterExpression OutEntitiesExVariable { get; init; }
-
-    /// <inheritdoc />
-    public ParameterExpression CurrentEntryExVariable { get; init; }
-
-    /// <inheritdoc />
-    public ParameterExpression CurrentEntityExVariable { get; init; }
-
-    /// <inheritdoc />
-    public BlockExpression Block
+    /// <summary>
+    /// Block.
+    /// </summary>
+    public override BlockExpression Block
     {
         get
         {

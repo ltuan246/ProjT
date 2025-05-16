@@ -7,51 +7,17 @@ namespace KISS.FluentSqlBuilder.Decorators.JoinDecorators;
 /// </summary>
 /// <typeparam name="TIn">The type representing the database record set.</typeparam>
 /// <typeparam name="TOut">The combined type to return.</typeparam>
-public sealed partial record JoinDecorator<TIn, TOut> : IComposite
+public sealed partial record JoinDecorator : QueryDecorator
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="JoinDecorator{TIn, TOut}"/> class.
+    /// Initializes a new instance of the <see cref="JoinDecorator"/> class.
     /// </summary>
     /// <param name="inner">innerComposite.</param>
     public JoinDecorator(IComposite inner)
+        : base(inner)
     {
-        InEntityType = inner.InEntityType;
-        OutEntityType = inner.OutEntityType;
-        OutEntitiesType = inner.OutEntitiesType;
-        Sql = inner.Sql;
-        Parameters = inner.Parameters;
-        SqlStatements = inner.SqlStatements;
-        TableAliases = inner.TableAliases;
-
-        InEntriesExParameter = inner.InEntriesExParameter;
-        InEntriesExVariable = inner.InEntriesExVariable;
-        OutEntitiesExVariable = inner.OutEntitiesExVariable;
-        CurrentEntryExVariable = inner.CurrentEntryExVariable;
-        CurrentEntityExVariable = inner.CurrentEntityExVariable;
-
-        OutDictEntityTypeExVariable = Expression.Variable(typeof(Dictionary<object, TOut>), "OutDictEntityTypeExVariable");
+        OutDictEntityTypeExVariable = Expression.Variable(typeof(Dictionary<,>).MakeGenericType([typeof(object), Inner.OutEntityType]), "OutDictEntityTypeExVariable");
         OutDictKeyExVariable = Expression.Variable(TypeUtils.ObjType, "OutDictKeyExVariable");
-        OutDictKeyAccessorExVariable = Expression.Variable(typeof(TOut), "OutDictKeyAccessorExVariable");
+        OutDictKeyAccessorExVariable = Expression.Variable(Inner.OutEntityType, "OutDictKeyAccessorExVariable");
     }
-
-    /// <inheritdoc />
-    public Type InEntityType { get; init; }
-
-    /// <inheritdoc />
-    public Type OutEntityType { get; init; }
-
-    /// <inheritdoc />
-    public Type OutEntitiesType { get; init; }
-
-    /// <inheritdoc />
-    public string Sql { get; init; }
-
-    /// <inheritdoc />
-    public DynamicParameters Parameters { get; init; }
-
-    /// <inheritdoc />
-    public Dictionary<SqlStatement, List<string>> SqlStatements { get; init; }
-
-    /// <inheritdoc />
-    public Dictionary<Type, string> TableAliases { get; init; }
 }

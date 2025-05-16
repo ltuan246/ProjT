@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Decorators.SelectDecorators;
+namespace KISS.FluentSqlBuilder.Decorators.WhereDecorators;
 
 /// <summary>
 ///     A sealed class that constructs and executes SQL queries using a database connection.
@@ -7,4 +7,4 @@ namespace KISS.FluentSqlBuilder.Decorators.SelectDecorators;
 /// </summary>
 /// <typeparam name="TIn">The type representing the database record set.</typeparam>
 /// <typeparam name="TOut">The combined type to return.</typeparam>
-public sealed partial record SelectDecorator<TIn, TOut>(IComposite Inner) : QueryDecorator(Inner);
+public sealed partial record WhereDecorator(IComposite Inner) : QueryDecorator(Inner);

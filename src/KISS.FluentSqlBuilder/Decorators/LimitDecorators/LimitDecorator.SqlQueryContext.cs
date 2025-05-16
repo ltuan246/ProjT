@@ -1,4 +1,4 @@
-namespace KISS.FluentSqlBuilder.Decorators.SelectDecorators;
+namespace KISS.FluentSqlBuilder.Decorators.LimitDecorators;
 
 /// <summary>
 ///     A sealed class that constructs and executes SQL queries using a database connection.
@@ -7,7 +7,7 @@ namespace KISS.FluentSqlBuilder.Decorators.SelectDecorators;
 /// </summary>
 /// <typeparam name="TIn">The type representing the database record set.</typeparam>
 /// <typeparam name="TOut">The combined type to return.</typeparam>
-public sealed partial record SelectDecorator<TIn, TOut>
+public sealed partial record LimitDecorator
 {
     /// <inheritdoc />
     public override string Sql
@@ -15,24 +15,16 @@ public sealed partial record SelectDecorator<TIn, TOut>
         get
         {
             SqlBuilder.Clear();
+            Append(Inner.Sql);
 
-            new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Select])
+            new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Limit])
                 .AccessFirst(fs =>
                 {
-                    Append("SELECT");
+                    Append("LIMIT");
                     AppendLine($"{fs}");
+                    AppendLine();
                 })
-                .AccessRemaining(fs =>
-                {
-                    AppendLine($", {fs}");
-                })
-                .AccessLast(() => AppendLine())
                 .Execute();
-
-            var alias = GetAliasMapping(InEntityType);
-            Append("FROM");
-            AppendLine($"{TypeUtils.GetTableName(InEntityType)} AS {alias}");
-            AppendLine();
 
             return SqlBuilder.ToString();
         }
