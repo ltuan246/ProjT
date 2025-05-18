@@ -29,14 +29,4 @@ public sealed partial record CompositeQuery<TIn, TOut>
 
         return tableAlias;
     }
-
-    /// <summary>
-    ///     Builds the complete SQL query by assembling all query clauses in the correct order.
-    ///     This method orchestrates the construction of the final SQL query string.
-    /// </summary>
-    /// <returns>The final SQL query string generated from the query builder.</returns>
-    private string SetQueries()
-    {
-        return SqlBuilder.ToString();
-    }
 }

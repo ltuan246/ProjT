@@ -15,7 +15,7 @@ public sealed partial record CompositeQuery<TIn, TOut>
     ///     any necessary formatting.
     /// </summary>
     public string Sql
-        => SetQueries();
+        => SqlBuilder.ToString();
 
     /// <summary>
     ///     Gets the collection of dynamic parameters used in the SQL query.
