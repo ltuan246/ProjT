@@ -12,12 +12,7 @@ public abstract partial record QueryDecorator
 
     /// <inheritdoc />
     public DynamicParameters Parameters
-    {
-        get
-        {
-            return SqlFormatting.Parameters;
-        }
-    }
+        => SqlFormatting.Parameters;
 
     /// <inheritdoc />
     public Dictionary<SqlStatement, List<string>> SqlStatements { get; } = Inner.SqlStatements;
