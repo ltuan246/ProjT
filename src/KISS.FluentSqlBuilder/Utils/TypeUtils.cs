@@ -56,6 +56,11 @@ public sealed record TypeUtils
     public static Type ValueTupleType { get; } = typeof(ValueTuple);
 
     /// <summary>
+    /// ObjType.
+    /// </summary>
+    public static Type DictionaryType { get; } = typeof(Dictionary<,>);
+
+    /// <summary>
     /// IterMoveNextMethod.
     /// </summary>
     public static MethodInfo IterMoveNextMethod { get; } = IteratorType.GetMethod(nameof(IEnumerator.MoveNext), Type.EmptyTypes)!;

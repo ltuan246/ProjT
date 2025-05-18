@@ -5,24 +5,23 @@ namespace KISS.FluentSqlBuilder.Decorators.JoinDecorators;
 ///     This class serves as the core component for building and executing composite SQL queries,
 ///     supporting both simple and complex query scenarios with type-safe result processing.
 /// </summary>
-/// <typeparam name="TIn">The type representing the database record set.</typeparam>
-/// <typeparam name="TOut">The combined type to return.</typeparam>
 public sealed partial record JoinDecorator
 {
     /// <summary>
     /// OutDictEntityType.
     /// </summary>
-    public ParameterExpression OutDictEntityTypeExVariable { get; init; }
+    public ParameterExpression OutDictEntityTypeExVariable { get; }
+        = Expression.Variable(TypeUtils.DictionaryType.MakeGenericType([TypeUtils.ObjType, Inner.OutEntityType]), "OutDictEntityTypeExVariable");
 
     /// <summary>
     /// OutDictEntityType.
     /// </summary>
-    public ParameterExpression OutDictKeyExVariable { get; init; }
+    public ParameterExpression OutDictKeyExVariable { get; } = Expression.Variable(TypeUtils.ObjType, "OutDictKeyExVariable");
 
     /// <summary>
     /// OutDictKeyAccessorExVariable.
     /// </summary>
-    public ParameterExpression OutDictKeyAccessorExVariable { get; init; }
+    public ParameterExpression OutDictKeyAccessorExVariable { get; } = Expression.Variable(Inner.OutEntityType, "OutDictKeyAccessorExVariable");
 
     /// <summary>
     ///     A function that define how to process each row.
