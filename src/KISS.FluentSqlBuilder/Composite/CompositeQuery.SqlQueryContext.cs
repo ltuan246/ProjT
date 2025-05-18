@@ -61,18 +61,4 @@ public sealed partial record CompositeQuery<TIn, TOut>
         { SqlStatement.Limit, [] },
         { SqlStatement.Offset, [] }
     };
-
-    /// <summary>
-    ///     Gets the dictionary that maps grouping key names to their types.
-    ///     This collection is used to maintain type information for
-    ///     grouping operations in the query.
-    /// </summary>
-    public Dictionary<string, Type> GroupingKeys { get; } = [];
-
-    /// <summary>
-    ///     Gets the dictionary that maps aggregation key names to their types.
-    ///     This collection is used to maintain type information for
-    ///     aggregation operations in the query.
-    /// </summary>
-    public Dictionary<string, Type> AggregationKeys { get; } = [];
 }
