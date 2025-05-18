@@ -14,10 +14,7 @@ public sealed partial record CompositeQuery<TIn, TOut> : IComposite
     /// </summary>
     public CompositeQuery()
     {
-        InEntriesExParameter = Expression.Variable(TypeUtils.DapperRowCollectionType, "InEntriesExParameter");
-        InEntriesExVariable = Expression.Variable(TypeUtils.DapperRowIteratorType, "CurrentEntityExVariable");
         OutEntitiesExVariable = Expression.Variable(OutEntitiesType, "CurrentEntityExVariable");
-        CurrentEntryExVariable = Expression.Variable(TypeUtils.DapperRowType, "CurrentEntityExVariable");
         CurrentEntityExVariable = Expression.Variable(OutEntityType, "CurrentEntityExVariable");
     }
 

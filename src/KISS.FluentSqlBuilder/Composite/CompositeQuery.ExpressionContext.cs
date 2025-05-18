@@ -10,16 +10,16 @@ namespace KISS.FluentSqlBuilder.Composite;
 public sealed partial record CompositeQuery<TIn, TOut>
 {
     /// <inheritdoc />
-    public ParameterExpression InEntriesExParameter { get; init; }
+    public ParameterExpression InEntriesExParameter { get; } = Expression.Variable(TypeUtils.DapperRowCollectionType, "InEntriesExParameter");
 
     /// <inheritdoc />
-    public ParameterExpression InEntriesExVariable { get; init; }
+    public ParameterExpression InEntriesExVariable { get; } = Expression.Variable(TypeUtils.DapperRowIteratorType, "InEntriesExVariable");
 
     /// <inheritdoc />
     public ParameterExpression OutEntitiesExVariable { get; init; }
 
     /// <inheritdoc />
-    public ParameterExpression CurrentEntryExVariable { get; init; }
+    public ParameterExpression CurrentEntryExVariable { get; } = Expression.Variable(TypeUtils.DapperRowType, "CurrentEntryExVariable");
 
     /// <inheritdoc />
     public ParameterExpression CurrentEntityExVariable { get; init; }
