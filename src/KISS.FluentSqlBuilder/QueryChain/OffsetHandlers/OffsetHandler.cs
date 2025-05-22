@@ -16,6 +16,6 @@ public sealed record OffsetHandler(int Offset) : QueryHandler(SqlStatement.Offse
     {
         // Assigns the provided CompositeQuery to this handler for processing.
         Composite = new OffsetDecorator(Composite);
-        Composite.SqlStatements[SqlStatement.Offset].Add($"{Offset}");
+        Composite.SqlStatements[SqlStatement.Offset] = [$"{Offset}"];
     }
 }

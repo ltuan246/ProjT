@@ -48,7 +48,11 @@ public sealed partial record QueryOperator<TRecordset, TReturn>
     /// </returns>
     public Dictionary<ITuple, List<TReturn>> GetDictionary()
     {
-        return [];
+        // Compiles the expression tree
+        var lambda = Expression.Lambda<Func<List<IDictionary<string, object>>, Dictionary<ITuple, List<TReturn>>>>(Composite.Block, Composite.InEntriesExParameter).Compile();
+
+        // Executes the expression tree, returning the result
+        return lambda(InputData);
 
         // // Defines the type of the final output collection
         // Type returnType = typeof(Dictionary<ITuple, List<TReturn>>),

@@ -71,6 +71,11 @@ public interface IComposite
     ParameterExpression InEntriesExVariable { get; }
 
     /// <summary>
+    /// IndexerExVariable.
+    /// </summary>
+    ParameterExpression IndexerExVariable { get; }
+
+    /// <summary>
     /// CurrentEntryExParameter.
     /// </summary>
     ParameterExpression OutEntitiesExVariable { get; }
@@ -84,6 +89,11 @@ public interface IComposite
     /// CurrentEntryExParameter.
     /// </summary>
     ParameterExpression CurrentEntityExVariable { get; }
+
+    /// <summary>
+    /// JoinRows.
+    /// </summary>
+    List<Expression> JoinRows { get; }
 
     /// <summary>
     /// CurrentEntryExParameter.

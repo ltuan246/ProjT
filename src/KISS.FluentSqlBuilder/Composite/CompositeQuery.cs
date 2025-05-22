@@ -16,6 +16,7 @@ public sealed partial record CompositeQuery<TIn, TOut> : IComposite
     {
         OutEntitiesExVariable = Expression.Variable(OutEntitiesType, "OutEntitiesExVariable");
         CurrentEntityExVariable = Expression.Variable(OutEntityType, "CurrentEntityExVariable");
+        IndexerExVariable = Expression.Variable(OutEntityType, "IndexerExVariable");
     }
 
     /// <inheritdoc />

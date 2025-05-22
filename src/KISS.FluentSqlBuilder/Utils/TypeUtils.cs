@@ -220,7 +220,7 @@ public sealed record TypeUtils
     /// <paramref name="outEntityType"/> object to <paramref name="targetVariable"/>.
     /// </returns>
     public static BinaryExpression InitializeTargetValue(ParameterExpression targetVariable, IEnumerable<MemberBinding> bindings)
-        => Expression.Assign(
+        => InitializeTargetValue(
             targetVariable,
             Expression.MemberInit(Expression.New(targetVariable.Type), bindings));
 
@@ -234,7 +234,20 @@ public sealed record TypeUtils
     /// <paramref name="outEntityType"/> object to <paramref name="targetVariable"/>.
     /// </returns>
     public static BinaryExpression InitializeTargetValue(ParameterExpression targetVariable)
-        => Expression.Assign(targetVariable, Expression.New(targetVariable.Type));
+        => InitializeTargetValue(targetVariable, Expression.New(targetVariable.Type));
+
+    /// <summary>
+    /// Creates a block expression that initializes the target variable with a new instance
+    /// of the specified output entity type, using member bindings generated from the source parameter.
+    /// </summary>
+    /// <param name="left">An <see cref="Expression"/> to set the <see cref="BinaryExpression.Left"/> property equal to.</param>
+    /// <param name="right">An <see cref="Expression"/> to set the <see cref="BinaryExpression.Right"/> property equal to.</param>
+    /// <returns>
+    /// A <see cref="BlockExpression"/> that assigns a newly constructed and member-initialized
+    /// <paramref name="outEntityType"/> object to <paramref name="targetVariable"/>.
+    /// </returns>
+    public static BinaryExpression InitializeTargetValue(Expression left, Expression right)
+        => Expression.Assign(left, right);
 
     /// <summary>
     ///     Creates a collection of <see cref="MemberBinding" /> instances by mapping properties

@@ -13,7 +13,7 @@ public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(SqlStateme
     protected override void Process()
     {
         // Assigns the provided CompositeQuery to this handler for processing.
-        Composite = new SelectDecorator<TSource, TReturn>(Composite);
+        Composite = new SelectDecorator(Composite);
 
         var alias = Composite.GetAliasMapping(Composite.InEntityType);
         var sourceProperties = Composite.InEntityType.GetProperties()

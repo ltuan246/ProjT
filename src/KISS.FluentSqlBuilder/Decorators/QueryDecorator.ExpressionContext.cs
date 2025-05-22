@@ -23,5 +23,11 @@ public abstract partial record QueryDecorator
     public ParameterExpression CurrentEntityExVariable { get; } = Inner.CurrentEntityExVariable;
 
     /// <inheritdoc />
+    public ParameterExpression IndexerExVariable { get; } = Inner.IndexerExVariable;
+
+    /// <inheritdoc />
+    public List<Expression> JoinRows { get; } = Inner.JoinRows;
+
+    /// <inheritdoc />
     public virtual BlockExpression Block { get; } = Inner.Block;
 }

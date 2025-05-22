@@ -16,6 +16,6 @@ public sealed record LimitHandler(int Rows) : QueryHandler(SqlStatement.Limit)
     {
         // Assigns the provided CompositeQuery to this handler for processing.
         Composite = new LimitDecorator(Composite);
-        Composite.SqlStatements[SqlStatement.Limit].Add($"{Rows}");
+        Composite.SqlStatements[SqlStatement.Limit] = [$"{Rows}"];
     }
 }

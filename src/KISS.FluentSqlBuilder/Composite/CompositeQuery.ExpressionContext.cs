@@ -25,5 +25,11 @@ public sealed partial record CompositeQuery<TIn, TOut>
     public ParameterExpression CurrentEntityExVariable { get; init; }
 
     /// <inheritdoc />
+    public ParameterExpression IndexerExVariable { get; init; }
+
+    /// <inheritdoc />
+    public List<Expression> JoinRows { get; } = [];
+
+    /// <inheritdoc />
     public BlockExpression Block { get; } = Expression.Block();
 }

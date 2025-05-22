@@ -23,17 +23,17 @@ public sealed record OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
             var init = Expression.Block(
-                   Expression.Assign(
-                       Expression.Property(((JoinDecorator)Composite).OutDictKeyAccessorExVariable, memberExpression.Member.Name),
-                       Expression.MemberInit(
-                           Expression.New(RelationType),
-                           TypeUtils.CreateIterRowBindings(
+                Expression.Assign(
+                    Expression.Property(Composite.IndexerExVariable, memberExpression.Member.Name),
+                    Expression.MemberInit(
+                        Expression.New(RelationType),
+                        TypeUtils.CreateIterRowBindings(
                             Composite.CurrentEntryExVariable,
                             RelationType,
                             RelationType,
                             Composite.GetAliasMapping(RelationType)))));
 
-            ((JoinDecorator)Composite).JoinRowProcessors.Add(init);
+            Composite.JoinRows.Add(init);
         }
     }
 }

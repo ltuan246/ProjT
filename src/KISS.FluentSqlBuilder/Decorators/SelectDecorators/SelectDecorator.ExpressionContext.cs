@@ -25,11 +25,13 @@ public sealed partial record SelectDecorator
                     // Initializes outputCollection with a new instance of T
                     // InitializeOutputVariable,
                     TypeUtils.InitializeTargetValue(OutEntitiesExVariable),
+
                     // Sets up the enumerator for inputData
                     // SetupInputDataEnumerator,
-                    Expression.Assign(
+                    TypeUtils.InitializeTargetValue(
                         InEntriesExVariable,
                         Expression.Call(InEntriesExParameter, TypeUtils.GetEnumeratorForIEnumDictStrObj)),
+
                     // Executes the loop with cleanup
                     Expression.TryFinally(
                         Expression.Loop(
@@ -43,9 +45,10 @@ public sealed partial record SelectDecorator
                                     [
                                         // Execute the loop body with the current row
                                         // AssignCurrentInputRowFromInputEnumerator,
-                                        Expression.Assign(
+                                        TypeUtils.InitializeTargetValue(
                                             CurrentEntryExVariable,
                                             Expression.Property(InEntriesExVariable, "Current")),
+
                                         // InitializeEntityIfKeyMissing
                                         TypeUtils.InitializeTargetValue(
                                             CurrentEntityExVariable,
@@ -54,6 +57,7 @@ public sealed partial record SelectDecorator
                                                 InEntityType,
                                                 CurrentEntityExVariable.Type,
                                                 GetAliasMapping(InEntityType))),
+
                                         // Adds the processed entity to the dictionary with its key.
                                         TypeUtils.CallMethod(
                                             OutEntitiesExVariable, // Calls the Add method on the output list.
@@ -63,6 +67,7 @@ public sealed partial record SelectDecorator
                                 exitsLoop), // Otherwise, break out of the loop
                             breakLabel),
                         Expression.Call(InEntriesExVariable, TypeUtils.DisposeMethod)),
+
                     // Returns the populated collection
                     OutEntitiesExVariable
                 ]);

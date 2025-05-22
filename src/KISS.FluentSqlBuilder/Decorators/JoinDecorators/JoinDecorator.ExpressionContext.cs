@@ -18,15 +18,53 @@ public sealed partial record JoinDecorator
     /// </summary>
     public ParameterExpression OutDictKeyExVariable { get; } = Expression.Variable(TypeUtils.ObjType, "OutDictKeyExVariable");
 
-    /// <summary>
-    /// OutDictKeyAccessorExVariable.
-    /// </summary>
-    public ParameterExpression OutDictKeyAccessorExVariable { get; } = Expression.Variable(Inner.OutEntityType, "OutDictKeyAccessorExVariable");
+    private ConstantExpression PrimaryKey { get; } = Expression.Constant("Extend0_Id");
 
     /// <summary>
-    ///     A function that define how to process each row.
+    /// InitializeDictVariable.
     /// </summary>
-    public List<Expression> JoinRowProcessors { get; } = [];
+    public BinaryExpression InitializeDictVariable
+        => TypeUtils.InitializeTargetValue(OutDictEntityTypeExVariable);
+
+    /// <summary>
+    /// InitializeDictVariable.
+    /// </summary>
+    public BinaryExpression InitializeDictKeyAccessor
+        => TypeUtils.InitializeTargetValue(
+                IndexerExVariable,
+                Expression.Block(
+                [
+                    // Extracts and converts the "Extend0_Id" key from the row to a string.
+                    TypeUtils.InitializeTargetValue(
+                        OutDictKeyExVariable,
+                        TypeUtils.ChangeType(
+                            Expression.Property(CurrentEntryExVariable, "Item", PrimaryKey),
+                            TypeUtils.ObjType)),
+
+                    // InitializeEntityIfKeyMissing: Processes the row if its key isn’t already in the dictionary.
+                    Expression.IfThen(
+                        Expression.Not(TypeUtils.IsDictContainsKey(OutDictEntityTypeExVariable, OutDictKeyExVariable)),
+                        Expression.Block(
+                            [], // Ensures variables is scoped for this operation
+                            // Applies the row processor to construct or modify the entity.
+                            TypeUtils.InitializeTargetValue(
+                                CurrentEntityExVariable,
+                                TypeUtils.CreateIterRowBindings(
+                                    CurrentEntryExVariable,
+                                    InEntityType,
+                                    CurrentEntityExVariable.Type,
+                                    GetAliasMapping(InEntityType))),
+                            // Adds the processed entity to the dictionary with its key.
+                            TypeUtils.CallMethod(
+                                OutDictEntityTypeExVariable,
+                                "Add",
+                                OutDictKeyExVariable,
+                                CurrentEntityExVariable))),
+
+                    Expression.MakeIndex(
+                        OutDictEntityTypeExVariable,
+                        OutDictEntityTypeExVariable.Type.GetProperty("Item")!,
+                        [OutDictKeyExVariable])]));
 
     /// <inheritdoc />
     public override BlockExpression Block
@@ -35,13 +73,14 @@ public sealed partial record JoinDecorator
         {
             var breakLabel = Expression.Label();
             var exitsLoop = Expression.Break(breakLabel);
-            var primaryKey = Expression.Constant("Extend0_Id");
 
             var block = Expression.Block(
                 [
                     // Declares variables used in the block
                     InEntriesExVariable,
                     OutEntitiesExVariable,
+                    OutDictEntityTypeExVariable,
+                    IndexerExVariable,
                 ],
                 [
                     // Initialize outputList with a new list
@@ -50,90 +89,46 @@ public sealed partial record JoinDecorator
 
                     // Sets up the enumerator for inputData
                     // SetupInputDataEnumerator,
-                    Expression.Assign(
+                    TypeUtils.InitializeTargetValue(
                         InEntriesExVariable,
                         Expression.Call(InEntriesExParameter, TypeUtils.GetEnumeratorForIEnumDictStrObj)),
 
-                    Expression.Block(
-                        [
-                            OutDictEntityTypeExVariable,
-                            OutDictKeyAccessorExVariable,
-                        ],
-                        [
-                            // InitializeDictVariable: Initializes dictObjEntity with a new instance of T
-                            TypeUtils.InitializeTargetValue(OutDictEntityTypeExVariable),
+                    // Initializes dictObjEntity with a new instance of T
+                    InitializeDictVariable,
 
-                            // Executes the loop with cleanup
-                            Expression.TryFinally(
-                                Expression.Loop(
-                                    Expression.IfThenElse(
-                                        Expression.Call(InEntriesExVariable, TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
-                                        Expression.Block(
-                                            [
-                                                CurrentEntryExVariable,
-                                                CurrentEntityExVariable,
-                                            ],
-                                            [
-                                                // Assigns the current row from the enumerator to iterationRowParameter.
-                                                // AssignCurrentInputRowFromInputEnumerator,
-                                                Expression.Assign(
-                                                    CurrentEntryExVariable,
-                                                    Expression.Property(InEntriesExVariable, "Current")),
+                    // Executes the loop with cleanup
+                    Expression.TryFinally(
+                        Expression.Loop(
+                            Expression.IfThenElse(
+                                Expression.Call(InEntriesExVariable, TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
+                                Expression.Block(
+                                    [
+                                        CurrentEntryExVariable,
+                                        CurrentEntityExVariable,
+                                        OutDictKeyExVariable
+                                    ],
+                                    [
+                                        // Assigns the current row from the enumerator to iterationRowParameter.
+                                        // AssignCurrentInputRowFromInputEnumerator,
+                                        TypeUtils.InitializeTargetValue(
+                                            CurrentEntryExVariable,
+                                            Expression.Property(InEntriesExVariable, "Current")),
 
-                                                Expression.Block(
-                                                    [
-                                                        OutDictKeyExVariable!
-                                                    ],
-                                                    [
-                                                        // Extracts and converts the "Extend0_Id" key from the row to a string.
-                                                        Expression.Assign(
-                                                            OutDictKeyExVariable!,
-                                                            TypeUtils.ChangeType(
-                                                                Expression.Property(CurrentEntryExVariable, "Item", primaryKey),
-                                                                TypeUtils.ObjType)),
+                                        InitializeDictKeyAccessor,
 
-                                                        // InitializeEntityIfKeyMissing: Processes the row if its key isn’t already in the dictionary.
-                                                        Expression.IfThen(
-                                                            Expression.Not(TypeUtils.IsDictContainsKey(OutDictEntityTypeExVariable, OutDictKeyExVariable!)),
-                                                            Expression.Block(
-                                                                [], // Ensures variables is scoped for this operation
-                                                                // Applies the row processor to construct or modify the entity.
-                                                                TypeUtils.InitializeTargetValue(
-                                                                    CurrentEntityExVariable,
-                                                                    TypeUtils.CreateIterRowBindings(
-                                                                        CurrentEntryExVariable,
-                                                                        InEntityType!,
-                                                                        CurrentEntityExVariable.Type,
-                                                                        GetAliasMapping(InEntityType!))),
-                                                                // Adds the processed entity to the dictionary with its key.
-                                                                TypeUtils.CallMethod(
-                                                                    OutDictEntityTypeExVariable,
-                                                                    "Add",
-                                                                    OutDictKeyExVariable!,
-                                                                    CurrentEntityExVariable))),
+                                        // Applies additional join processors using the dictionary indexer for related data.
+                                        // .. ApplyJoinProcessorsToInnerKeyAccessor
+                                        .. JoinRows
+                                    ]),
+                                exitsLoop), // Otherwise, break out of the loop
+                            breakLabel),
+                        Expression.Call(InEntriesExVariable, TypeUtils.DisposeMethod)),
 
-                                                        Expression.Assign(
-                                                            OutDictKeyAccessorExVariable!,
-                                                            Expression.MakeIndex(
-                                                                OutDictEntityTypeExVariable!,
-                                                                OutDictEntityTypeExVariable!.Type.GetProperty("Item")!,
-                                                                [OutDictKeyExVariable])),
-
-                                                        // Applies additional join processors using the dictionary indexer for related data.
-                                                        // .. ApplyJoinProcessorsToInnerKeyAccessor
-                                                        .. JoinRowProcessors
-                                                    ]),
-                                            ]),
-                                        exitsLoop), // Otherwise, break out of the loop
-                                    breakLabel),
-                                Expression.Call(InEntriesExVariable, TypeUtils.DisposeMethod)),
-
-                            // Convert dictionary values to list
-                            TypeUtils.CallMethod(
-                                OutEntitiesExVariable,
-                                "AddRange",
-                                Expression.Property(OutDictEntityTypeExVariable, "Values")),
-                        ]),
+                    // Convert dictionary values to list
+                    TypeUtils.CallMethod(
+                        OutEntitiesExVariable,
+                        "AddRange",
+                        Expression.Property(OutDictEntityTypeExVariable, "Values")),
 
                     // Return the populated list
                     OutEntitiesExVariable
