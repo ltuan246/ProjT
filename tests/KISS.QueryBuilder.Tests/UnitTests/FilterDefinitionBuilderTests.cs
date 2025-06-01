@@ -1,5 +1,12 @@
 namespace KISS.QueryBuilder.Tests.UnitTests;
 
+
+public class Item
+{
+    public string? Text { get; set; }
+    public string? SubText { get; set; }
+}
+
 [Collection(nameof(SqliteTestsCollection))]
 public sealed class FilterDefinitionBuilderTests(SqliteTestsFixture fixture)
 {
