@@ -14,7 +14,7 @@ public interface ISelectFromBuilder<TReturn>
     /// </summary>
     /// <typeparam name="TRecordset">The type representing the database table or view to query.</typeparam>
     /// <returns>
-    ///     An <see cref="IJoinBuilder{TRecordset, TReturn}" /> instance that allows you to
+    ///     An <see cref="IJoinBuilder{TRecordset, TReturn}"/> instance that allows you to
     ///     add joins and other query components.
     /// </returns>
     IJoinBuilder<TRecordset, TReturn> From<TRecordset>();

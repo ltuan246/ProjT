@@ -11,11 +11,10 @@ namespace KISS.FluentSqlBuilder.QueryChain.OffsetHandlers;
 /// </param>
 public sealed record OffsetHandler(int Offset) : QueryHandler(SqlStatement.Offset)
 {
-    /// <inheritdoc />
-    protected override void Process()
-    {
-        // Assigns the provided CompositeQuery to this handler for processing.
-        Composite = new OffsetDecorator(Composite);
-        Composite.SqlStatements[SqlStatement.Offset] = [$"{Offset}"];
-    }
+    /// <summary>
+    ///     Processes the OFFSET clause by adding the row offset
+    ///     to the query's OFFSET statements.
+    /// </summary>
+    protected override void TranslateExpression()
+        => Composite.SqlStatements[SqlStatement.Offset].Add($"{Offset}");
 }

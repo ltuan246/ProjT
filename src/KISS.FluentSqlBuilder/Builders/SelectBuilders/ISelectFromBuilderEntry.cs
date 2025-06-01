@@ -11,6 +11,6 @@ public interface ISelectFromBuilderEntry<TReturn> : ISqlBuilder
     ///     Adds a <c>FROM</c> clause to the query, specifying the source table.
     /// </summary>
     /// <typeparam name="TRecordset">The type representing the database record set.</typeparam>
-    /// <returns>The <see cref="IJoinBuilder{TRecordset, TReturn}" /> instance for method chaining.</returns>
+    /// <returns>The <see cref="IJoinBuilder{TRecordset, TReturn}"/> instance for method chaining.</returns>
     IJoinBuilder<TRecordset, TReturn> From<TRecordset>();
 }

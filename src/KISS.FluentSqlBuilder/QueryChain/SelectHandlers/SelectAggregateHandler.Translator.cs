@@ -1,16 +1,15 @@
 namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 
 /// <summary>
-///     Provides translation logic for aggregate SELECT clauses in a query chain.
-///     This class converts aggregate expressions into SQL-compatible syntax for use in
-///     SELECT statements with aggregate functions.
+///     A handler for processing aggregate SELECT clauses in a query chain.
+///     This class provides the translation logic for converting aggregate expressions
+///     into SQL-compatible form.
 /// </summary>
 public sealed partial record SelectAggregateHandler
 {
     /// <summary>
     ///     Translates a member expression into SQL for aggregate operations.
-    ///     Handles property and field access within aggregate functions, and registers
-    ///     the aggregation key and its type for later use in the query.
+    ///     Handles property and field access within aggregate functions.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
     protected override void Visit(MemberExpression memberExpression)
@@ -20,10 +19,10 @@ public sealed partial record SelectAggregateHandler
             Append($"{Composite.GetAliasMapping(parameterExpression.Type)}_{memberExpression.Member.Name}");
             switch (memberExpression.Member)
             {
-                // If accessing a static property, register its type for aggregation.
+                // Accessing a static property, get its type and value using reflection
                 case PropertyInfo propertyInfo:
                     var propType = propertyInfo.PropertyType;
-                    ((GroupByDecorator)Composite).AggregationKeys[Alias] = propType;
+                    Composite.AggregationKeys[Alias] = propType;
                     break;
             }
         }
@@ -31,7 +30,7 @@ public sealed partial record SelectAggregateHandler
 
     /// <summary>
     ///     Translates a unary expression into SQL for aggregate operations.
-    ///     Handles operations like negation and type conversion by recursively visiting the operand.
+    ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
     protected override void Visit(UnaryExpression unaryExpression)
@@ -57,7 +56,7 @@ public sealed partial record SelectAggregateHandler
 
     /// <summary>
     ///     Translates a method call expression into SQL for aggregate operations.
-    ///     Handles SQL function calls and custom aggregate methods, appending the result alias.
+    ///     Handles SQL function calls and custom aggregate methods.
     /// </summary>
     /// <param name="methodCallExpression">The method call expression to translate.</param>
     protected override void Visit(MethodCallExpression methodCallExpression)

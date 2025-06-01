@@ -11,12 +11,10 @@ namespace KISS.FluentSqlBuilder.QueryChain.LimitHandlers;
 /// </param>
 public sealed record LimitHandler(int Rows) : QueryHandler(SqlStatement.Limit)
 {
-    /// <inheritdoc />
-    protected override void Process()
-    {
-        // Wraps the provided CompositeQuery with a LimitDecorator for LIMIT clause processing.
-        Composite = new LimitDecorator(Composite);
-        // Sets the LIMIT value in the SQL statement collection.
-        Composite.SqlStatements[SqlStatement.Limit] = [$"{Rows}"];
-    }
+    /// <summary>
+    ///     Processes the LIMIT clause by adding the row limit
+    ///     to the query's LIMIT statements.
+    /// </summary>
+    protected override void TranslateExpression()
+        => Composite.SqlStatements[SqlStatement.Limit].Add($"{Rows}");
 }

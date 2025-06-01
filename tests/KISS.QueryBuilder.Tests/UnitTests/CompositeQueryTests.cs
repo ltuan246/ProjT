@@ -3,7 +3,7 @@
 [Collection(nameof(SqliteTestsCollection))]
 public sealed class CompositeQueryTests()
 {
-    private ExpressionEvaluator Query { get; } = new();
+    private CompositeQuery Query { get; } = new();
 
     [Fact]
     public void GetValue_UnvisitedConstant_EvaluatesToValue()

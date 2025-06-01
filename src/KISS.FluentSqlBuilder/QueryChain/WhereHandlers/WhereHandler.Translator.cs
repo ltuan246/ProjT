@@ -1,9 +1,8 @@
 namespace KISS.FluentSqlBuilder.QueryChain.WhereHandlers;
 
 /// <summary>
-///     Provides translation logic for WHERE clauses in a query chain.
-///     This class converts LINQ expressions into SQL WHERE conditions, supporting
-///     member access, constants, binary and unary operations, and special SQL functions.
+///     A handler for processing WHERE clauses in a query chain.
+///     This class provides the translation logic for converting LINQ expressions into SQL WHERE conditions.
 /// </summary>
 public sealed partial record WhereHandler
 {
@@ -46,7 +45,7 @@ public sealed partial record WhereHandler
 
             default:
                 {
-                    var (evaluated, value) = Evaluator.GetValue(memberExpression);
+                    var (evaluated, value) = Composite.GetValue(memberExpression);
                     if (evaluated)
                     {
                         AppendFormat(value);
@@ -198,7 +197,7 @@ public sealed partial record WhereHandler
                 break;
 
             default:
-                var (evaluated, value) = Evaluator.GetValue(methodCallExpression);
+                var (evaluated, value) = Composite.GetValue(methodCallExpression);
                 break;
         }
     }

@@ -5,8 +5,8 @@ namespace KISS.FluentSqlBuilder.Builders;
 ///     This class serves as the entry point for constructing SQL queries and manages
 ///     the connection to the database.
 /// </summary>
-/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 /// <param name="Connection">The database connection used to execute queries.</param>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuilder<TReturn>
 {
     /// <inheritdoc />
@@ -21,10 +21,10 @@ public sealed record QueryBuilder<TReturn>(DbConnection Connection) : IQueryBuil
 ///     Implements the query builder for single-table operations, providing methods
 ///     for constructing SQL queries with various clauses (SELECT, WHERE, JOIN, etc.).
 /// </summary>
-/// <typeparam name="TRecordset">The type representing the database table or view.</typeparam>
-/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 /// <param name="Connection">The database connection used to execute queries.</param>
 /// <param name="Handler">The query handler that manages query construction and execution.</param>
+/// <typeparam name="TRecordset">The type representing the database table or view.</typeparam>
+/// <typeparam name="TReturn">The type of the final query result.</typeparam>
 public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, QueryHandler Handler) :
     IQueryBuilder<TRecordset, TReturn>
 {
@@ -34,10 +34,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
-            leftKeySelector.Body,
-            rightKeySelector.Body,
-            mapSelector.Body));
+        Handler.SetNext(new OneToOneJoinHandler<TRecordset, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -47,10 +44,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
-            leftKeySelector.Body,
-            rightKeySelector.Body,
-            mapSelector.Body));
+        Handler.SetNext(new OneToManyJoinHandler<TRecordset, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -110,7 +104,7 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new CompositeQueryProxy<TRecordset, TReturn>().Create(Connection, Handler).GetList();
+        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList();
 }
 
 /// <summary>
@@ -171,8 +165,8 @@ public sealed record GroupQueryBuilder<TRecordset, TReturn>(DbConnection Connect
     }
 
     /// <inheritdoc />
-    public Dictionary<ITuple, List<TReturn>> ToDictionary()
-        => new CompositeQueryProxy<TRecordset, TReturn>().Create(Connection, Handler).GetDictionary();
+    public Dictionary<ITuple, List<TReturn>> ToDictionary() =>
+        new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetDictionary();
 }
 
 /// <summary>
@@ -193,10 +187,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new OneToOneJoinHandler<TFirst, TRelation, TReturn>(
-            leftKeySelector.Body,
-            rightKeySelector.Body,
-            mapSelector.Body));
+        Handler.SetNext(new OneToOneJoinHandler<TFirst, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -206,10 +197,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new OneToManyJoinHandler<TFirst, TRelation, TReturn>(
-            leftKeySelector.Body,
-            rightKeySelector.Body,
-            mapSelector.Body));
+        Handler.SetNext(new OneToManyJoinHandler<TFirst, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -219,10 +207,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new OneToOneJoinHandler<TSecond, TRelation, TReturn>(
-            leftKeySelector.Body,
-            rightKeySelector.Body,
-            mapSelector.Body));
+        Handler.SetNext(new OneToOneJoinHandler<TSecond, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -232,10 +217,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new OneToManyJoinHandler<TSecond, TRelation, TReturn>(
-            leftKeySelector.Body,
-            rightKeySelector.Body,
-            mapSelector.Body));
+        Handler.SetNext(new OneToManyJoinHandler<TSecond, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -291,7 +273,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new CompositeQueryProxy<TFirst, TReturn>().Create(Connection, Handler).GetList();
+        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList();
 }
 
 /// <summary>
@@ -322,9 +304,7 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     }
 
     /// <inheritdoc />
-    public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(
-        bool condition,
-        Expression<Func<TFirst, bool>> predicate)
+    public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(bool condition, Expression<Func<TFirst, bool>> predicate)
     {
         if (condition)
         {
@@ -381,5 +361,5 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
 
     /// <inheritdoc />
     public List<TReturn> ToList()
-        => new CompositeQueryProxy<TFirst, TReturn>().Create(Connection, Handler).GetList();
+        => new CompositeQueryProxy<TReturn>().Create(Connection, Handler).GetList();
 }
