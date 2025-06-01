@@ -8,51 +8,32 @@ namespace KISS.FluentSqlBuilder.Decorators.GroupByDecorators;
 public sealed partial record GroupByDecorator
 {
     /// <summary>
-    /// OutEntitiesType.
+    /// OutputVariable.
     /// </summary>
-    public Type OutDictEntitiesType { get; init; }
+    public ParameterExpression OutputVariable { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    /// OutputVariable.
     /// </summary>
-    public Type OuterDictTupleEntityCollectionType { get; init; }
+    public ParameterExpression OuterDictObjEntityVariable { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    /// OutputVariable.
     /// </summary>
-    public Type OuterIterType { get; init; }
+    public ParameterExpression OuterKeyVariable { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    /// OutputVariable.
     /// </summary>
-    public Type OuterEntryType { get; init; }
+    public ParameterExpression InnerKeyVariable { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    /// OutputVariable.
     /// </summary>
-    public Type OuterKeyType { get; } = typeof(ITuple);
+    public ParameterExpression OuterDictIterVariable { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    /// OutputVariable.
     /// </summary>
-    public Type InnerDictObjEntityType { get; init; }
-
-    /// <summary>
-    /// OutEntitiesType.
-    /// </summary>
-    public Type InnerKeyType { get; } = typeof(object);
-
-    /// <summary>
-    ///     Gets the dictionary that maps grouping key names to their types.
-    ///     This collection is used to maintain type information for
-    ///     grouping operations in the query.
-    /// </summary>
-    public Dictionary<string, Type> GroupingKeys { get; } = [];
-
-    /// <summary>
-    ///     Gets the dictionary that maps aggregation key names to their types.
-    ///     This collection is used to maintain type information for
-    ///     aggregation operations in the query.
-    /// </summary>
-    public Dictionary<string, Type> AggregationKeys { get; } = [];
+    public ParameterExpression OuterDictEntryParameter { get; init; }
 }

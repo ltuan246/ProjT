@@ -1,72 +1,87 @@
 ﻿namespace KISS.FluentSqlBuilder.Utils;
 
 /// <summary>
-/// TypeUtils.
+/// Provides utility types and methods for reflection and expression tree operations.
 /// </summary>
 public sealed record TypeUtils
 {
     /// <summary>
-    /// IteratorType.
+    /// Gets the type of the <see cref="IEnumerator"/> interface, used for iterating over collections.
     /// </summary>
-    private static Type IteratorType { get; } = typeof(IEnumerator);
+    public static Type IteratorType { get; } = typeof(IEnumerator);
 
     /// <summary>
-    /// DisposableType.
+    /// Gets the type of the <see cref="IDisposable"/> interface, used for resource cleanup.
     /// </summary>
-    private static Type DisposableType { get; } = typeof(IDisposable);
+    public static Type DisposableType { get; } = typeof(IDisposable);
 
     /// <summary>
-    /// DapperRowType.
+    /// Gets the type of a Dapper row, represented as a dictionary mapping column names to values.
     /// </summary>
     public static Type DapperRowType { get; } = typeof(IDictionary<string, object>);
 
     /// <summary>
-    /// DapperRowCollectionType.
+    /// Gets the type of a collection of Dapper rows, represented as an enumerable of dictionaries.
     /// </summary>
     public static Type DapperRowCollectionType { get; } = typeof(IEnumerable<IDictionary<string, object>>);
 
     /// <summary>
-    /// DapperRowCollectionType.
+    /// Gets the type of an enumerator for a collection of Dapper rows.
     /// </summary>
     public static Type DapperRowIteratorType { get; } = typeof(IEnumerator<IDictionary<string, object>>);
 
     /// <summary>
-    /// ObjType.
+    /// Gets the type of the <see cref="object"/> class, representing any type.
     /// </summary>
     public static Type ObjType { get; } = typeof(object);
 
     /// <summary>
-    /// ObjType.
+    /// Gets the type of the <see cref="string"/> class, representing text data.
     /// </summary>
     public static Type StrType { get; } = typeof(string);
 
     /// <summary>
-    /// ObjType.
+    /// Gets the type of the <see cref="Guid"/> struct, used for unique identifiers.
     /// </summary>
     public static Type GuidType { get; } = typeof(Guid);
 
     /// <summary>
-    /// ObjType.
+    /// Gets the type of the <see cref="DateTime"/> struct, used for date and time values.
     /// </summary>
     public static Type DateTimeType { get; } = typeof(DateTime);
 
     /// <summary>
-    /// ObjType.
+    /// Gets the type of the <see cref="ValueTuple"/> struct, representing a non-generic tuple.
     /// </summary>
     public static Type ValueTupleType { get; } = typeof(ValueTuple);
 
     /// <summary>
-    /// ObjType.
+    /// Gets the type of the <see cref="ITuple"/> interface, used for tuple implementations.
+    /// </summary>
+    public static Type TupleType { get; } = typeof(ITuple);
+
+    /// <summary>
+    /// Gets the generic type definition for <see cref="Dictionary{TKey, TValue}"/>, used for key-value pair collections.
     /// </summary>
     public static Type DictionaryType { get; } = typeof(Dictionary<,>);
 
     /// <summary>
-    /// IterMoveNextMethod.
+    /// Gets the generic type definition for the <see cref="Dictionary{TKey, TValue}.Enumerator"/> struct, used for iterating over dictionary entries.
+    /// </summary>
+    public static Type DictionaryEnumeratorType { get; } = typeof(Dictionary<,>.Enumerator);
+
+    /// <summary>
+    /// Gets the generic type definition for <see cref="KeyValuePair{TKey, TValue}"/>, representing a single dictionary entry.
+    /// </summary>
+    public static Type KeyValuePairType { get; } = typeof(KeyValuePair<,>);
+
+    /// <summary>
+    /// Gets the <see cref="IEnumerator.MoveNext"/> method, used to advance an enumerator to the next element.
     /// </summary>
     public static MethodInfo IterMoveNextMethod { get; } = IteratorType.GetMethod(nameof(IEnumerator.MoveNext), Type.EmptyTypes)!;
 
     /// <summary>
-    /// DisposeMethod.
+    /// Gets the <see cref="IDisposable.Dispose"/> method, used to release resources held by an object.
     /// </summary>
     public static MethodInfo DisposeMethod { get; } = DisposableType.GetMethod(nameof(IDisposable.Dispose), Type.EmptyTypes)!;
 

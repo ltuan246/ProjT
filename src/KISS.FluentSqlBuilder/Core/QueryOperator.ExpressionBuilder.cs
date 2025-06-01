@@ -57,24 +57,24 @@ public sealed partial record QueryOperator<TRecordset, TReturn>
         // // Defines the type of the final output collection
         // Type returnType = typeof(Dictionary<ITuple, List<TReturn>>),
         //     // Defines the type of outer dictionary for the intermediate dictionary used for uniqueness.
-        //     outerDictObjEntityType = typeof(Dictionary<ITuple, Dictionary<object, TReturn>>),
         //     // Specifies the type of the key used in the dictionary, extracted from each row for indexing.
         //     outerKeyType = typeof(ITuple),
         //     // Defines the type of the intermediate dictionary used for uniqueness.
         //     dictObjEntityType = typeof(Dictionary<object, TReturn>),
         //     // Specifies the type of the key used in the dictionary, extracted from each row for indexing.
         //     dictKeyType = typeof(object),
+        //     outerDictObjEntityType = typeof(Dictionary<ITuple, Dictionary<object, TReturn>>),
         //     outerIterType = typeof(Dictionary<ITuple, Dictionary<object, TReturn>>.Enumerator),
         //     outerEntryType = typeof(KeyValuePair<ITuple, Dictionary<object, TReturn>>);
 
         // // Collection that accumulates all processed entities
         // ParameterExpression outputVariable = Expression.Variable(returnType, "outputVariable"),
         //     // Intermediate dictionary that ensures uniqueness of entities by key
-        //     outerDictObjEntityVariable = Expression.Variable(outerDictObjEntityType, "outerDictObjEntityVariable"),
         //     // Key extracted from each row for dictionary indexing
         //     outerKeyVariable = Expression.Variable(outerKeyType, "outerKeyVariable"),
         //     innerKeyVariable = Expression.Variable(dictKeyType, "keyVariable"),
         //     // Enumerator for iterating over the outer dictionary of entities
+        //     outerDictObjEntityVariable = Expression.Variable(outerDictObjEntityType, "outerDictObjEntityVariable"),
         //     outerDictIterVariable = Expression.Variable(outerIterType, "outerDictIterVariable"),
         //     // Current key-value pair from the outer dictionary being processed
         //     outerDictEntryParameter = Expression.Parameter(outerEntryType, "outerDictEntryParameter");
