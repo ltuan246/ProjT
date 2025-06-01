@@ -15,7 +15,7 @@ public static class SqlFunctions
     /// <param name="dbConnection">The database connection to use for the query.</param>
     /// <typeparam name="TEntity">The type of entity to query, representing the database table.</typeparam>
     /// <returns>
-    ///     A new <see cref="QueryBuilder{TEntity}"/> instance that can be used to
+    ///     A new <see cref="QueryBuilder{TEntity}" /> instance that can be used to
     ///     build and execute the SQL query.
     /// </returns>
     public static QueryBuilder<TEntity> Retrieve<TEntity>(
