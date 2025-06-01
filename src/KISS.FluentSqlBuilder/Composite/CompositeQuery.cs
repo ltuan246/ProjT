@@ -10,7 +10,7 @@ namespace KISS.FluentSqlBuilder.Composite;
 public sealed partial record CompositeQuery<TIn, TOut> : IComposite
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="CompositeQuery{TIn, TOut}"/> class.
+    ///     Initializes a new instance of the <see cref="CompositeQuery{TIn, TOut}" /> class.
     /// </summary>
     public CompositeQuery()
     {

@@ -8,7 +8,7 @@ namespace KISS.FluentSqlBuilder.Decorators.SelectDecorators;
 public sealed partial record SelectDecorator
 {
     /// <summary>
-    /// Block.
+    ///     Block.
     /// </summary>
     public override BlockExpression Block
     {
@@ -36,7 +36,9 @@ public sealed partial record SelectDecorator
                     Expression.TryFinally(
                         Expression.Loop(
                             Expression.IfThenElse(
-                                Expression.Call(InEntriesExVariable, TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
+                                Expression.Call(
+                                    InEntriesExVariable,
+                                    TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
                                 Expression.Block(
                                     [
                                         CurrentEntryExVariable,

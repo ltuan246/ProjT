@@ -26,7 +26,11 @@ public sealed partial record QueryOperator<TRecordset, TReturn>
     public List<TReturn> GetList()
     {
         // Compiles the expression tree
-        var lambda = Expression.Lambda<Func<List<IDictionary<string, object>>, List<TReturn>>>(Composite.Block, Composite.InEntriesExParameter).Compile();
+        var lambda = Expression
+            .Lambda<Func<List<IDictionary<string, object>>, List<TReturn>>>(
+                Composite.Block,
+                Composite.InEntriesExParameter)
+            .Compile();
 
         // Executes the expression tree, returning the result
         return lambda(InputData);
@@ -49,7 +53,11 @@ public sealed partial record QueryOperator<TRecordset, TReturn>
     public Dictionary<ITuple, List<TReturn>> GetDictionary()
     {
         // Compiles the expression tree
-        var lambda = Expression.Lambda<Func<List<IDictionary<string, object>>, Dictionary<ITuple, List<TReturn>>>>(Composite.Block, Composite.InEntriesExParameter).Compile();
+        var lambda = Expression
+            .Lambda<Func<List<IDictionary<string, object>>, Dictionary<ITuple, List<TReturn>>>>(
+                Composite.Block,
+                Composite.InEntriesExParameter)
+            .Compile();
 
         // Executes the expression tree, returning the result
         return lambda(InputData);

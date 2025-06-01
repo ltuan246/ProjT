@@ -8,8 +8,5 @@ namespace KISS.FluentSqlBuilder.QueryChain.OrderByHandlers;
 public sealed partial record OrderByHandler(Expression Selector) : QueryHandler(SqlStatement.OrderBy, Selector)
 {
     /// <inheritdoc />
-    protected override void Process()
-    {
-        Composite = new OrderByDecorator(Composite);
-    }
+    protected override void Process() => Composite = new OrderByDecorator(Composite);
 }

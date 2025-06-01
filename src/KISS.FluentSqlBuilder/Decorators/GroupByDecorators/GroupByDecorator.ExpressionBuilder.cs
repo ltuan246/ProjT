@@ -57,14 +57,18 @@ public sealed partial record GroupByDecorator
                     Expression.Block(
                         [],
                         // Adds the processed entity to the dictionary with its key.
-                        TypeUtils.CallMethod(OuterDictObjEntityVariable, "Add", OuterKeyVariable, Expression.New(InnerDictObjEntityType)))),
+                        TypeUtils.CallMethod(
+                            OuterDictObjEntityVariable,
+                            "Add",
+                            OuterKeyVariable,
+                            Expression.New(InnerDictObjEntityType)))),
                 // Processes and adds the entity to the inner dictionary if the key is new.
                 initializeEntityIfInnerKeyMissing = Expression.IfThen(
                     Expression.Not(TypeUtils.IsDictContainsKey(outerKeyAccessor, InnerKeyVariable)),
                     Expression.Block(
                         [], // Ensures variables is scoped for this operation
-                            // Applies the row processor to construct or modify the entity.
-                            // IterRowProcessor((CurrentEntryExParameter, CurrentEntityExVariable)),
+                        // Applies the row processor to construct or modify the entity.
+                        // IterRowProcessor((CurrentEntryExParameter, CurrentEntityExVariable)),
                         TypeUtils.InitializeTargetValue(
                             CurrentEntityExVariable,
                             TypeUtils.CreateIterRowBindings(
@@ -130,7 +134,9 @@ public sealed partial record GroupByDecorator
                     Expression.TryFinally(
                         Expression.Loop(
                             Expression.IfThenElse(
-                                Expression.Call(InEntriesExVariable, TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
+                                Expression.Call(
+                                    InEntriesExVariable,
+                                    TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
                                 // ProcessRowsIfExist
                                 Expression.Block(
                                     [

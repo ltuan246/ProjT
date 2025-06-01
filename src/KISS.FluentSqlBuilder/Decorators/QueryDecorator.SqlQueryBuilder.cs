@@ -8,25 +8,6 @@ namespace KISS.FluentSqlBuilder.Decorators;
 public abstract partial record QueryDecorator
 {
     /// <summary>
-    ///     Appends a formatted string to the SQL query being built.
-    ///     This method is used for adding SQL fragments to the query without line breaks.
-    /// </summary>
-    /// <param name="value">The SQL string to append to the query.</param>
-    public void Append(string value)
-        => SqlBuilder.Append(value);
-
-    /// <summary>
-    ///     Appends a new line to the SQL query being built, with optional indentation.
-    ///     This method is used for adding SQL fragments with proper formatting and structure.
-    /// </summary>
-    /// <param name="value">The SQL string to append to the query.</param>
-    public void AppendLine(string value = "")
-    {
-        SqlBuilder.AppendLine();
-        SqlBuilder.Append(value);
-    }
-
-    /// <summary>
     ///     Retrieves or creates a table alias for the specified type in the query context.
     ///     This method ensures consistent alias usage throughout the query construction.
     /// </summary>
@@ -45,5 +26,24 @@ public abstract partial record QueryDecorator
         }
 
         return tableAlias;
+    }
+
+    /// <summary>
+    ///     Appends a formatted string to the SQL query being built.
+    ///     This method is used for adding SQL fragments to the query without line breaks.
+    /// </summary>
+    /// <param name="value">The SQL string to append to the query.</param>
+    public void Append(string value)
+        => SqlBuilder.Append(value);
+
+    /// <summary>
+    ///     Appends a new line to the SQL query being built, with optional indentation.
+    ///     This method is used for adding SQL fragments with proper formatting and structure.
+    /// </summary>
+    /// <param name="value">The SQL string to append to the query.</param>
+    public void AppendLine(string value = "")
+    {
+        SqlBuilder.AppendLine();
+        SqlBuilder.Append(value);
     }
 }

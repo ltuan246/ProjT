@@ -10,4 +10,7 @@ namespace KISS.FluentSqlBuilder.Core;
 ///     The type of objects to return, representing the query result rows.
 ///     This type must match the structure of the query results.
 /// </typeparam>
-public sealed partial record QueryOperator<TRecordset, TReturn>(QueryHandler ChainHandler, IComposite Composite, List<IDictionary<string, object>> InputData) : ICompositeQueryOperations<TRecordset, TReturn>;
+public sealed partial record QueryOperator<TRecordset, TReturn>(
+    QueryHandler ChainHandler,
+    IComposite Composite,
+    List<IDictionary<string, object>> InputData) : ICompositeQueryOperations<TRecordset, TReturn>;

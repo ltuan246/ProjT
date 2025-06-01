@@ -46,57 +46,57 @@ public interface IComposite
     Dictionary<Type, string> TableAliases { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     Type InEntityType { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     Type OutEntityType { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     Type OutEntitiesType { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     ParameterExpression InEntriesExParameter { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     ParameterExpression InEntriesExVariable { get; }
 
     /// <summary>
-    /// IndexerExVariable.
+    ///     IndexerExVariable.
     /// </summary>
     ParameterExpression IndexerExVariable { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     ParameterExpression OutEntitiesExVariable { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     ParameterExpression CurrentEntryExVariable { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     ParameterExpression CurrentEntityExVariable { get; }
 
     /// <summary>
-    /// JoinRows.
+    ///     JoinRows.
     /// </summary>
     List<Expression> JoinRows { get; }
 
     /// <summary>
-    /// CurrentEntryExParameter.
+    ///     CurrentEntryExParameter.
     /// </summary>
     BlockExpression Block { get; }
 

@@ -8,32 +8,32 @@ namespace KISS.FluentSqlBuilder.Decorators.GroupByDecorators;
 public sealed partial record GroupByDecorator
 {
     /// <summary>
-    /// OutputVariable.
+    ///     OutputVariable.
     /// </summary>
     public ParameterExpression OutputVariable { get; init; }
 
     /// <summary>
-    /// OutputVariable.
+    ///     OutputVariable.
     /// </summary>
     public ParameterExpression OuterDictObjEntityVariable { get; init; }
 
     /// <summary>
-    /// OutputVariable.
+    ///     OutputVariable.
     /// </summary>
     public ParameterExpression OuterKeyVariable { get; init; }
 
     /// <summary>
-    /// OutputVariable.
+    ///     OutputVariable.
     /// </summary>
     public ParameterExpression InnerKeyVariable { get; init; }
 
     /// <summary>
-    /// OutputVariable.
+    ///     OutputVariable.
     /// </summary>
     public ParameterExpression OuterDictIterVariable { get; init; }
 
     /// <summary>
-    /// OutputVariable.
+    ///     OutputVariable.
     /// </summary>
     public ParameterExpression OuterDictEntryParameter { get; init; }
 }

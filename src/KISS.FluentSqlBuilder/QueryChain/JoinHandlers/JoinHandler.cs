@@ -30,7 +30,7 @@ public abstract partial record JoinHandler<TRelation, TReturn>(
     Expression RightKeySelector) : QueryHandler(SqlStatement.Join, Expression.Equal(LeftKeySelector, RightKeySelector))
 {
     /// <summary>
-    /// RelationType.
+    ///     RelationType.
     /// </summary>
     public Type RelationType { get; } = typeof(TRelation);
 

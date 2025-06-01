@@ -40,8 +40,6 @@ public abstract record SimpleExpressionVisitor
             case LambdaExpression lambdaExpression:
                 Visit(lambdaExpression);
                 break;
-            default:
-                break;
         }
     }
 

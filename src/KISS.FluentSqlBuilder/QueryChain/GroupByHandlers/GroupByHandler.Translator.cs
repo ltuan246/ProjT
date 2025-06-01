@@ -17,8 +17,8 @@ public sealed partial record GroupByHandler
     {
         if (memberExpression is { Expression: ParameterExpression parameterExpression })
         {
-            string alias = Composite.GetAliasMapping(parameterExpression.Type);
-            string fieldName = $"{alias}_{memberExpression.Member.Name}";
+            var alias = Composite.GetAliasMapping(parameterExpression.Type);
+            var fieldName = $"{alias}_{memberExpression.Member.Name}";
             ((GroupByDecorator)Composite).GroupingKeys[fieldName] = memberExpression.Type;
             Append($"{fieldName}");
         }

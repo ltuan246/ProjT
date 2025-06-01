@@ -15,7 +15,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     public QueryHandler? NextHandler { get; set; }
 
     /// <summary>
-    /// Evaluator.
+    ///     Evaluator.
     /// </summary>
     protected ExpressionEvaluator Evaluator { get; } = new();
 

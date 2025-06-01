@@ -109,7 +109,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
             {
                 if (arg is MemberExpression memberExpression)
                 {
-                    string tableAlias = Composite.GetAliasMapping(memberExpression.Member.DeclaringType!);
+                    var tableAlias = Composite.GetAliasMapping(memberExpression.Member.DeclaringType!);
                     return $"{tableAlias}." + (name == memberExpression.Member.Name
                         ? memberExpression.Member.Name
                         : $"{memberExpression.Member.Name} AS {name}");
@@ -127,8 +127,7 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     ///     Handles the initialization of object properties with values from the source.
     /// </summary>
     /// <param name="memberInitExpression">The member initialization expression to translate.</param>
-    protected override void Visit(MemberInitExpression memberInitExpression)
-    {
+    protected override void Visit(MemberInitExpression memberInitExpression) =>
         new EnumeratorProcessor<MemberBinding>(memberInitExpression.Bindings)
             .AccessFirst(m =>
             {
@@ -153,13 +152,12 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
                     Append(", ");
                     AppendLine(string.Empty, true);
 
-                    string alias = Composite.GetAliasMapping(parameter.Type);
-                    string sourceMemberName = $"{alias}.{member.Member.Name}";
+                    var alias = Composite.GetAliasMapping(parameter.Type);
+                    var sourceMemberName = $"{alias}.{member.Member.Name}";
                     Append($"{sourceMemberName} AS {assignment.Member.Name}");
                 }
             })
             .Execute();
-    }
 
     /// <summary>
     ///     Translates a unary expression into SQL for object initialization.
@@ -170,7 +168,8 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     {
         if (unaryExpression is { Operand: MemberExpression memberExpression })
         {
-            Append($"{Composite.GetAliasMapping(memberExpression.Member.DeclaringType!)}.{memberExpression.Member.Name}");
+            Append(
+                $"{Composite.GetAliasMapping(memberExpression.Member.DeclaringType!)}.{memberExpression.Member.Name}");
         }
         else
         {
@@ -183,8 +182,5 @@ public sealed partial record NewSelectHandler<TSource, TReturn>
     ///     Converts constant values into their string representation for SQL.
     /// </summary>
     /// <param name="constantExpression">The constant expression to translate.</param>
-    protected override void Visit(ConstantExpression constantExpression)
-    {
-        Append($"{constantExpression.Value}");
-    }
+    protected override void Visit(ConstantExpression constantExpression) => Append($"{constantExpression.Value}");
 }

@@ -17,7 +17,7 @@ public interface ICompositeQueryOperations<TRecordset, TReturn>
     /// </summary>
     /// <typeparam name="TReturn">The type of objects to return, representing the query result rows.</typeparam>
     /// <returns>
-    ///     A list of <typeparamref name="TReturn"/> objects containing the query results.
+    ///     A list of <typeparamref name="TReturn" /> objects containing the query results.
     ///     The results are automatically mapped from the database columns to the specified type.
     /// </returns>
     List<TReturn> GetList();
@@ -28,8 +28,8 @@ public interface ICompositeQueryOperations<TRecordset, TReturn>
     /// </summary>
     /// <typeparam name="TReturn">The type of objects to return, representing the query result rows.</typeparam>
     /// <returns>
-    ///     A dictionary where the key is an <see cref="ITuple"/> containing the grouping keys,
-    ///     and the value is a list of <typeparamref name="TReturn"/> objects for that group.
+    ///     A dictionary where the key is an <see cref="ITuple" /> containing the grouping keys,
+    ///     and the value is a list of <typeparamref name="TReturn" /> objects for that group.
     /// </returns>
     Dictionary<ITuple, List<TReturn>> GetDictionary();
 }

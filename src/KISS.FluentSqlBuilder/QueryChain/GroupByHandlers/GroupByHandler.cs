@@ -12,9 +12,7 @@ namespace KISS.FluentSqlBuilder.QueryChain.GroupByHandlers;
 public sealed partial record GroupByHandler(Expression Selector) : QueryHandler(SqlStatement.GroupBy, Selector)
 {
     /// <inheritdoc />
-    protected override void Process()
-    {
+    protected override void Process() =>
         // Assigns the provided CompositeQuery to this handler for processing.
         Composite = new GroupByDecorator(Composite);
-    }
 }

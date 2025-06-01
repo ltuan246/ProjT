@@ -8,7 +8,7 @@ namespace KISS.FluentSqlBuilder.Decorators.GroupByDecorators;
 public sealed partial record GroupByDecorator : QueryDecorator
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="GroupByDecorator"/> class.
+    ///     Initializes a new instance of the <see cref="GroupByDecorator" /> class.
     /// </summary>
     /// <param name="inner">inner.</param>
     public GroupByDecorator(IComposite inner)
@@ -24,7 +24,8 @@ public sealed partial record GroupByDecorator : QueryDecorator
         OuterEntryType = TypeUtils.KeyValuePairType.MakeGenericType(outerTypeArguments);
 
         OutputVariable = Expression.Variable(OutDictEntitiesType, "OutputVariable");
-        OuterDictObjEntityVariable = Expression.Variable(OuterDictTupleEntityCollectionType, "OuterDictTupleEntityCollectionType");
+        OuterDictObjEntityVariable =
+            Expression.Variable(OuterDictTupleEntityCollectionType, "OuterDictTupleEntityCollectionType");
         OuterKeyVariable = Expression.Variable(OuterKeyType, "OuterKeyVariable");
         InnerKeyVariable = Expression.Variable(InnerKeyType, "InnerKeyVariable");
         OuterDictIterVariable = Expression.Variable(OuterIterType, "OuterDictIterVariable");
@@ -32,37 +33,37 @@ public sealed partial record GroupByDecorator : QueryDecorator
     }
 
     /// <summary>
-    /// OutEntitiesType.
+    ///     OutEntitiesType.
     /// </summary>
     public Type OutDictEntitiesType { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    ///     OutEntitiesType.
     /// </summary>
     public Type OuterDictTupleEntityCollectionType { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    ///     OutEntitiesType.
     /// </summary>
     public Type OuterIterType { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    ///     OutEntitiesType.
     /// </summary>
     public Type OuterEntryType { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    ///     OutEntitiesType.
     /// </summary>
     public Type OuterKeyType { get; } = TypeUtils.TupleType;
 
     /// <summary>
-    /// OutEntitiesType.
+    ///     OutEntitiesType.
     /// </summary>
     public Type InnerDictObjEntityType { get; init; }
 
     /// <summary>
-    /// OutEntitiesType.
+    ///     OutEntitiesType.
     /// </summary>
     public Type InnerKeyType { get; } = TypeUtils.ObjType;
 
