@@ -1,7 +1,8 @@
 ﻿namespace KISS.FluentSqlBuilder.Utils;
 
 /// <summary>
-///     Provides utility types and methods for reflection and expression tree operations.
+///     Provides utility types and methods for reflection and expression tree operations,
+///     supporting dynamic query generation, type conversions, and property mapping for SQL builders.
 /// </summary>
 public sealed record TypeUtils
 {
@@ -91,7 +92,7 @@ public sealed record TypeUtils
 
     /// <summary>
     ///     Gets the MethodInfo for the GetEnumerator method of <see cref="IEnumerable{IDictionary}" />.
-    ///     This is used to create an enumerator for iterating over collections of dictionaries in expression trees.
+    ///     Used to create an enumerator for iterating over collections of dictionaries in expression trees.
     /// </summary>
     /// <remarks>
     ///     Cached as a static property to avoid repeated reflection calls,
@@ -116,7 +117,7 @@ public sealed record TypeUtils
     ///     (e.g., <see cref="Nullable{T}" />) or non-nullable (e.g., <see cref="Guid" /> or <see cref="int" />).
     /// </param>
     /// <returns>
-    ///     A <see cref="Expression" /> representing the converted value, adjusted to match the
+    ///     An <see cref="Expression" /> representing the converted value, adjusted to match the
     ///     <paramref name="targetType" />. For nullable types, includes null checks to handle null source values
     ///     appropriately.
     /// </returns>
@@ -161,7 +162,7 @@ public sealed record TypeUtils
     ///     (e.g., <see cref="Nullable{T}" />) or non-nullable (e.g., <see cref="Guid" /> or <see cref="int" />).
     /// </param>
     /// <returns>
-    ///     A <see cref="Expression" /> representing the converted value, adjusted to match the
+    ///     An <see cref="Expression" /> representing the converted value, adjusted to match the
     ///     <paramref name="targetType" />. For nullable types, includes null checks to handle null source values
     ///     appropriately.
     /// </returns>
@@ -239,8 +240,8 @@ public sealed record TypeUtils
     ///     to a corresponding target property.
     /// </param>
     /// <returns>
-    ///     A <see cref="BlockExpression" /> that assigns a newly constructed and member-initialized
-    ///     <paramref name="bindings" /> object to <paramref name="targetVariable" />.
+    ///     A <see cref="BinaryExpression" /> that assigns a newly constructed and member-initialized
+    ///     object to <paramref name="targetVariable" />.
     /// </returns>
     public static BinaryExpression InitializeTargetValue(
         ParameterExpression targetVariable,
@@ -251,25 +252,22 @@ public sealed record TypeUtils
 
     /// <summary>
     ///     Creates a block expression that initializes the target variable with a new instance
-    ///     of the specified output entity type, using member bindings generated from the source parameter.
+    ///     of the specified output entity type.
     /// </summary>
     /// <param name="targetVariable">The variable that will be assigned the newly initialized object.</param>
     /// <returns>
-    ///     A <see cref="BlockExpression" /> that assigns a newly constructed and member-initialized
-    ///     <paramref name="targetVariable" /> object to <paramref name="targetVariable" />.
+    ///     A <see cref="BinaryExpression" /> that assigns a newly constructed object to <paramref name="targetVariable" />.
     /// </returns>
     public static BinaryExpression InitializeTargetValue(ParameterExpression targetVariable)
         => InitializeTargetValue(targetVariable, Expression.New(targetVariable.Type));
 
     /// <summary>
-    ///     Creates a block expression that initializes the target variable with a new instance
-    ///     of the specified output entity type, using member bindings generated from the source parameter.
+    ///     Creates a block expression that assigns the right expression to the left expression.
     /// </summary>
     /// <param name="left">An <see cref="Expression" /> to set the <see cref="BinaryExpression.Left" /> property equal to.</param>
     /// <param name="right">An <see cref="Expression" /> to set the <see cref="BinaryExpression.Right" /> property equal to.</param>
     /// <returns>
-    ///     A <see cref="BlockExpression" /> that assigns a newly constructed and member-initialized
-    ///     <paramref name="right" /> object to <paramref name="left" />.
+    ///     A <see cref="BinaryExpression" /> that assigns <paramref name="right" /> to <paramref name="left" />.
     /// </returns>
     public static BinaryExpression InitializeTargetValue(Expression left, Expression right)
         => Expression.Assign(left, right);

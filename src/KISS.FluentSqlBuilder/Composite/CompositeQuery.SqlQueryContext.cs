@@ -46,7 +46,7 @@ public sealed partial record CompositeQuery<TIn, TOut>
     /// <summary>
     ///     Gets the dictionary that organizes SQL statements by their type.
     ///     This collection maintains separate lists for different SQL clauses
-    ///     (SELECT, FROM, JOIN, etc.) to ensure proper query construction.
+    ///     (SELECT, FROM, JOIN, WHERE, etc.) to ensure proper query construction.
     /// </summary>
     public Dictionary<SqlStatement, List<string>> SqlStatements { get; } = new()
     {

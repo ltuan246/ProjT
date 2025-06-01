@@ -11,12 +11,13 @@ public sealed partial record CompositeQuery<TIn, TOut>
 {
     /// <summary>
     ///     Retrieves or creates a table alias for the specified type in the query context.
-    ///     This method ensures consistent alias usage throughout the query construction.
+    ///     This method ensures consistent alias usage throughout the query construction,
+    ///     allowing for unambiguous references to tables and entities in generated SQL.
     /// </summary>
     /// <param name="type">The type for which to retrieve or generate a table alias.</param>
     /// <returns>
     ///     A string representing the alias associated with the specified type.
-    ///     If no alias exists, a new one is generated and stored.
+    ///     If no alias exists, a new one is generated and stored for future use.
     /// </returns>
     public string GetAliasMapping(Type type)
     {

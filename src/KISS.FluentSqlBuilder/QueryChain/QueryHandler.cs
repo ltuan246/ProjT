@@ -15,7 +15,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     public QueryHandler? NextHandler { get; set; }
 
     /// <summary>
-    ///     Evaluator.
+    ///     Evaluator for processing and evaluating expressions during query translation.
     /// </summary>
     protected ExpressionEvaluator Evaluator { get; } = new();
 
@@ -49,7 +49,9 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     ///     This method implements the core processing logic of the chain-of-responsibility pattern.
     /// </summary>
     /// <param name="composite">The CompositeQuery instance to be processed by the handler chain.</param>
-    /// <returns>composite.</returns>
+    /// <returns>
+    ///     The processed CompositeQuery, either after this handler or after the entire chain if more handlers exist.
+    /// </returns>
     public virtual IComposite Handle(IComposite composite)
     {
         // Assigns the provided CompositeQuery to this handler for processing.
@@ -64,7 +66,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
 
     /// <summary>
     ///     Defines the specific processing logic for this handler, to be implemented by derived classes.
-    ///     This abstract method allows each handler to define its own processing logic for specific
+    ///     This virtual method allows each handler to define its own processing logic for specific
     ///     query components (SELECT, WHERE, JOIN, etc.).
     /// </summary>
     protected virtual void Process() { }
@@ -72,6 +74,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     /// <summary>
     ///     Translates the stored expression (Selector) into a SQL statement fragment
     ///     and appends it to the Composite's SQL statements collection for the specified statement type.
+    ///     This method is responsible for converting LINQ expressions into SQL fragments.
     /// </summary>
     protected virtual void TranslateExpression()
     {

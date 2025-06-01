@@ -1,8 +1,8 @@
 namespace KISS.FluentSqlBuilder.Decorators.OffsetDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Implements a decorator for SQL OFFSET operations, enabling queries to skip a specified
+///     number of rows before returning results. This class extends the query builder to support
+///     result offsetting in composite SQL queries.
 /// </summary>
 public sealed partial record OffsetDecorator(IComposite Inner) : QueryDecorator(Inner);

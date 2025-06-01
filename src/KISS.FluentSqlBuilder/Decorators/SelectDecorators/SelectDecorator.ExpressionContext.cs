@@ -1,14 +1,15 @@
 namespace KISS.FluentSqlBuilder.Decorators.SelectDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Provides the expression tree logic for projecting and materializing entities in the SelectDecorator.
+///     This class builds the LINQ expression block that iterates through input rows, creates entity instances,
+///     and collects them into the output collection for SQL SELECT operations.
 /// </summary>
 public sealed partial record SelectDecorator
 {
     /// <summary>
-    ///     Block.
+    ///     Gets the expression block that processes input rows, creates entities, and collects them into the output list.
+    ///     Handles enumerator setup, entity instantiation, and resource cleanup for SELECT queries.
     /// </summary>
     public override BlockExpression Block
     {
@@ -22,17 +23,15 @@ public sealed partial record SelectDecorator
                     OutEntitiesExVariable
                 ], // Declares variables used in the block
                 [
-                    // Initializes outputCollection with a new instance of T
-                    // InitializeOutputVariable,
+                    // Initialize the output collection variable.
                     TypeUtils.InitializeTargetValue(OutEntitiesExVariable),
 
-                    // Sets up the enumerator for inputData
-                    // SetupInputDataEnumerator,
+                    // Set up the enumerator for the input data collection.
                     TypeUtils.InitializeTargetValue(
                         InEntriesExVariable,
                         Expression.Call(InEntriesExParameter, TypeUtils.GetEnumeratorForIEnumDictStrObj)),
 
-                    // Executes the loop with cleanup
+                    // Main processing loop with cleanup.
                     Expression.TryFinally(
                         Expression.Loop(
                             Expression.IfThenElse(
@@ -45,13 +44,12 @@ public sealed partial record SelectDecorator
                                         CurrentEntityExVariable
                                     ],
                                     [
-                                        // Execute the loop body with the current row
-                                        // AssignCurrentInputRowFromInputEnumerator,
+                                        // Assign the current row from the input enumerator.
                                         TypeUtils.InitializeTargetValue(
                                             CurrentEntryExVariable,
                                             Expression.Property(InEntriesExVariable, "Current")),
 
-                                        // InitializeEntityIfKeyMissing
+                                        // Initialize the entity from the current row.
                                         TypeUtils.InitializeTargetValue(
                                             CurrentEntityExVariable,
                                             TypeUtils.CreateIterRowBindings(
@@ -60,17 +58,18 @@ public sealed partial record SelectDecorator
                                                 CurrentEntityExVariable.Type,
                                                 GetAliasMapping(InEntityType))),
 
-                                        // Adds the processed entity to the dictionary with its key.
+                                        // Add the processed entity to the output collection.
                                         TypeUtils.CallMethod(
-                                            OutEntitiesExVariable, // Calls the Add method on the output list.
+                                            OutEntitiesExVariable,
                                             "Add",
                                             CurrentEntityExVariable)
                                     ]),
                                 exitsLoop), // Otherwise, break out of the loop
                             breakLabel),
+                        // Dispose the enumerator after processing.
                         Expression.Call(InEntriesExVariable, TypeUtils.DisposeMethod)),
 
-                    // Returns the populated collection
+                    // Return the populated output collection.
                     OutEntitiesExVariable
                 ]);
 

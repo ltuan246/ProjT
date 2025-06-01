@@ -1,9 +1,10 @@
 namespace KISS.FluentSqlBuilder.Decorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Provides expression variables and context for building and executing SQL queries
+///     in the QueryDecorator. This abstract base supplies access to expression parameters,
+///     variables, and join logic required for constructing LINQ expression trees and
+///     supporting advanced query scenarios.
 /// </summary>
 public abstract partial record QueryDecorator
 {

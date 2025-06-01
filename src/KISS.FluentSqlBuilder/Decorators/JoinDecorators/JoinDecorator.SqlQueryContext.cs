@@ -1,9 +1,10 @@
 namespace KISS.FluentSqlBuilder.Decorators.JoinDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Provides the SQL query construction logic for the <see cref="JoinDecorator"/>.
+///     This class assembles the SELECT, FROM, and JOIN clauses for SQL queries that
+///     involve joining multiple tables or entities, using the configured statement lists
+///     and type-safe alias mapping.
 /// </summary>
 public sealed partial record JoinDecorator
 {
@@ -14,6 +15,7 @@ public sealed partial record JoinDecorator
         {
             SqlBuilder.Clear();
 
+            // Build the SELECT clause from the configured select statements.
             new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Select])
                 .AccessFirst(fs =>
                 {
@@ -27,11 +29,13 @@ public sealed partial record JoinDecorator
                 .AccessLast(() => AppendLine())
                 .Execute();
 
+            // Add the FROM clause with the table name and alias.
             var alias = GetAliasMapping(InEntityType);
             Append("FROM");
             AppendLine($"{TypeUtils.GetTableName(InEntityType)} AS {alias}");
             AppendLine();
 
+            // Build the JOIN clauses from the configured join statements.
             new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Join])
                 .AccessFirst(fs =>
                 {
@@ -44,6 +48,7 @@ public sealed partial record JoinDecorator
                 .AccessLast(() => AppendLine())
                 .Execute();
 
+            // Return the complete SQL query as a string.
             return SqlBuilder.ToString();
         }
     }

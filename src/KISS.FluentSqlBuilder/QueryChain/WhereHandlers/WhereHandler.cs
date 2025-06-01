@@ -14,7 +14,7 @@ public sealed partial record WhereHandler(Expression Predicate) : QueryHandler(S
     /// <inheritdoc />
     protected override void Process()
     {
-        // Assigns the provided CompositeQuery to this handler for processing.
+        // Ensures the composite query is wrapped with a WhereDecorator for WHERE clause processing.
         if (Composite is not WhereDecorator)
         {
             Composite = new WhereDecorator(Composite);

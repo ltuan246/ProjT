@@ -1,9 +1,9 @@
 namespace KISS.FluentSqlBuilder.Decorators.GroupByDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Provides the expression tree logic for grouping and aggregating entities in the GroupByDecorator.
+///     This class builds the LINQ expression block that performs grouping, aggregation, and output
+///     transformation for SQL GROUP BY operations, using dynamically constructed expression variables.
 /// </summary>
 public sealed partial record GroupByDecorator
 {
@@ -15,24 +15,24 @@ public sealed partial record GroupByDecorator
             var breakLabel = Expression.Label();
             var exitsLoop = Expression.Break(breakLabel);
 
-            // Accesses the inner dictionary in the outer dictionary via the outer key.
+            // Access the inner dictionary in the outer dictionary using the outer key.
             IndexExpression outerKeyAccessor = Expression.MakeIndex(
                     OuterDictObjEntityVariable,
                     OuterDictObjEntityVariable.Type.GetProperty("Item")!,
                     [OuterKeyVariable]),
-                // Creates an indexer for accessing or setting dictionary entries (outerDictObjEntity[outerKeyVariable][keyVariable]).
+                // Access or set entries in the inner dictionary (outerDictObjEntity[outerKeyVariable][keyVariable]).
                 innerKeyAccessor = Expression.MakeIndex(
                     outerKeyAccessor,
                     InnerDictObjEntityType.GetProperty("Item")!,
                     [InnerKeyVariable]);
 
-            // Generate ValueTuple type dynamically
+            // Dynamically generate the ValueTuple type for the group key.
             var outerKeyConstructor =
                 Type.GetType($"{TypeUtils.ValueTupleType.FullName}`{GroupingKeys.Count + AggregationKeys.Count}")!
                     .MakeGenericType([.. GroupingKeys.Values, .. AggregationKeys.Values])
                     .GetConstructor([.. GroupingKeys.Values, .. AggregationKeys.Values])!;
 
-            // Create constructor arguments from currentInputRowParameter
+            // Create constructor arguments for the group key from the current input row.
             var outerKeyArguments = GroupingKeys
                 .Union(AggregationKeys)
                 .Select(grp =>
@@ -41,34 +41,33 @@ public sealed partial record GroupByDecorator
                         grp.Value))
                 .ToArray();
 
-            // Creates and assigns the outer key from grouping data.
+            // Assign the outer key variable from grouping data.
             Expression assignOuterKeyVariableFromGroupingData = Expression.Assign(
                     OuterKeyVariable,
                     Expression.Convert(Expression.New(outerKeyConstructor, outerKeyArguments), OuterKeyType)),
-                // Sets the inner dictionary key from the row’s "Extend0_Id" value.
+                // Assign the inner key variable from the primary key ("Extend0_Id") in the row.
                 assignInnerKeyVariableFromPrimaryKey = Expression.Assign(
                     InnerKeyVariable,
                     TypeUtils.ChangeType(
                         Expression.Property(CurrentEntryExVariable, "Item", Expression.Constant("Extend0_Id")),
                         InnerKeyType)),
-                // Initializes a new inner dictionary if the outer key is missing.
+                // Initialize a new inner dictionary if the outer key is not present.
                 initializeInnerDictIfOuterKeyMissing = Expression.IfThen(
                     Expression.Not(TypeUtils.IsDictContainsKey(OuterDictObjEntityVariable, OuterKeyVariable)),
                     Expression.Block(
                         [],
-                        // Adds the processed entity to the dictionary with its key.
+                        // Add a new inner dictionary for the missing outer key.
                         TypeUtils.CallMethod(
                             OuterDictObjEntityVariable,
                             "Add",
                             OuterKeyVariable,
                             Expression.New(InnerDictObjEntityType)))),
-                // Processes and adds the entity to the inner dictionary if the key is new.
+                // Initialize and add a new entity to the inner dictionary if the inner key is not present.
                 initializeEntityIfInnerKeyMissing = Expression.IfThen(
                     Expression.Not(TypeUtils.IsDictContainsKey(outerKeyAccessor, InnerKeyVariable)),
                     Expression.Block(
-                        [], // Ensures variables is scoped for this operation
-                        // Applies the row processor to construct or modify the entity.
-                        // IterRowProcessor((CurrentEntryExParameter, CurrentEntityExVariable)),
+                        [], // Scope for local variables
+                        // Initialize the entity from the current row.
                         TypeUtils.InitializeTargetValue(
                             CurrentEntityExVariable,
                             TypeUtils.CreateIterRowBindings(
@@ -76,22 +75,22 @@ public sealed partial record GroupByDecorator
                                 InEntityType,
                                 CurrentEntityExVariable.Type,
                                 GetAliasMapping(InEntityType))),
-                        // Adds the processed entity to the dictionary with its key.
+                        // Add the new entity to the inner dictionary.
                         TypeUtils.CallMethod(outerKeyAccessor, "Add", InnerKeyVariable, CurrentEntityExVariable)));
 
-            // Initializes the outer dictionary with a new instance.
+            // Initialize the outer dictionary variable.
             Expression initializeOuterDict = TypeUtils.InitializeTargetValue(OuterDictObjEntityVariable),
-                // Initializes the output list with a new instance.
+                // Initialize the output list variable.
                 initializeOutputList = TypeUtils.InitializeTargetValue(OutputVariable),
-                // Sets up the enumerator for the outer dictionary to flatten it.
+                // Set up the enumerator for the outer dictionary.
                 setupOuterDictEnumerator = Expression.Assign(
                     OuterDictIterVariable,
                     TypeUtils.CallMethod(OuterDictObjEntityVariable, "GetEnumerator")),
-                // Assigns the current entry from the outer dictionary enumerator.
+                // Assign the current entry from the outer dictionary enumerator.
                 assignCurrentOuterEntryFromOuterDictEnumerator = Expression.Assign(
                     OuterDictEntryParameter,
                     Expression.Property(OuterDictIterVariable, "Current")),
-                // Adds the current key and its inner values as a list to the output.
+                // Add the current group key and its values as a list to the output.
                 addOuterKeyAndValuesToOutput = TypeUtils.CallMethod(
                     OutputVariable,
                     "Add",
@@ -99,7 +98,7 @@ public sealed partial record GroupByDecorator
                     Expression.New(
                         OutEntitiesType.GetConstructor([OutEntitiesType])!,
                         Expression.Property(Expression.Property(OuterDictEntryParameter, "Value"), "Values"))),
-                // Flattens the outer dictionary into the output list using a loop.
+                // Loop to flatten the outer dictionary into the output list.
                 flattenOuterDictLoop = Expression.Loop(
                     Expression.IfThenElse(
                         Expression.Call(OuterDictIterVariable, TypeUtils.IterMoveNextMethod),
@@ -111,7 +110,7 @@ public sealed partial record GroupByDecorator
                             ]),
                         exitsLoop),
                     breakLabel),
-                // Disposes the outer dictionary enumerator after flattening.
+                // Dispose the outer dictionary enumerator after flattening.
                 disposeOuterDictEnumerator = Expression.Call(OuterDictIterVariable, TypeUtils.DisposeMethod);
 
             var fullBlock = Expression.Block(
@@ -121,23 +120,22 @@ public sealed partial record GroupByDecorator
                     OuterDictIterVariable,
                     Inner.IndexerExVariable,
                     OutputVariable
-                ], // Declares variables used in the block
+                ], // Declare variables used in the block
                 [
-                    // Initializes dictObjEntity with a new instance of T
+                    // Initialize the outer dictionary.
                     initializeOuterDict,
-                    // Sets up the enumerator for the input data list.
-                    // SetupInputDataEnumerator,
+                    // Initialize the enumerator for the input data list.
                     TypeUtils.InitializeTargetValue(
                         InEntriesExVariable,
                         Expression.Call(InEntriesExParameter, TypeUtils.GetEnumeratorForIEnumDictStrObj)),
-                    // Executes the loop with cleanup
+                    // Main processing loop with cleanup.
                     Expression.TryFinally(
                         Expression.Loop(
                             Expression.IfThenElse(
                                 Expression.Call(
                                     InEntriesExVariable,
-                                    TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
-                                // ProcessRowsIfExist
+                                    TypeUtils.IterMoveNextMethod), // If more rows exist,
+                                // Process the current row.
                                 Expression.Block(
                                     [
                                         CurrentEntryExVariable,
@@ -146,36 +144,35 @@ public sealed partial record GroupByDecorator
                                         InnerKeyVariable
                                     ], // Local variables for this iteration
                                     [
-                                        // Sets the current row from the input data enumerator.
-                                        // AssignCurrentInputRowFromInputEnumerator,
+                                        // Assign the current row from the input enumerator.
                                         TypeUtils.InitializeTargetValue(
                                             CurrentEntryExVariable,
                                             Expression.Property(InEntriesExVariable, "Current")),
-                                        // Creates and assigns the outer key from grouping data.
+                                        // Assign the group key from grouping data.
                                         assignOuterKeyVariableFromGroupingData,
-                                        // Sets the inner dictionary key from the row’s "Extend0_Id" value.
+                                        // Assign the inner key from the primary key.
                                         assignInnerKeyVariableFromPrimaryKey,
-                                        // Initializes a new inner dictionary if the outer key is missing.
+                                        // Initialize a new inner dictionary if needed.
                                         initializeInnerDictIfOuterKeyMissing,
-                                        // Processes and adds the entity to the inner dictionary if the key is new.
+                                        // Initialize and add a new entity if needed.
                                         initializeEntityIfInnerKeyMissing,
-                                        // Applies additional join processors using the dictionary indexer for related data.
+                                        // Set the indexer for join processing.
                                         TypeUtils.InitializeTargetValue(Inner.IndexerExVariable, innerKeyAccessor),
-                                        // .. ApplyJoinProcessorsToInnerKeyAccessor
+                                        // Apply join processors to the inner key accessor.
                                         .. JoinRows
                                     ]),
-                                exitsLoop), // Otherwise, break out of the loop
+                                exitsLoop), // Otherwise, exit the loop
                             breakLabel),
                         Expression.Call(InEntriesExVariable, TypeUtils.DisposeMethod)),
-                    // Initializes the output list with a new instance.
+                    // Initialize the output list.
                     initializeOutputList,
-                    // Sets up the enumerator for the outer dictionary to flatten it.
+                    // Set up the enumerator for the outer dictionary.
                     setupOuterDictEnumerator,
-                    // Flattens the outer dictionary into the output list using a loop.
+                    // Flatten the outer dictionary into the output list.
                     flattenOuterDictLoop,
-                    // Disposes the outer dictionary enumerator after flattening.
+                    // Dispose the outer dictionary enumerator.
                     disposeOuterDictEnumerator,
-                    // Returns the populated output list.
+                    // Return the populated output list.
                     OutputVariable
                 ]);
 

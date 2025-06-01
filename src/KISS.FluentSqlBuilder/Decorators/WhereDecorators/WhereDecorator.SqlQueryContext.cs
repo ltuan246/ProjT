@@ -1,9 +1,9 @@
 namespace KISS.FluentSqlBuilder.Decorators.WhereDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Provides the SQL query construction logic for the <see cref="WhereDecorator"/>.
+///     This class assembles the WHERE clause for SQL queries, supporting the addition of
+///     filtering conditions to composite SQL queries with type-safe result processing.
 /// </summary>
 public sealed partial record WhereDecorator
 {
@@ -15,6 +15,7 @@ public sealed partial record WhereDecorator
             SqlBuilder.Clear();
             Append(Inner.Sql);
 
+            // Build the WHERE clause from the configured where statements.
             new EnumeratorProcessor<string>(SqlStatements[SqlStatement.Where])
                 .AccessFirst(fs =>
                 {
@@ -28,6 +29,7 @@ public sealed partial record WhereDecorator
                 .AccessLast(() => AppendLine())
                 .Execute();
 
+            // Return the complete SQL query as a string.
             return SqlBuilder.ToString();
         }
     }

@@ -1,14 +1,15 @@
 namespace KISS.FluentSqlBuilder.Decorators.JoinDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Provides expression variables and logic for building and executing join operations
+///     in the JoinDecorator. Handles the construction of expression trees for joining entities,
+///     managing dictionary-based entity collections, and processing input rows for SQL JOIN queries.
 /// </summary>
 public sealed partial record JoinDecorator
 {
     /// <summary>
-    ///     OutDictEntityType.
+    ///     Expression variable representing the output dictionary for joined entities.
+    ///     Maps object keys to output entity instances.
     /// </summary>
     private ParameterExpression OutDictEntityTypeExVariable { get; }
         = Expression.Variable(
@@ -16,40 +17,44 @@ public sealed partial record JoinDecorator
             "OutDictEntityTypeExVariable");
 
     /// <summary>
-    ///     OutDictEntityType.
+    ///     Expression variable representing the key used for the output dictionary.
     /// </summary>
     private ParameterExpression OutDictKeyExVariable { get; } =
         Expression.Variable(TypeUtils.ObjType, "OutDictKeyExVariable");
 
+    /// <summary>
+    ///     Constant expression representing the primary key field name ("Extend0_Id").
+    /// </summary>
     private ConstantExpression PrimaryKey { get; } = Expression.Constant("Extend0_Id");
 
     /// <summary>
-    ///     InitializeDictVariable.
+    ///     Expression that initializes the output dictionary variable.
     /// </summary>
     private BinaryExpression InitializeDictVariable
         => TypeUtils.InitializeTargetValue(OutDictEntityTypeExVariable);
 
     /// <summary>
-    ///     InitializeDictVariable.
+    ///     Expression that initializes the dictionary key accessor and adds new entities if the key is missing.
+    ///     Handles extraction and conversion of the primary key, entity creation, and insertion into the dictionary.
     /// </summary>
     private BinaryExpression InitializeDictKeyAccessor
         => TypeUtils.InitializeTargetValue(
             IndexerExVariable,
             Expression.Block(
             [
-                // Extracts and converts the "Extend0_Id" key from the row to a string.
+                // Extracts and converts the "Extend0_Id" key from the row to an object.
                 TypeUtils.InitializeTargetValue(
                     OutDictKeyExVariable,
                     TypeUtils.ChangeType(
                         Expression.Property(CurrentEntryExVariable, "Item", PrimaryKey),
                         TypeUtils.ObjType)),
 
-                // InitializeEntityIfKeyMissing: Processes the row if its key isn’t already in the dictionary.
+                // If the key is not present in the dictionary, create and add a new entity.
                 Expression.IfThen(
                     Expression.Not(TypeUtils.IsDictContainsKey(OutDictEntityTypeExVariable, OutDictKeyExVariable)),
                     Expression.Block(
-                        [], // Ensures variables is scoped for this operation
-                        // Applies the row processor to construct or modify the entity.
+                        [],
+                        // Initialize the entity from the current row.
                         TypeUtils.InitializeTargetValue(
                             CurrentEntityExVariable,
                             TypeUtils.CreateIterRowBindings(
@@ -57,13 +62,14 @@ public sealed partial record JoinDecorator
                                 InEntityType,
                                 CurrentEntityExVariable.Type,
                                 GetAliasMapping(InEntityType))),
-                        // Adds the processed entity to the dictionary with its key.
+                        // Add the new entity to the dictionary.
                         TypeUtils.CallMethod(
                             OutDictEntityTypeExVariable,
                             "Add",
                             OutDictKeyExVariable,
                             CurrentEntityExVariable))),
 
+                // Access the entity in the dictionary by key.
                 Expression.MakeIndex(
                     OutDictEntityTypeExVariable,
                     OutDictEntityTypeExVariable.Type.GetProperty("Item")!,
@@ -80,33 +86,31 @@ public sealed partial record JoinDecorator
 
             var block = Expression.Block(
                 [
-                    // Declares variables used in the block
+                    // Declare variables used in the block.
                     InEntriesExVariable,
                     OutEntitiesExVariable,
                     OutDictEntityTypeExVariable,
                     IndexerExVariable
                 ],
                 [
-                    // Initialize outputList with a new list
-                    // InitializeOutputVariable,
+                    // Initialize the output list variable.
                     TypeUtils.InitializeTargetValue(OutEntitiesExVariable),
 
-                    // Sets up the enumerator for inputData
-                    // SetupInputDataEnumerator,
+                    // Set up the enumerator for the input data.
                     TypeUtils.InitializeTargetValue(
                         InEntriesExVariable,
                         Expression.Call(InEntriesExParameter, TypeUtils.GetEnumeratorForIEnumDictStrObj)),
 
-                    // Initializes dictObjEntity with a new instance of T
+                    // Initialize the output dictionary variable.
                     InitializeDictVariable,
 
-                    // Executes the loop with cleanup
+                    // Main processing loop with cleanup.
                     Expression.TryFinally(
                         Expression.Loop(
                             Expression.IfThenElse(
                                 Expression.Call(
                                     InEntriesExVariable,
-                                    TypeUtils.IterMoveNextMethod), // If MoveNext returns true (more rows),
+                                    TypeUtils.IterMoveNextMethod), // If more rows exist,
                                 Expression.Block(
                                     [
                                         CurrentEntryExVariable,
@@ -114,29 +118,28 @@ public sealed partial record JoinDecorator
                                         OutDictKeyExVariable
                                     ],
                                     [
-                                        // Assigns the current row from the enumerator to iterationRowParameter.
-                                        // AssignCurrentInputRowFromInputEnumerator,
+                                        // Assign the current row from the enumerator.
                                         TypeUtils.InitializeTargetValue(
                                             CurrentEntryExVariable,
                                             Expression.Property(InEntriesExVariable, "Current")),
 
+                                        // Initialize the dictionary key accessor and add entity if needed.
                                         InitializeDictKeyAccessor,
 
-                                        // Applies additional join processors using the dictionary indexer for related data.
-                                        // .. ApplyJoinProcessorsToInnerKeyAccessor
+                                        // Apply additional join processors using the dictionary indexer.
                                         .. JoinRows
                                     ]),
-                                exitsLoop), // Otherwise, break out of the loop
+                                exitsLoop), // Otherwise, exit the loop
                             breakLabel),
                         Expression.Call(InEntriesExVariable, TypeUtils.DisposeMethod)),
 
-                    // Convert dictionary values to list
+                    // Add all dictionary values to the output list.
                     TypeUtils.CallMethod(
                         OutEntitiesExVariable,
                         "AddRange",
                         Expression.Property(OutDictEntityTypeExVariable, "Values")),
 
-                    // Return the populated list
+                    // Return the populated output list.
                     OutEntitiesExVariable
                 ]);
 

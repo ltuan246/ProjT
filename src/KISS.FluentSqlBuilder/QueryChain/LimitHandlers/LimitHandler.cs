@@ -14,8 +14,9 @@ public sealed record LimitHandler(int Rows) : QueryHandler(SqlStatement.Limit)
     /// <inheritdoc />
     protected override void Process()
     {
-        // Assigns the provided CompositeQuery to this handler for processing.
+        // Wraps the provided CompositeQuery with a LimitDecorator for LIMIT clause processing.
         Composite = new LimitDecorator(Composite);
+        // Sets the LIMIT value in the SQL statement collection.
         Composite.SqlStatements[SqlStatement.Limit] = [$"{Rows}"];
     }
 }

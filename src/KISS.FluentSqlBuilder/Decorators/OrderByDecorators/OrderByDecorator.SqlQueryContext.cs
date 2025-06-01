@@ -1,9 +1,9 @@
 namespace KISS.FluentSqlBuilder.Decorators.OrderByDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Provides the SQL query construction logic for the <see cref="OrderByDecorator"/>.
+///     This class assembles the ORDER BY clause for SQL queries, supporting the addition of
+///     sorting logic to composite SQL queries with type-safe result processing.
 /// </summary>
 public sealed partial record OrderByDecorator
 {
@@ -15,6 +15,7 @@ public sealed partial record OrderByDecorator
             SqlBuilder.Clear();
             Append(Inner.Sql);
 
+            // Build the ORDER BY clause from the configured order by statements.
             new EnumeratorProcessor<string>(SqlStatements[SqlStatement.OrderBy])
                 .AccessFirst(fs =>
                 {
@@ -28,6 +29,7 @@ public sealed partial record OrderByDecorator
                 .AccessLast(() => AppendLine())
                 .Execute();
 
+            // Return the complete SQL query as a string.
             return SqlBuilder.ToString();
         }
     }

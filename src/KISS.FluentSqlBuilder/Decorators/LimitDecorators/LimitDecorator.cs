@@ -1,8 +1,8 @@
 namespace KISS.FluentSqlBuilder.Decorators.LimitDecorators;
 
 /// <summary>
-///     A sealed class that constructs and executes SQL queries using a database connection.
-///     This class serves as the core component for building and executing composite SQL queries,
-///     supporting both simple and complex query scenarios with type-safe result processing.
+///     Implements a decorator for SQL LIMIT (or TOP) operations, enabling queries to restrict
+///     the number of returned rows. This class extends the query builder to support result
+///     limiting in composite SQL queries.
 /// </summary>
 public sealed partial record LimitDecorator(IComposite Inner) : QueryDecorator(Inner);
