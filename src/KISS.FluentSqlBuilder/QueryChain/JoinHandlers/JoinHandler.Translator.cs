@@ -1,28 +1,24 @@
 namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 
 /// <summary>
-///     Provides translation logic for join operations in a query chain, converting expression trees
-///     into SQL JOIN statements and column references. Supports translation of binary, member, and unary
-///     expressions for building SQL join conditions and projections.
+///     A handler for processing join operations in a query chain, linking two relations via key equality.
+///     Provides functionality to translate member expressions into SQL column references.
 /// </summary>
-/// <typeparam name="TRelation">
-///     The type of the relation (source table or entity).
-///     Used for generating table names and aliases in SQL.
-/// </typeparam>
-/// <typeparam name="TReturn">
-///     The combined type to return as the result of the join operation.
-/// </typeparam>
-public abstract partial record JoinHandler<TRelation, TReturn>
+/// <typeparam name="TRelation">The type of the relation (source table or entity).</typeparam>
+/// <param name="LeftKeySelector">An expression selecting the key from the left relation for the join condition (e.g., left => left.Id).</param>
+/// <param name="RightKeySelector">An expression selecting the key from the right relation for the join condition (e.g., right => right.Id).</param>
+/// <param name="MapSelector">An expression mapping the joined result into the output type (e.g., left => left.RightRelation).</param>
+public abstract partial record JoinHandler<TRelation>
 {
     /// <summary>
-    ///     Translates a binary expression into SQL JOIN syntax.
-    ///     Handles logical operations, comparisons, and array indexing for join conditions.
+    ///     Translates a binary expression into SQL.
+    ///     Handles logical operations, comparisons, and array indexing.
     /// </summary>
     /// <param name="binaryExpression">The binary expression to translate.</param>
     protected override void Visit(BinaryExpression binaryExpression)
     {
         Append("INNER JOIN");
-        AppendLine($"{TypeUtils.GetTableName(RelationType)} {Composite.GetAliasMapping(RelationType)}", true);
+        AppendLine($"{Composite.GetTableName(RelationType)} {Composite.GetAliasMapping(RelationType)}", true);
         AppendLine(" ON ", true);
         Visit(binaryExpression.Left);
         Append(BinaryOperandMap[binaryExpression.NodeType]);
@@ -30,8 +26,7 @@ public abstract partial record JoinHandler<TRelation, TReturn>
     }
 
     /// <summary>
-    ///     Translates a member expression into a SQL column reference for join queries.
-    ///     Converts property or field access into the appropriate table alias and column name.
+    ///     Translates a member expression into a SQL column reference.
     /// </summary>
     /// <param name="memberExpression">The member expression to translate.</param>
     protected override void Visit(MemberExpression memberExpression)
@@ -47,8 +42,8 @@ public abstract partial record JoinHandler<TRelation, TReturn>
     }
 
     /// <summary>
-    ///     Translates a unary expression into SQL for join and aggregate operations.
-    ///     Handles operations such as negation and type conversion by recursively visiting the operand.
+    ///     Translates a unary expression into SQL for aggregate operations.
+    ///     Handles operations like negation and type conversion.
     /// </summary>
     /// <param name="unaryExpression">The unary expression to translate.</param>
     protected override void Visit(UnaryExpression unaryExpression)

@@ -1,13 +1,13 @@
 namespace KISS.FluentSqlBuilder.Core;
 
 /// <summary>
-///     Specifies the exact table name in the database for a class when used with FluentSqlBuilder.
+/// Specifies the exact table name in the database for a class when used with FluentSqlBuilder.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public sealed class SqlTableAttribute(string name) : Attribute
 {
     /// <summary>
-    ///     The name of the table in the database.
+    /// The name of the table in the database.
     /// </summary>
     public string Name { get; } = name;
 }

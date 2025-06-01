@@ -1,12 +1,12 @@
-namespace KISS.FluentSqlBuilder.Utils;
+namespace KISS.FluentSqlBuilder.Core.Composite;
 
 /// <summary>
-///     Implements <see cref="ExpressionVisitor" /> for the <see cref="IComposite" /> type.
+///     Implements <see cref="ExpressionVisitor" /> for the <see cref="CompositeQuery" /> type.
 ///     This class provides functionality for traversing and analyzing LINQ expression trees,
 ///     determining which parts of the expression tree can be evaluated at runtime and
 ///     converting them into SQL-compatible form.
 /// </summary>
-public sealed class ExpressionEvaluator : ExpressionVisitor
+public sealed partial class CompositeQuery : ExpressionVisitor
 {
     /// <summary>
     ///     Gets a stack used to track expressions during traversal.

@@ -1,9 +1,9 @@
 namespace KISS.FluentSqlBuilder.QueryChain.HavingHandlers;
 
 /// <summary>
-///     Provides translation logic for HAVING clauses in a query chain.
-///     This class converts aggregate condition expressions into SQL-compatible syntax
-///     for use in HAVING statements.
+///     A handler for processing HAVING clauses in a query chain.
+///     This class provides the translation logic for converting aggregate conditions
+///     into SQL-compatible form.
 /// </summary>
 public sealed partial record HavingHandler
 {

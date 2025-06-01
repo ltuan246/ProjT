@@ -15,7 +15,7 @@ public sealed record AggregationBuilder<TRecordset>
     /// </summary>
     /// <param name="selector">An expression selecting the numeric property to sum.</param>
     /// <returns>
-    ///     An <see cref="AggregationComparer{TRecordset}" /> representing the SUM operation,
+    ///     An <see cref="AggregationComparer{TRecordset}"/> representing the SUM operation,
     ///     which can be used in HAVING clauses for filtering aggregated results.
     /// </returns>
     public AggregationComparer<TRecordset> Sum(Expression<Func<TRecordset, IComparable?>> selector)
@@ -27,7 +27,7 @@ public sealed record AggregationBuilder<TRecordset>
     /// </summary>
     /// <param name="selector">An expression selecting the property to find the maximum value of.</param>
     /// <returns>
-    ///     An <see cref="AggregationComparer{TRecordset}" /> representing the MAX operation,
+    ///     An <see cref="AggregationComparer{TRecordset}"/> representing the MAX operation,
     ///     which can be used in HAVING clauses for filtering aggregated results.
     /// </returns>
     public AggregationComparer<TRecordset> Max(Expression<Func<TRecordset, IComparable?>> selector)
@@ -39,7 +39,7 @@ public sealed record AggregationBuilder<TRecordset>
     /// </summary>
     /// <param name="selector">An expression selecting the property to find the minimum value of.</param>
     /// <returns>
-    ///     An <see cref="AggregationComparer{TRecordset}" /> representing the MIN operation,
+    ///     An <see cref="AggregationComparer{TRecordset}"/> representing the MIN operation,
     ///     which can be used in HAVING clauses for filtering aggregated results.
     /// </returns>
     public AggregationComparer<TRecordset> Min(Expression<Func<TRecordset, IComparable?>> selector)
@@ -51,7 +51,7 @@ public sealed record AggregationBuilder<TRecordset>
     /// </summary>
     /// <param name="selector">An expression selecting the numeric property to average.</param>
     /// <returns>
-    ///     An <see cref="AggregationComparer{TRecordset}" /> representing the AVG operation,
+    ///     An <see cref="AggregationComparer{TRecordset}"/> representing the AVG operation,
     ///     which can be used in HAVING clauses for filtering aggregated results.
     /// </returns>
     public AggregationComparer<TRecordset> Avg(Expression<Func<TRecordset, IComparable?>> selector)
@@ -63,7 +63,7 @@ public sealed record AggregationBuilder<TRecordset>
     /// </summary>
     /// <param name="selector">An expression selecting the property to count.</param>
     /// <returns>
-    ///     An <see cref="AggregationComparer{TRecordset}" /> representing the COUNT operation,
+    ///     An <see cref="AggregationComparer{TRecordset}"/> representing the COUNT operation,
     ///     which can be used in HAVING clauses for filtering aggregated results.
     /// </returns>
     public AggregationComparer<TRecordset> Count(Expression<Func<TRecordset, IComparable?>> selector)

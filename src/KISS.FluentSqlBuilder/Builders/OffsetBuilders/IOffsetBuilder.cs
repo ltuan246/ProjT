@@ -14,7 +14,7 @@ public interface IOffsetBuilder : ISqlBuilder;
 /// <typeparam name="TRecordset">The type representing the database table or view being queried.</typeparam>
 /// <typeparam name="TReturn">The type of the result set after applying the offset.</typeparam>
 public interface IOffsetBuilder<TRecordset, TReturn>
-    : ISqlBuilder<TRecordset, TReturn>
+   : ISqlBuilder<TRecordset, TReturn>
 {
     /// <summary>
     ///     Appends an <c>OFFSET</c> clause to skip a specified number of rows in
@@ -41,7 +41,7 @@ public interface IOffsetBuilder<TRecordset, TReturn>
 /// <typeparam name="TSecond">The type representing the second table in the join chain.</typeparam>
 /// <typeparam name="TReturn">The type of the result set after applying the offset.</typeparam>
 public interface IOffsetBuilder<TFirst, TSecond, TReturn>
-    : ISqlBuilder<TFirst, TSecond, TReturn>
+   : ISqlBuilder<TFirst, TSecond, TReturn>
 {
     /// <summary>
     ///     Appends an <c>OFFSET</c> clause to skip a specified number of rows in
@@ -69,7 +69,7 @@ public interface IOffsetBuilder<TFirst, TSecond, TReturn>
 /// <typeparam name="TThird">The type representing the third table in the join chain.</typeparam>
 /// <typeparam name="TReturn">The type of the result set after applying the offset.</typeparam>
 public interface IOffsetBuilder<TFirst, TSecond, TThird, TReturn>
-    : ISqlBuilder<TFirst, TSecond, TThird, TReturn>
+   : ISqlBuilder<TFirst, TSecond, TThird, TReturn>
 {
     /// <summary>
     ///     Appends an <c>OFFSET</c> clause to skip a specified number of rows in
