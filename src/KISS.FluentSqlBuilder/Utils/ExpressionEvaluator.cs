@@ -1,7 +1,7 @@
 namespace KISS.FluentSqlBuilder.Utils;
 
 /// <summary>
-///     Implements <see cref="ExpressionVisitor" /> for the <see cref="CompositeQuery" /> type.
+///     Implements <see cref="ExpressionVisitor" /> for the <see cref="IComposite" /> type.
 ///     This class provides functionality for traversing and analyzing LINQ expression trees,
 ///     determining which parts of the expression tree can be evaluated at runtime and
 ///     converting them into SQL-compatible form.

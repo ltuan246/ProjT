@@ -15,7 +15,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     public QueryHandler? NextHandler { get; set; }
 
     /// <summary>
-    /// Evaluator.
+    ///     Evaluator for processing and evaluating expressions during query translation.
     /// </summary>
     protected ExpressionEvaluator Evaluator { get; } = new();
 
@@ -24,7 +24,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     ///     This property provides access to the query being built and allows handlers
     ///     to modify the query state during processing.
     /// </summary>
-    protected IComposite Composite { get; private set; } = default!;
+    public IComposite Composite { get; set; } = default!;
 
     /// <summary>
     ///     Links this handler to the next one in the chain, forming a sequence of query processing steps.
@@ -49,7 +49,10 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     ///     This method implements the core processing logic of the chain-of-responsibility pattern.
     /// </summary>
     /// <param name="composite">The CompositeQuery instance to be processed by the handler chain.</param>
-    public void Handle(IComposite composite)
+    /// <returns>
+    ///     The processed CompositeQuery, either after this handler or after the entire chain if more handlers exist.
+    /// </returns>
+    public virtual IComposite Handle(IComposite composite)
     {
         // Assigns the provided CompositeQuery to this handler for processing.
         Composite = composite;
@@ -58,12 +61,12 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
         TranslateExpression();
         ExpressionIntegration();
         // Passes the CompositeQuery to the next handler in the chain, if one exists, to continue processing.
-        NextHandler?.Handle(composite);
+        return NextHandler?.Handle(Composite) ?? Composite;
     }
 
     /// <summary>
     ///     Defines the specific processing logic for this handler, to be implemented by derived classes.
-    ///     This abstract method allows each handler to define its own processing logic for specific
+    ///     This virtual method allows each handler to define its own processing logic for specific
     ///     query components (SELECT, WHERE, JOIN, etc.).
     /// </summary>
     protected virtual void Process() { }
@@ -71,6 +74,7 @@ public abstract partial record QueryHandler(SqlStatement Statement, Expression? 
     /// <summary>
     ///     Translates the stored expression (Selector) into a SQL statement fragment
     ///     and appends it to the Composite's SQL statements collection for the specified statement type.
+    ///     This method is responsible for converting LINQ expressions into SQL fragments.
     /// </summary>
     protected virtual void TranslateExpression()
     {

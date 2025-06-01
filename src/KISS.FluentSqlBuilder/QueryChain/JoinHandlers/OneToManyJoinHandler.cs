@@ -10,24 +10,23 @@ namespace KISS.FluentSqlBuilder.QueryChain.JoinHandlers;
 ///     This is typically the main entity type being queried.
 /// </typeparam>
 /// <typeparam name="TRelation">
-///     The type of the relation (source table or entity).
-///     This type is used to generate proper table names and column mappings.
+///     The type of the related entity (joined table or collection).
+///     Used to generate table names, column mappings, and collection properties.
 /// </typeparam>
 /// <typeparam name="TReturn">
-///     The combined type to return.
-///     This type represents the result of the join operation.
+///     The result type produced by the join operation, representing the combined output.
 /// </typeparam>
 /// <param name="LeftKeySelector">
-///     An expression selecting the key from the left relation for the join condition.
-///     This defines the left side of the join equality.
+///     An expression selecting the key from the left (main) entity for the join condition.
+///     Defines the left side of the join equality.
 /// </param>
 /// <param name="RightKeySelector">
-///     An expression selecting the key from the right relation for the join condition.
-///     This defines the right side of the join equality.
+///     An expression selecting the key from the right (related) entity for the join condition.
+///     Defines the right side of the join equality.
 /// </param>
 /// <param name="MapSelector">
-///     An expression mapping the joined result into the output type.
-///     This defines how the joined data should be mapped to the result object.
+///     An expression mapping the joined result into the output type,
+///     specifying how the related entities are assigned to the result object.
 /// </param>
 public sealed record OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
     Expression LeftKeySelector,
@@ -35,44 +34,37 @@ public sealed record OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
     Expression MapSelector) : JoinHandler<TRelation, TReturn>(LeftKeySelector, RightKeySelector)
 {
     /// <summary>
-    ///     Builds the expression tree for processing joined rows.
-    ///     This method creates the necessary expressions to map joined data
-    ///     to collections in the result object's properties.
+    ///     Integrates the join mapping logic into the expression tree for processing joined rows.
+    ///     This method creates the necessary expressions to map related entities into
+    ///     collection properties of the result object, handling initialization and population.
     /// </summary>
     protected override void ExpressionIntegration()
     {
         if (MapSelector is MemberExpression { Expression: ParameterExpression } memberExpression)
         {
-            var outKeyAccessor = Expression.MakeIndex(
-                Composite.OutDictEntityTypeExVariable!,
-                OutDictEntityType.GetProperty("Item")!,
-                [Composite.OutDictKeyExVariable]);
-
-            // Access or initialize the Relation property (List<TRelation>)
-            var relationProperty = Expression.Property(outKeyAccessor, memberExpression.Member.Name);
-            var listType = typeof(List<TRelation>);
+            // Access or initialize the relation property (e.g., List<TRelation>) on the result object.
+            var relationProperty = Expression.Property(Composite.IndexerExVariable, memberExpression.Member.Name);
             var nullCheck = Expression.Equal(relationProperty, Expression.Constant(null));
-            var assignList = Expression.Assign(relationProperty, Expression.New(listType));
+            var assignList = Expression.Assign(relationProperty, Expression.New(relationProperty.Type));
 
-            // Create a new TRelation instance
+            // Create a new TRelation instance from the current row.
             var relationEntity = Expression.MemberInit(
                 Expression.New(RelationType),
                 TypeUtils.CreateIterRowBindings(
-                            Composite.CurrentEntryExParameter,
-                            RelationType,
-                            RelationType,
-                            Composite.GetAliasMapping(RelationType)));
+                    Composite.CurrentEntryExVariable,
+                    RelationType,
+                    RelationType,
+                    Composite.GetAliasMapping(RelationType)));
 
-            // If null, initialize; then add unconditionally
+            // If the collection is null, initialize it; then always add the new entity.
             var init = Expression.Block(
                 Expression.IfThen(nullCheck, assignList), // Only assign if null
                 Expression.Call(
                     relationProperty,
-                    listType.GetMethod("Add")!,
+                    relationProperty.Type.GetMethod("Add")!,
                     relationEntity)); // Always add afterward
 
-            Composite.JoinRowProcessors.Add(init);
-            JoinRowBlock = init;
+            Composite.JoinRows.Add(init);
         }
     }
 }

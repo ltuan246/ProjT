@@ -1,9 +1,9 @@
 namespace KISS.FluentSqlBuilder.QueryChain.OrderByHandlers;
 
 /// <summary>
-///     A handler for processing ORDER BY clauses in a query chain.
-///     This class provides the translation logic for converting sorting expressions
-///     into SQL-compatible form.
+///     Provides translation logic for ORDER BY clauses in a query chain.
+///     This class converts sorting expressions into SQL-compatible syntax for use in
+///     ORDER BY statements.
 /// </summary>
 public sealed partial record OrderByHandler
 {

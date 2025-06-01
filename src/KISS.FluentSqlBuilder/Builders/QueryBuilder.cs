@@ -34,7 +34,10 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new OneToOneJoinHandler<TRecordset, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
+        Handler.SetNext(new OneToOneJoinHandler<TRecordset, TRelation, TReturn>(
+            leftKeySelector.Body,
+            rightKeySelector.Body,
+            mapSelector.Body));
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -44,7 +47,10 @@ public sealed record QueryBuilder<TRecordset, TReturn>(DbConnection Connection, 
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new OneToManyJoinHandler<TRecordset, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
+        Handler.SetNext(new OneToManyJoinHandler<TRecordset, TRelation, TReturn>(
+            leftKeySelector.Body,
+            rightKeySelector.Body,
+            mapSelector.Body));
         return new QueryBuilder<TRecordset, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -187,7 +193,10 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new OneToOneJoinHandler<TFirst, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
+        Handler.SetNext(new OneToOneJoinHandler<TFirst, TRelation, TReturn>(
+            leftKeySelector.Body,
+            rightKeySelector.Body,
+            mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -197,7 +206,10 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new OneToManyJoinHandler<TFirst, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
+        Handler.SetNext(new OneToManyJoinHandler<TFirst, TRelation, TReturn>(
+            leftKeySelector.Body,
+            rightKeySelector.Body,
+            mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -207,7 +219,10 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, TRelation?>> mapSelector)
     {
-        Handler.SetNext(new OneToOneJoinHandler<TSecond, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
+        Handler.SetNext(new OneToOneJoinHandler<TSecond, TRelation, TReturn>(
+            leftKeySelector.Body,
+            rightKeySelector.Body,
+            mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -217,7 +232,10 @@ public sealed record QueryBuilder<TFirst, TSecond, TReturn>(DbConnection Connect
         Expression<Func<TRelation, IComparable>> rightKeySelector,
         Expression<Func<TReturn, List<TRelation>?>> mapSelector)
     {
-        Handler.SetNext(new OneToManyJoinHandler<TSecond, TRelation, TReturn>(leftKeySelector.Body, rightKeySelector.Body, mapSelector.Body));
+        Handler.SetNext(new OneToManyJoinHandler<TSecond, TRelation, TReturn>(
+            leftKeySelector.Body,
+            rightKeySelector.Body,
+            mapSelector.Body));
         return new QueryBuilder<TFirst, TSecond, TRelation, TReturn>(Connection, Handler);
     }
 
@@ -304,7 +322,9 @@ public sealed record QueryBuilder<TFirst, TSecond, TThird, TReturn>(DbConnection
     }
 
     /// <inheritdoc />
-    public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(bool condition, Expression<Func<TFirst, bool>> predicate)
+    public IWhereBuilder<TFirst, TSecond, TThird, TReturn> Where(
+        bool condition,
+        Expression<Func<TFirst, bool>> predicate)
     {
         if (condition)
         {

@@ -1,7 +1,9 @@
+using System.Diagnostics;
+
 namespace KISS.FluentSqlBuilder.QueryProxy;
 
 /// <summary>
-///     A generic proxy class that intercepts method calls for <see cref="CompositeQuery" /> instances,
+///     A generic proxy class that intercepts method calls for <see cref="IComposite" /> instances,
 ///     using the <see cref="DispatchProxy" /> mechanism to provide additional behavior. This class
 ///     enables dynamic query building and execution by intercepting calls to query operations.
 /// </summary>
@@ -10,35 +12,33 @@ namespace KISS.FluentSqlBuilder.QueryProxy;
 public class CompositeQueryProxy<TRecordset, TReturn> : DispatchProxy
 {
     /// <summary>
-    ///     Holds the target <see cref="CompositeQuery" /> instance that this proxy delegates to.
+    ///     Holds the target <see cref="IComposite" /> instance that this proxy delegates to.
     ///     This property stores the actual query implementation that will be executed.
     /// </summary>
     private QueryOperator<TRecordset, TReturn> Operator { get; set; } = default!;
 
     /// <summary>
-    ///     Creates a proxy instance for <see cref="ICompositeQueryOperations{TReturn}" /> that wraps a
-    ///     <see cref="CompositeQuery" />. This method sets up the complete query execution
+    ///     Creates a proxy instance for <see cref="ICompositeQueryOperations{TRecordset, TReturn}" /> that wraps a
+    ///     <see cref="IComposite" />. This method sets up the complete query execution
     ///     pipeline with proper configuration and interception.
     /// </summary>
     /// <typeparam name="TRecordset">The type representing the database table or view.</typeparam>
-    /// <param name="connection">The database connection used to initialize the <see cref="CompositeQuery" />.</param>
+    /// <param name="connection">The database connection used to initialize the <see cref="IComposite" />.</param>
     /// <param name="handler">The handler that configures the query before proxy creation.</param>
-    /// <returns>A proxied instance implementing <see cref="ICompositeQueryOperations{TReturn}" />.</returns>
+    /// <returns>A proxied instance implementing <see cref="ICompositeQueryOperations{TRecordset, TReturn}" />.</returns>
     public ICompositeQueryOperations<TRecordset, TReturn> Create(DbConnection connection, QueryHandler handler)
     {
         // Instantiates a new CompositeQuery with the provided database connection.
-        CompositeQuery<TRecordset, TReturn> composite = new();
+        IComposite composite = new CompositeQuery<TRecordset, TReturn>();
 
         // Applies the handler's configuration to the newly created CompositeQuery instance.
-        handler.Handle(composite);
+        composite = handler.Handle(composite);
 
-        // Prepares the CompositeQuery by setting up its queries before the method is invoked.
-        composite.SetQueries();
-
-        System.Diagnostics.Debug.WriteLine(composite.Sql);
+        var sql = composite.Sql;
+        Debug.WriteLine(sql);
 
         // Executes the SQL query using the Connection, passing the constructed Sql string and Parameters
-        var dtRows = connection.Query(composite.Sql, composite.Parameters)
+        var dtRows = connection.Query(sql, composite.Parameters)
             .Cast<IDictionary<string, object>>()
             .ToList();
 
@@ -60,7 +60,10 @@ public class CompositeQueryProxy<TRecordset, TReturn> : DispatchProxy
     ///     to the real service. This method is called automatically for all method invocations
     ///     on the proxy.
     /// </summary>
-    /// <param name="targetMethod">The method being invoked on the <see cref="ICompositeQueryOperations{TReturn}" /> interface.</param>
+    /// <param name="targetMethod">
+    ///     The method being invoked on the
+    ///     <see cref="ICompositeQueryOperations{TRecordset, TReturn}" /> interface.
+    /// </param>
     /// <param name="args">The arguments passed to the method during invocation.</param>
     /// <returns>The result of the method invocation, or null if the method returns void.</returns>
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)

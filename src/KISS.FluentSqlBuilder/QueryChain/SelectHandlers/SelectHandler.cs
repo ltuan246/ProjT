@@ -5,28 +5,28 @@ namespace KISS.FluentSqlBuilder.QueryChain.SelectHandlers;
 ///     This class is responsible for generating SQL SELECT statements and mapping
 ///     database results to strongly-typed objects.
 /// </summary>
-/// <typeparam name="TSource">The type representing the database record set.</typeparam>
-/// <typeparam name="TReturn">The combined type to return.</typeparam>
-public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(SqlStatement.Select), ISelectHandler
+/// <typeparam name="TSource">
+///     The type representing the database record set (source entity).
+/// </typeparam>
+/// <typeparam name="TReturn">
+///     The combined type to return as the result of the SELECT operation.
+/// </typeparam>
+public sealed record SelectHandler<TSource, TReturn>() : QueryHandler(SqlStatement.Select)
 {
-    /// <summary>
-    ///     Gets the type representing the database record set.
-    ///     This type defines the structure of the data being queried from the database.
-    /// </summary>
-    public Type InEntityType { get; } = typeof(TSource);
-
-    /// <summary>
-    ///     Processes the SELECT clause by generating SQL statements for selecting
-    ///     columns from the source entity and mapping them to the return type.
-    /// </summary>
+    /// <inheritdoc />
     protected override void Process()
     {
-        var alias = Composite.GetAliasMapping(InEntityType);
-        var sourceProperties = InEntityType.GetProperties()
+        // Wraps the provided CompositeQuery with a SelectDecorator for SELECT clause processing.
+        Composite = new SelectDecorator(Composite);
+
+        // Generate the table alias and select clause for the source entity.
+        var alias = Composite.GetAliasMapping(Composite.InEntityType);
+        var sourceProperties = Composite.InEntityType.GetProperties()
             .Where(p => p.CanWrite)
             .Select(p => $"{alias}.{p.Name} AS {alias}_{p.Name}")
             .ToList();
 
+        // Add the generated select clause to the SQL statement collection.
         Composite.SqlStatements[SqlStatement.Select].Add(string.Join(", ", sourceProperties));
     }
 }
