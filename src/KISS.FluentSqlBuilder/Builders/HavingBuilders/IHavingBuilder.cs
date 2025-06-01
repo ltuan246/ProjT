@@ -23,7 +23,7 @@ public interface IHavingBuilder<TRecordset, TReturn> :
     /// </summary>
     /// <param name="condition">
     ///     An expression that defines the filtering condition using aggregate functions.
-    ///     The expression takes an <see cref="AggregationBuilder{TRecordset}"/> that
+    ///     The expression takes an <see cref="AggregationBuilder{TRecordset}" /> that
     ///     provides access to aggregate functions (COUNT, SUM, AVG, etc.).
     /// </param>
     /// <returns>

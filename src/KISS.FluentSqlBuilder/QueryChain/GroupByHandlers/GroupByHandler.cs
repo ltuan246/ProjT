@@ -1,12 +1,18 @@
 namespace KISS.FluentSqlBuilder.QueryChain.GroupByHandlers;
 
 /// <summary>
-///     A handler for processing GROUP BY clauses in a query chain.
-///     This class is responsible for generating SQL GROUP BY statements that group
-///     query results based on specified columns or expressions.
+///     Handles the processing of GROUP BY clauses within a query chain.
+///     This class generates SQL GROUP BY statements to group query results
+///     based on specified columns or expressions provided by the selector.
 /// </summary>
 /// <param name="Selector">
-///     An expression defining the columns or expressions to group by.
-///     This can be a single column, multiple columns, or complex expressions.
+///     An expression specifying the columns or expressions to group by.
+///     Can represent a single column, multiple columns, or complex grouping logic.
 /// </param>
-public sealed partial record GroupByHandler(Expression Selector) : QueryHandler(SqlStatement.GroupBy, Selector);
+public sealed partial record GroupByHandler(Expression Selector) : QueryHandler(SqlStatement.GroupBy, Selector)
+{
+    /// <inheritdoc />
+    protected override void Process() =>
+        // Wraps the current composite query with a GroupByDecorator for GROUP BY processing.
+        Composite = new GroupByDecorator(Composite);
+}
