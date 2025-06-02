@@ -9,7 +9,7 @@ public class MemoryLocation
     /// <summary>
     ///     Unique identifier for this location (e.g., a GUID or custom string).
     /// </summary>
-    [Key]
+    [Key, KeyBuilder]
     [Name("id")]
     public required Guid Id { get; set; }
 

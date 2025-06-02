@@ -9,7 +9,7 @@ public class Astronomy
     /// <summary>
     ///     Unique identifier for this astronomy record (e.g., a GUID or custom string).
     /// </summary>
-    [Key]
+    [Key, KeyBuilder]
     public required string Id { get; set; }
 
     /// <summary>

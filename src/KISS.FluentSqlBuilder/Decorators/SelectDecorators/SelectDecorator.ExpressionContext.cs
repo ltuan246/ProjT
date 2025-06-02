@@ -17,6 +17,7 @@ public sealed partial record SelectDecorator
         {
             var breakLabel = Expression.Label();
             var exitsLoop = Expression.Break(breakLabel);
+
             var block = Expression.Block(
                 [
                     InEntriesExVariable,

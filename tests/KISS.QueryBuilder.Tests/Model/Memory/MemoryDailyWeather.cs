@@ -10,7 +10,7 @@ public class MemoryDailyWeather
     /// <summary>
     ///     Unique identifier for this daily weather record (e.g., a GUID or custom string).
     /// </summary>
-    [Key]
+    [Key, KeyBuilder]
     [Name("id")]
     public required Guid Id { get; set; }
 

@@ -10,7 +10,7 @@ public class DailyWeather
     /// <summary>
     ///     Unique identifier for this daily weather record (e.g., a GUID or custom string).
     /// </summary>
-    [Key]
+    [Key, KeyBuilder]
     public required string Id { get; set; }
 
     /// <summary>
