@@ -26,6 +26,6 @@ public static class CsvAssists
         using StreamReader streamReader = new(filePath);
         using CsvReader csvReader = new(streamReader, config);
 
-        return csvReader.GetRecords<TEntity>().ToList();
+        return [.. csvReader.GetRecords<TEntity>()];
     }
 }

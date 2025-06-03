@@ -58,4 +58,9 @@
         <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     </ItemGroup>
 
+    <!-- Redis -->
+    <ItemGroup>
+        <PackageVersion Include="StackExchange.Redis" Version="2.8.16" />
+    </ItemGroup>
+
 </Project>

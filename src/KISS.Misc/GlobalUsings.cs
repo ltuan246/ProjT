@@ -2,7 +2,6 @@
 global using System.IO;
 global using System.Globalization;
 global using System.Reflection;
-global using System.Linq;
 global using System.Collections.Generic;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
