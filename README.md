@@ -11,3 +11,4 @@ KISS - Keep it simple, stupid - is a coding idea proving less is more, turning p
 ## Tools
 - [drawDB](https://github.com/drawdb-io/drawdb) - Free, simple, and intuitive online database design tool and SQL generator.
 - [kaggle](https://www.kaggle.com/) - [Datasets] Explore, analyze, and share quality data.
+- [Mermaid Live Editor](https://github.com/mermaid-js/mermaid-live-editor) - Edit, preview and share mermaid charts/diagrams.
