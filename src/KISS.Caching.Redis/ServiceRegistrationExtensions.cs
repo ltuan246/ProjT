@@ -15,7 +15,7 @@ public static class ServiceRegistrationExtensions
     public static void UseRedis(
         this IServiceCollection services,
         IConfiguration configuration,
-        string sectionName = "SmtpClientOptions")
+        string sectionName = "Redis")
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
