@@ -2,7 +2,7 @@ namespace KISS.Misc.Tests;
 
 public class ConfigureOptionsTest : IDisposable
 {
-    private ServiceProvider ServiceProvider { get; init; }
+    private ServiceProvider Services { get; init; }
 
     public ConfigureOptionsTest()
     {
@@ -11,14 +11,14 @@ public class ConfigureOptionsTest : IDisposable
             .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
             .Build();
 
-        IServiceCollection services = new ServiceCollection();
-        services.ConfigureOptions(configuration);
-        ServiceProvider = services.BuildServiceProvider();
+        IServiceCollection serviceCollection = new ServiceCollection();
+        serviceCollection.ConfigureOptions(configuration);
+        Services = serviceCollection.BuildServiceProvider();
     }
 
     public void Dispose()
     {
-        ServiceProvider.Dispose();
+        Services.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -28,7 +28,7 @@ public class ConfigureOptionsTest : IDisposable
     [Fact]
     public void GetService_BuildServiceProvider_ReturnsService()
     {
-        IOptions<AppSettings>? options = ServiceProvider.GetService<IOptions<AppSettings>>();
+        IOptions<AppSettings>? options = Services.GetService<IOptions<AppSettings>>();
         Assert.NotNull(options);
     }
 }
