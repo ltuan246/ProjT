@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <PackageReference Include="StackExchange.Redis" />
+        <PackageReference Include="MessagePack" />
     </ItemGroup>
 
 </Project>

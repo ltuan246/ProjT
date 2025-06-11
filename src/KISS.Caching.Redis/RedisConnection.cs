@@ -14,12 +14,18 @@ public sealed record RedisConnection(IConnectionMultiplexer Redis) : IRedisConne
     public ISubscriber Subscriber { get; } = Redis.GetSubscriber();
 
     /// <inheritdoc />
-    public async Task<string?> GetAsync(string key)
-        => await Db.StringGetAsync(key);
+    public async Task<T?> GetAsync<T>(string key)
+    {
+        var cachedValue = await Db.StringGetAsync(key);
+        return cachedValue.IsNullOrEmpty ? default : MessagePackSerializer.Deserialize<T>(cachedValue!);
+    }
 
     /// <inheritdoc />
-    public async Task SetAsync(string key, string value, TimeSpan? expiry = null)
-        => await Db.StringSetAsync(key, value, expiry);
+    public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+    {
+        var serializedValue = MessagePackSerializer.Serialize(value);
+        await Db.StringSetAsync(key, serializedValue, expiry);
+    }
 
     /// <inheritdoc />
     public async Task DeleteAsync(string key)

@@ -1,8 +1,12 @@
 namespace KISS.Caching.Redis.Tests;
 
+[MessagePackObject]
 public class User
 {
+    [MessagePack.KeyAttribute(0)]
     public int Id { get; set; }
+
+    [MessagePack.KeyAttribute(1)]
     public string? Name { get; set; }
 }
 
@@ -84,15 +88,14 @@ public class RedisCache : IDisposable
     public async Task<User> GetUserCacheAsideAsync(int userId)
     {
         string cacheKey = $"User_{userId}";
-        string? cachedValue = await Redis.GetAsync(cacheKey);
-        if (!string.IsNullOrEmpty(cachedValue))
+        User? cachedValue = await Redis.GetAsync<User>(cacheKey);
+        if (cachedValue != null)
         {
-            return JsonSerializer.Deserialize<User>(cachedValue)!;
+            return cachedValue;
         }
 
         User user = await Database.GetUserAsync(userId);
-        string serializedUser = JsonSerializer.Serialize(user);
-        await Redis.SetAsync(cacheKey, serializedUser, CacheDuration);
+        await Redis.SetAsync(cacheKey, user, CacheDuration);
         return user;
     }
 
@@ -100,15 +103,14 @@ public class RedisCache : IDisposable
     public async Task<User> GetUserReadThroughAsync(int userId)
     {
         string cacheKey = $"User_{userId}";
-        string? cachedValue = await Redis.GetAsync(cacheKey);
-        if (!string.IsNullOrEmpty(cachedValue))
+        User? cachedValue = await Redis.GetAsync<User>(cacheKey);
+        if (cachedValue != null)
         {
-            return JsonSerializer.Deserialize<User>(cachedValue)!;
+            return cachedValue;
         }
 
         User user = await Database.GetUserAsync(userId);
-        string serializedUser = JsonSerializer.Serialize(user);
-        await Redis.SetAsync(cacheKey, serializedUser, CacheDuration);
+        await Redis.SetAsync(cacheKey, user, CacheDuration);
         return user;
     }
 
@@ -117,8 +119,7 @@ public class RedisCache : IDisposable
     {
         string cacheKey = $"User_{user.Id}";
         await Database.UpdateUserAsync(user);
-        string serializedUser = JsonSerializer.Serialize(user);
-        await Redis.SetAsync(cacheKey, serializedUser, CacheDuration);
+        await Redis.SetAsync(cacheKey, user, CacheDuration);
         await Redis.Subscriber.PublishAsync(PubSubChannel, cacheKey);
     }
 
@@ -126,8 +127,7 @@ public class RedisCache : IDisposable
     public async Task WriteBackUpdateAsync(User user)
     {
         string cacheKey = $"User_{user.Id}";
-        string serializedUser = JsonSerializer.Serialize(user);
-        await Redis.SetAsync(cacheKey, serializedUser, CacheDuration);
+        await Redis.SetAsync(cacheKey, user, CacheDuration);
         await Redis.Subscriber.PublishAsync(PubSubChannel, cacheKey);
         _ = Task.Run(() => Database.UpdateUserAsync(user));
     }

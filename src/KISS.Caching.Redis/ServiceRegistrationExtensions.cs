@@ -1,13 +1,14 @@
 namespace KISS.Caching.Redis;
 
 /// <summary>
-/// Provides extension methods for registering and configuring Redis services in the dependency injection container.
+///     Provides extension methods for registering and configuring Redis services in the dependency injection container.
 /// </summary>
 public static class ServiceRegistrationExtensions
 {
     /// <summary>
-    /// Registers and configures a Redis connection using settings from the specified configuration section.
-    /// Binds <see cref="RedisConfigurationOption"/> to the configuration, validates it, and adds a singleton <see cref="IConnectionMultiplexer"/>.
+    ///     Registers and configures a Redis connection using settings from the specified configuration section.
+    ///     Binds <see cref="RedisConfigurationOption" /> to the configuration, validates it, and adds a singleton
+    ///     <see cref="IConnectionMultiplexer" />.
     /// </summary>
     /// <param name="services">The service collection to register Redis services into.</param>
     /// <param name="configuration">The application configuration instance.</param>
@@ -57,7 +58,7 @@ public static class ServiceRegistrationExtensions
                 SslHost = config.SslHost,
                 SyncTimeout = config.SyncTimeout,
                 TieBreaker = config.TieBreaker,
-                User = config.User,
+                User = config.User
             };
 
             // Add all configured endpoints

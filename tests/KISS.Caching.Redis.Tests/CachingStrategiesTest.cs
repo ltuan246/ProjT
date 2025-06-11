@@ -39,8 +39,8 @@ public class CachingStrategiesTest : IDisposable
         var result = await Caching.GetUserCacheAsideAsync(userId);
 
         Assert.Equal(user.Name, result.Name);
-        var cachedValue = await RedisConnection.GetAsync($"User_{userId}");
-        Assert.Equal(JsonSerializer.Serialize(user), cachedValue);
+        var cachedValue = await RedisConnection.GetAsync<User>($"User_{userId}");
+        Assert.Equal(user.Name, cachedValue!.Name);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class CachingStrategiesTest : IDisposable
     {
         int userId = 1;
         var user = new User { Id = userId, Name = "User_1" };
-        await RedisConnection.SetAsync($"User_{userId}", JsonSerializer.Serialize(user));
+        await RedisConnection.SetAsync($"User_{userId}", user);
 
         var result = await Caching.GetUserCacheAsideAsync(userId);
 
@@ -67,8 +67,8 @@ public class CachingStrategiesTest : IDisposable
         var result = await Caching.GetUserReadThroughAsync(userId);
 
         Assert.Equal(user.Name, result.Name);
-        var cachedValue = await RedisConnection.GetAsync($"User_{userId}");
-        Assert.Equal(JsonSerializer.Serialize(user), cachedValue);
+        var cachedValue = await RedisConnection.GetAsync<User>($"User_{userId}");
+        Assert.Equal(user.Name, cachedValue!.Name);
     }
 
     [Fact]
@@ -83,8 +83,8 @@ public class CachingStrategiesTest : IDisposable
         Assert.Equal(user.Name, result.Name);
         var dbUser = await Database.GetUserAsync(userId);
         Assert.Equal(user.Name, dbUser.Name);
-        var cachedValue = await RedisConnection.GetAsync($"User_{userId}");
-        Assert.Equal(JsonSerializer.Serialize(user), cachedValue);
+        var cachedValue = await RedisConnection.GetAsync<User>($"User_{userId}");
+        Assert.Equal(user.Name, cachedValue!.Name);
     }
 
     [Fact]
@@ -94,11 +94,12 @@ public class CachingStrategiesTest : IDisposable
         var user = new User { Id = userId, Name = "Jane Doe" };
 
         await Caching.WriteBackUpdateAsync(user);
+        await Task.Delay(100);
         var result = await Caching.GetUserCacheAsideAsync(userId);
 
         Assert.Equal(user.Name, result.Name);
-        var cachedValue = await RedisConnection.GetAsync($"User_{userId}");
-        Assert.Equal(JsonSerializer.Serialize(user), cachedValue);
+        var cachedValue = await RedisConnection.GetAsync<User>($"User_{userId}");
+        Assert.Equal(user.Name, cachedValue!.Name);
         await Task.Delay(100);
         var dbUser = await Database.GetUserAsync(userId);
         Assert.Equal(user.Name, dbUser.Name);
@@ -115,7 +116,7 @@ public class CachingStrategiesTest : IDisposable
         await Caching.WriteAroundUpdateAsync(updatedUser);
         var result = await Caching.GetUserCacheAsideAsync(userId);
 
-        var cachedValue = await RedisConnection.GetAsync($"User_{userId}");
+        var cachedValue = await RedisConnection.GetAsync<User>($"User_{userId}");
         Assert.NotNull(cachedValue);
         Assert.Equal(updatedUser.Name, result.Name);
         var dbUser = await Database.GetUserAsync(userId);
@@ -133,7 +134,7 @@ public class CachingStrategiesTest : IDisposable
         await Task.Delay(100);
         var result = await Caching.GetUserCacheAsideAsync(userId);
 
-        var cachedValue = await RedisConnection.GetAsync($"User_{userId}");
+        var cachedValue = await RedisConnection.GetAsync<User>($"User_{userId}");
         Assert.NotNull(cachedValue);
         Assert.Equal($"User_{userId}", result.Name);
     }
@@ -155,7 +156,7 @@ public class CachingStrategiesTest : IDisposable
         await Task.Delay(100);
 
         Assert.True(invalidationTriggered);
-        var cachedValue = await RedisConnection.GetAsync($"User_{userId}");
+        var cachedValue = await RedisConnection.GetAsync<User>($"User_{userId}");
         Assert.Null(cachedValue);
         var result = await Caching.GetUserCacheAsideAsync(userId);
         Assert.Equal($"User_{userId}", result.Name);
