@@ -11,7 +11,7 @@ public interface IDataStorage
     /// <typeparam name="T">The type of the cached item.</typeparam>
     /// <param name="key">The cache key.</param>
     /// <returns>A task representing the asynchronous operation, with the cached value as its result.</returns>
-    Task<T> GetAsync<T>(string key);
+    Task<T?> GetAsync<T>(string key);
 
     /// <summary>
     ///     Asynchronously updates or adds a cached item with the specified key and value.

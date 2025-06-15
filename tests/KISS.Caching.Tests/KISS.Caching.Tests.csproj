@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\KISS.Caching\KISS.Caching.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="appSettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MessagePack" />
+    </ItemGroup>
+
+</Project>

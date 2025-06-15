@@ -3,10 +3,10 @@ namespace KISS.Caching.Redis.Tests;
 [MessagePackObject]
 public class User
 {
-    [MessagePack.KeyAttribute(0)]
+    [MessagePack.Key(0)]
     public int Id { get; set; }
 
-    [MessagePack.KeyAttribute(1)]
+    [MessagePack.Key(1)]
     public string? Name { get; set; }
 }
 

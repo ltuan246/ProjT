@@ -21,10 +21,10 @@ public sealed record WriteThroughOperation(ICacheStorage CacheStorage, IDataStor
     }
 
     /// <inheritdoc />
-    public async Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options) =>
+    public async Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options)
         // Update both the data storage and cache
         // This ensures that the cache is always in sync with the data storage.
-        await Task.WhenAll(
+        => await Task.WhenAll(
             DataStorage.UpdateAsync(key, value),
             CacheStorage.SetAsync(key, value, options));
 }

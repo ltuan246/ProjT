@@ -21,7 +21,7 @@ public sealed record WriteAroundOperation(ICacheStorage CacheStorage, IDataStora
     }
 
     /// <inheritdoc />
-    public async Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options) =>
+    public async Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options)
         // In the write-around pattern, only the data storage is updated; the cache is not updated on writes.
-        await DataStorage.UpdateAsync(key, value);
+        => await DataStorage.UpdateAsync(key, value);
 }
