@@ -5,7 +5,7 @@ namespace KISS.Caching.Operations;
 /// </summary>
 /// <param name="CacheStorage">The cache storage mechanism.</param>
 /// <param name="DataStorage">The underlying data storage mechanism.</param>
-public sealed record WriteBackOperation(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheOperation
+public sealed record WriteBackOperation(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheOperation, IDisposable
 {
     /// <summary>
     ///     Queue of pending asynchronous data storage update operations.
@@ -36,5 +36,11 @@ public sealed record WriteBackOperation(ICacheStorage CacheStorage, IDataStorage
         {
             await DataStorage.UpdateAsync(key, value);
         });
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Queue.Dispose();
     }
 }
