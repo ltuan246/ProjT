@@ -16,7 +16,7 @@ public sealed record WriteThroughOperation(ICacheStorage CacheStorage, IDataStor
             return cachedResult;
         }
 
-        await UpdateAsync(key, value, options);
+        await CacheStorage.SetAsync(key, value, options);
         return CacheResult<T>.Success(value);
     }
 
