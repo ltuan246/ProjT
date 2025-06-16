@@ -26,8 +26,8 @@ public class SqliteDataSource : IDataStorage, IDisposable
     {
         try
         {
-            var isExisting = await DbContext.Products.AnyAsync(p => p.Key == key);
-            if (!isExisting)
+            var item = await DbContext.Products.FindAsync(key);
+            if (item == null)
             {
                 var serializedValue = MessagePackSerializer.Serialize(value);
                 var newItem = MessagePackSerializer.Deserialize<Product>(serializedValue);
@@ -37,8 +37,7 @@ public class SqliteDataSource : IDataStorage, IDisposable
             {
                 var serializedValue = MessagePackSerializer.Serialize(value);
                 var newItem = MessagePackSerializer.Deserialize<Product>(serializedValue);
-                var item = await DbContext.Products.FindAsync(key);
-                item!.Value = newItem.Value;
+                item.Value = newItem.Value;
                 DbContext.Update(item);
             }
 

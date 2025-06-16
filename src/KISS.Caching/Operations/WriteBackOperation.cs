@@ -32,10 +32,7 @@ public sealed record WriteBackOperation(ICacheStorage CacheStorage, IDataStorage
         await CacheStorage.SetAsync(key, value, options);
 
         // Queue data source update for asynchronous execution
-        Queue.Enqueue(async () =>
-        {
-            await DataStorage.UpdateAsync(key, value);
-        });
+        Queue.Enqueue(() => DataStorage.UpdateAsync(key, value));
     }
 
     /// <inheritdoc />

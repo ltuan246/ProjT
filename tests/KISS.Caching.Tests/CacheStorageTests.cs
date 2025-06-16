@@ -195,6 +195,7 @@ public class CacheStorageTests : IDisposable
 
         // Act
         await storage.UpdateAsync(key, expectedValue, Options);
+        await Task.Delay(1000); // Wait for background task to process
         var result = await storage.GetOrSetAsync<Product>(key, expectedValue, Options);
 
         // Assert
