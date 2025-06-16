@@ -21,7 +21,7 @@ public sealed record WriteBackOperation(ICacheStorage CacheStorage, IDataStorage
             return cachedResult;
         }
 
-        await UpdateAsync(key, value, options);
+        await CacheStorage.SetAsync(key, value, options);
         return CacheResult<T>.Success(value);
     }
 
