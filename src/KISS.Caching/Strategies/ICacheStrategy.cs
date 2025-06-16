@@ -1,9 +1,9 @@
-namespace KISS.Caching.Operations;
+namespace KISS.Caching.Strategies;
 
 /// <summary>
 ///     Defines methods for advanced cache operations, such as retrieving, setting, and updating cached values.
 /// </summary>
-public interface ICacheOperation
+public interface ICacheStrategy
 {
     /// <summary>
     ///     Asynchronously retrieves a cached value by its key, or sets and returns a new value if it does not exist.
@@ -22,6 +22,6 @@ public interface ICacheOperation
     /// <param name="key">The unique key identifying the cached item to update.</param>
     /// <param name="value">The new value to store in the cache.</param>
     /// <param name="options">Options for cache expiration and behavior.</param>
-    /// <returns>A task representing the asynchronous update operation.</returns>
+    /// <returns>A task representing the asynchronous update strategy.</returns>
     Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options);
 }

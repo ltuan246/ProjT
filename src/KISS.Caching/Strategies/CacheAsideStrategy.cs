@@ -1,4 +1,4 @@
-namespace KISS.Caching.Operations;
+namespace KISS.Caching.Strategies;
 
 /// <summary>
 ///     Implements the cache-aside pattern: checks the cache first, and on a miss, allows the application to provide custom
@@ -6,7 +6,7 @@ namespace KISS.Caching.Operations;
 /// </summary>
 /// <param name="CacheStorage">The cache storage mechanism.</param>
 /// <param name="DataStorage">The underlying data storage mechanism.</param>
-public sealed record CacheAsideOperation(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheOperation
+public sealed record CacheAsideStrategy(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheStrategy
 {
     /// <inheritdoc />
     public async Task<CacheResult<T>> GetOrSetAsync<T>(string key, T value, CacheMechanismOptions? options)

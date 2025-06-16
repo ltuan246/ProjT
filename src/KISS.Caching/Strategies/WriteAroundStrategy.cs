@@ -1,11 +1,11 @@
-namespace KISS.Caching.Operations;
+namespace KISS.Caching.Strategies;
 
 /// <summary>
 ///     Implements the write-around caching pattern by writing directly to the data source and bypassing the cache.
 /// </summary>
 /// <param name="CacheStorage">The cache storage mechanism.</param>
 /// <param name="DataStorage">The underlying data storage mechanism.</param>
-public sealed record WriteAroundOperation(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheOperation
+public sealed record WriteAroundStrategy(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheStrategy
 {
     /// <inheritdoc />
     public async Task<CacheResult<T>> GetOrSetAsync<T>(string key, T value, CacheMechanismOptions? options)

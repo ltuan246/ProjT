@@ -1,4 +1,4 @@
-namespace KISS.Caching.Operations;
+namespace KISS.Caching.Strategies;
 
 /// <summary>
 ///     Provides methods for basic cache operations such as retrieving and updating cached items.
@@ -10,7 +10,7 @@ public interface IDataStorage
     /// </summary>
     /// <typeparam name="T">The type of the cached item.</typeparam>
     /// <param name="key">The cache key.</param>
-    /// <returns>A task representing the asynchronous operation, with the cached value as its result.</returns>
+    /// <returns>A task representing the asynchronous strategy, with the cached value as its result.</returns>
     Task<T?> GetAsync<T>(string key);
 
     /// <summary>
@@ -19,6 +19,6 @@ public interface IDataStorage
     /// <typeparam name="T">The type of the value to cache.</typeparam>
     /// <param name="key">The cache key.</param>
     /// <param name="value">The value to store in the cache.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>A task representing the asynchronous strategy.</returns>
     Task UpdateAsync<T>(string key, T value);
 }

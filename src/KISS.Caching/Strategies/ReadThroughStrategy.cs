@@ -1,4 +1,4 @@
-namespace KISS.Caching.Operations;
+namespace KISS.Caching.Strategies;
 
 /// <summary>
 ///     Implements the read-through caching pattern, automatically loading data from the data source on cache miss and
@@ -6,7 +6,7 @@ namespace KISS.Caching.Operations;
 /// </summary>
 /// <param name="CacheStorage">The cache storage mechanism.</param>
 /// <param name="DataStorage">The underlying data storage mechanism.</param>
-public sealed record ReadThroughOperation(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheOperation
+public sealed record ReadThroughStrategy(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheStrategy
 {
     /// <inheritdoc />
     public async Task<CacheResult<T>> GetOrSetAsync<T>(string key, T value, CacheMechanismOptions? options)

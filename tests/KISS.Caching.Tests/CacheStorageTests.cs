@@ -21,56 +21,56 @@ public class CacheStorageTests : IDisposable
         services.AddScoped<IDataStorage, SqliteDataSource>();
 
         // Register strategies
-        services.AddKeyedScoped<ICacheStorage>("InMemoryCacheStrategy", (sp, key) =>
-            new InMemoryCacheStrategy(sp.GetRequiredService<IMemoryCache>()));
-        services.AddKeyedScoped<ICacheStorage>("DistributedCacheStrategy", (sp, key) =>
-            new DistributedCacheStrategy(sp.GetRequiredService<IDistributedCache>()));
+        services.AddKeyedScoped<ICacheStorage>("InMemoryCacheStorage", (sp, key) =>
+            new InMemoryCacheStorage(sp.GetRequiredService<IMemoryCache>()));
+        services.AddKeyedScoped<ICacheStorage>("DistributedCacheStorage", (sp, key) =>
+            new DistributedCacheStorage(sp.GetRequiredService<IDistributedCache>()));
         // services.AddSingleton<ICacheStorage, FileBasedCacheStrategy>();
         // services.AddSingleton<ICacheStorage, HybridCacheStrategy>();
 
         // Register operations as factories to allow strategy injection
-        services.AddKeyedScoped<ICacheOperation>("InMemory_CacheAside", (sp, key) =>
-           new CacheAsideOperation(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("InMemory_WriteThrough", (sp, key) =>
-            new WriteThroughOperation(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("InMemory_WriteBack", (sp, key) =>
-            new WriteBackOperation(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("InMemory_ReadThrough", (sp, key) =>
-            new ReadThroughOperation(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("InMemory_WriteAround", (sp, key) =>
-            new WriteAroundOperation(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("InMemory_CacheAside", (sp, key) =>
+           new CacheAsideStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("InMemory_WriteThrough", (sp, key) =>
+            new WriteThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("InMemory_WriteBack", (sp, key) =>
+            new WriteBackStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("InMemory_ReadThrough", (sp, key) =>
+            new ReadThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("InMemory_WriteAround", (sp, key) =>
+            new WriteAroundStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
 
-        services.AddKeyedScoped<ICacheOperation>("Distributed_CacheAside", (sp, key) =>
-            new CacheAsideOperation(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("Distributed_WriteThrough", (sp, key) =>
-            new WriteThroughOperation(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("Distributed_WriteBack", (sp, key) =>
-            new WriteBackOperation(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("Distributed_ReadThrough", (sp, key) =>
-            new ReadThroughOperation(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheOperation>("Distributed_WriteAround", (sp, key) =>
-            new WriteAroundOperation(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStrategy"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("Distributed_CacheAside", (sp, key) =>
+            new CacheAsideStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("Distributed_WriteThrough", (sp, key) =>
+            new WriteThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("Distributed_WriteBack", (sp, key) =>
+            new WriteBackStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("Distributed_ReadThrough", (sp, key) =>
+            new ReadThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.AddKeyedScoped<ICacheStrategy>("Distributed_WriteAround", (sp, key) =>
+            new WriteAroundStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
 
         Services = services.BuildServiceProvider();
     }
 
-    private CacheStorage CreateCacheStorage(ICacheOperation operation)
+    private CacheStorage CreateCacheStorage(ICacheStrategy strategy)
     {
-        return new CacheStorage(operation);
+        return new CacheStorage(strategy);
     }
 
     private static string GetOperationKey(Type strategyType, Type operationType)
     {
         string strategyName = strategyType.Name.Replace("CacheStrategy", "");
-        string operationName = operationType.Name.Replace("Operation", "");
+        string operationName = operationType.Name.Replace("Strategy", "");
         return $"{strategyName}_{operationName}";
     }
 
     public static TheoryData<Type, Type> AllStrategyOperationCombinations()
     {
         var data = new TheoryData<Type, Type>();
-        Type[] strategies = { typeof(InMemoryCacheStrategy), typeof(DistributedCacheStrategy) };
-        Type[] operations = { typeof(CacheAsideOperation), typeof(WriteThroughOperation), typeof(WriteBackOperation), typeof(ReadThroughOperation), typeof(WriteAroundOperation) };
+        Type[] strategies = { typeof(InMemoryCacheStorage), typeof(DistributedCacheStorage) };
+        Type[] operations = { typeof(CacheAsideStrategy), typeof(WriteThroughStrategy), typeof(WriteBackStrategy), typeof(ReadThroughStrategy), typeof(WriteAroundStrategy) };
 
         foreach (var strategy in strategies)
         {
@@ -89,7 +89,7 @@ public class CacheStorageTests : IDisposable
     {
         // Arrange
         var strategy = Services.GetRequiredKeyedService<ICacheStorage>(strategyType.Name);
-        var operation = Services.GetRequiredKeyedService<ICacheOperation>(GetOperationKey(strategyType, operationType));
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>(GetOperationKey(strategyType, operationType));
         var storage = CreateCacheStorage(operation!);
         var key = $"key_{strategyType.Name}_{operationType.Name}";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -107,7 +107,7 @@ public class CacheStorageTests : IDisposable
     public async Task CacheAside_InMemory_GetOrSetAsync_CacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheOperation>("InMemory_CacheAside");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_CacheAside");
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_CacheAside";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -129,7 +129,7 @@ public class CacheStorageTests : IDisposable
     public async Task ReadThrough_InMemory_GetOrSetAsync_DataSourceAndCacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheOperation>("InMemory_ReadThrough");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_ReadThrough");
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_ReadThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -148,7 +148,7 @@ public class CacheStorageTests : IDisposable
     public async Task ReadThrough_InMemory_GetOrSetAsync_CacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheOperation>("InMemory_ReadThrough");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_ReadThrough");
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_ReadThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -169,7 +169,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteThrough_InMemory_UpdateAsync_WritesToCacheAndDataSource()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheOperation>("InMemory_WriteThrough");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_WriteThrough");
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -188,7 +188,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteBack_InMemory_UpdateAsync_WritesToCacheAndQueuesDataSourceUpdate()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheOperation>("InMemory_WriteBack");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_WriteBack");
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteBack";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -207,7 +207,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteAround_InMemory_UpdateAsync_WritesToDataSourceOnly()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheOperation>("InMemory_WriteAround");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_WriteAround");
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteAround";
         Product initialValue = new() { Key = key, Value = "Initial" };

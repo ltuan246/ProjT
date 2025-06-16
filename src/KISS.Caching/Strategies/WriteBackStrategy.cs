@@ -1,11 +1,11 @@
-namespace KISS.Caching.Operations;
+namespace KISS.Caching.Strategies;
 
 /// <summary>
 ///     Implements the write-back caching pattern, writing to cache immediately and deferring data storage updates.
 /// </summary>
 /// <param name="CacheStorage">The cache storage mechanism.</param>
 /// <param name="DataStorage">The underlying data storage mechanism.</param>
-public sealed record WriteBackOperation(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheOperation, IDisposable
+public sealed record WriteBackStrategy(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheStrategy, IDisposable
 {
     /// <summary>
     ///     Queue of pending asynchronous data storage update operations.

@@ -1,10 +1,10 @@
 namespace KISS.Caching.Tests;
 
-public sealed record CacheStorage(ICacheOperation Operation)
+public sealed record CacheStorage(ICacheStrategy Strategy)
 {
     public Task<CacheResult<T>> GetOrSetAsync<T>(string key, T value, CacheMechanismOptions? options)
-        => Operation.GetOrSetAsync(key, value, options);
+        => Strategy.GetOrSetAsync(key, value, options);
 
     public Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options)
-        => Operation.UpdateAsync(key, value, options);
+        => Strategy.UpdateAsync(key, value, options);
 }

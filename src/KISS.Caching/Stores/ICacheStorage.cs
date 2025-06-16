@@ -1,4 +1,4 @@
-namespace KISS.Caching.Strategies;
+namespace KISS.Caching.Stores;
 
 /// <summary>
 ///     Defines a contract for cache strategies in KISS.Caching.
@@ -23,13 +23,13 @@ public interface ICacheStorage
     /// <param name="key">The unique key to associate with the cached item.</param>
     /// <param name="value">The value to cache.</param>
     /// <param name="options">Cache expiration and behavior options.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>A task representing the asynchronous strategy.</returns>
     Task SetAsync<T>(string key, T value, CacheMechanismOptions? options);
 
     /// <summary>
     ///     Asynchronously removes a cached item by its key.
     /// </summary>
     /// <param name="key">The unique key identifying the cached item to remove.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <returns>A task representing the asynchronous strategy.</returns>
     Task RemoveAsync(string key);
 }

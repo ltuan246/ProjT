@@ -1,10 +1,10 @@
-namespace KISS.Caching.Strategies;
+namespace KISS.Caching.Stores;
 
 /// <summary>
 ///     Provides an in-memory cache strategy using <see cref="IMemoryCache" /> for storing and retrieving cached items.
 /// </summary>
 /// <param name="Cache">The in-memory cache instance.</param>
-public sealed record InMemoryCacheStrategy(IMemoryCache Cache) : ICacheStorage
+public sealed record InMemoryCacheStorage(IMemoryCache Cache) : ICacheStorage
 {
     /// <inheritdoc />
     public Task<CacheResult<T>> GetAsync<T>(string key)

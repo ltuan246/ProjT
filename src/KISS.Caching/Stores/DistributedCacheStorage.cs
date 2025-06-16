@@ -1,11 +1,11 @@
-namespace KISS.Caching.Strategies;
+namespace KISS.Caching.Stores;
 
 /// <summary>
 ///     Provides a distributed cache strategy using <see cref="IDistributedCache" /> for storing and retrieving cached
 ///     items in a distributed environment.
 /// </summary>
 /// <param name="Cache">The distributed cache instance.</param>
-public sealed record DistributedCacheStrategy(IDistributedCache Cache) : ICacheStorage
+public sealed record DistributedCacheStorage(IDistributedCache Cache) : ICacheStorage
 {
     /// <inheritdoc />
     public async Task<CacheResult<T>> GetAsync<T>(string key)

@@ -9,6 +9,6 @@ global using Microsoft.Extensions.Caching.Distributed;
 // global using Microsoft.Extensions.DependencyInjection;
 // global using StackExchange.Redis;
 global using MessagePack;
-global using KISS.Caching.Strategies;
+global using KISS.Caching.Stores;
 global using KISS.Caching.Mechanisms;
 global using KISS.Caching.Utils;
