@@ -1,4 +1,5 @@
 ﻿global using System;
+global using System.Reflection;
 global using System.Threading.Tasks;
 global using System.Collections.Concurrent;
 // global using System.Collections.Generic;
@@ -6,9 +7,10 @@ global using Microsoft.Extensions.Caching.Memory;
 global using Microsoft.Extensions.Caching.Distributed;
 // global using Microsoft.Extensions.Options;
 // global using Microsoft.Extensions.Configuration;
-// global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.DependencyInjection;
 // global using StackExchange.Redis;
 global using MessagePack;
 global using KISS.Caching.Stores;
+global using KISS.Caching.Strategies;
 global using KISS.Caching.Mechanisms;
 global using KISS.Caching.Utils;

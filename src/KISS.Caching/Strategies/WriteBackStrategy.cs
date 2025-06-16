@@ -5,6 +5,7 @@ namespace KISS.Caching.Strategies;
 /// </summary>
 /// <param name="CacheStorage">The cache storage mechanism.</param>
 /// <param name="DataStorage">The underlying data storage mechanism.</param>
+[CacheStrategy(CacheStrategies.WriteBack)]
 public sealed record WriteBackStrategy(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheStrategy, IDisposable
 {
     /// <summary>

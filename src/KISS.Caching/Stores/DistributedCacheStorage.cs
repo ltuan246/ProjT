@@ -5,6 +5,7 @@ namespace KISS.Caching.Stores;
 ///     items in a distributed environment.
 /// </summary>
 /// <param name="Cache">The distributed cache instance.</param>
+[CacheStore(CacheStores.Distributed)]
 public sealed record DistributedCacheStorage(IDistributedCache Cache) : ICacheStorage
 {
     /// <inheritdoc />
