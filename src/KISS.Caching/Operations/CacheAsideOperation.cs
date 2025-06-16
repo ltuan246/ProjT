@@ -23,9 +23,8 @@ public sealed record CacheAsideOperation(ICacheStorage CacheStorage, IDataStorag
 
     /// <inheritdoc />
     public async Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options)
-        // Update both the data storage and cache
-        // This ensures that the cache is always in sync with the data storage.
+        // Updates the data storage, invalidates the cache key.
         => await Task.WhenAll(
             DataStorage.UpdateAsync(key, value),
-            CacheStorage.SetAsync(key, value, options));
+            CacheStorage.RemoveAsync(key));
 }

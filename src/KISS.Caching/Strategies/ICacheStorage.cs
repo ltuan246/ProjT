@@ -33,20 +33,3 @@ public interface ICacheStorage
     /// <returns>A task representing the asynchronous operation.</returns>
     Task RemoveAsync(string key);
 }
-
-// public class CacheStorage
-// {
-//     private readonly ICacheOperation _cacheOperation;
-//     public CacheStorage(ICacheOperation cacheOperation)
-//     {
-//         _cacheOperation = cacheOperation ?? throw new ArgumentNullException(nameof(cacheOperation));
-//     }
-//     public Task<T> GetOrSetAsync<T>(string key, Func<Task<T>> factory, CacheMechanismOptions options)
-//     {
-//         return _cacheOperation.GetOrSetAsync(key, factory, options);
-//     }
-//     public Task UpdateAsync<T>(string key, T value, CacheMechanismOptions options)
-//     {
-//         return _cacheOperation.UpdateAsync(key, value, options);
-//     }
-// }
