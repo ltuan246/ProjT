@@ -28,9 +28,9 @@ public sealed record ReadThroughOperation(ICacheStorage CacheStorage, IDataStora
     }
 
     /// <inheritdoc />
-    public async Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options) =>
-        // Update both the data storage and cache
-        await Task.WhenAll(
+    public async Task UpdateAsync<T>(string key, T value, CacheMechanismOptions? options)
+        // Updates the data storage, invalidates the cache key.
+        => await Task.WhenAll(
             DataStorage.UpdateAsync(key, value),
-            CacheStorage.SetAsync(key, value, options));
+            CacheStorage.RemoveAsync(key));
 }
