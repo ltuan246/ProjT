@@ -59,8 +59,8 @@ public class CacheStorageTests : IDisposable
     public async Task GetOrSetAsync_CacheHit_ReturnsCachedValue(CacheStores storageType, CacheStrategies strategyType)
     {
         // Arrange
-        var strategy = Services.GetRequiredKeyedService<ICacheStorage>($"{storageType}");
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>($"{storageType}_{strategyType}");
+        var strategy = Services.GetRequiredKeyedService<ICacheStorage>(storageType);
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((storageType, strategyType));
         var storage = CreateCacheStorage(operation!);
         var key = $"key_{storageType}_{strategyType}";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -78,7 +78,7 @@ public class CacheStorageTests : IDisposable
     public async Task CacheAside_InMemory_GetOrSetAsync_CacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_CacheAside");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.CacheAside));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_CacheAside";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -100,7 +100,7 @@ public class CacheStorageTests : IDisposable
     public async Task ReadThrough_InMemory_GetOrSetAsync_DataSourceAndCacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_ReadThrough");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.ReadThrough));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_ReadThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -119,7 +119,7 @@ public class CacheStorageTests : IDisposable
     public async Task ReadThrough_InMemory_GetOrSetAsync_CacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_ReadThrough");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.ReadThrough));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_ReadThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -140,7 +140,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteThrough_InMemory_UpdateAsync_WritesToCacheAndDataSource()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_WriteThrough");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.WriteThrough));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -159,7 +159,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteBack_InMemory_UpdateAsync_WritesToCacheAndQueuesDataSourceUpdate()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_WriteBack");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.WriteBack));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteBack";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -178,7 +178,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteAround_InMemory_UpdateAsync_WritesToDataSourceOnly()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>("InMemory_WriteAround");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.WriteAround));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteAround";
         Product initialValue = new() { Key = key, Value = "Initial" };
@@ -201,6 +201,8 @@ public class CacheStorageTests : IDisposable
 
     public void Dispose()
     {
+        Connection.Close();
+        Connection.Dispose();
         Services.Dispose();
         GC.SuppressFinalize(this);
     }
