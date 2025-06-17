@@ -3,7 +3,7 @@ namespace KISS.Caching.Utils;
 /// <summary>
 /// Specifies the available cache storage types supported by KISS.Caching.
 /// </summary>
-public enum CacheStores
+public enum CacheStore
 {
     /// <summary>
     /// Represents in-memory cache storage (local to the application instance).
@@ -13,5 +13,10 @@ public enum CacheStores
     /// <summary>
     /// Represents distributed cache storage (shared across multiple application instances).
     /// </summary>
-    Distributed
+    Distributed,
+
+    /// <summary>
+    /// Represents Redis cache storage.
+    /// </summary>
+    Redis
 }

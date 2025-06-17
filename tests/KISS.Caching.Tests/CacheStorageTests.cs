@@ -19,29 +19,29 @@ public class CacheStorageTests : IDisposable
         services.AddScoped<IDataStorage, SqliteDataSource>();
 
         services.UseCacheStore<InMemoryCacheStorage>(
-            CacheStrategies.CacheAside,
-            CacheStrategies.WriteThrough,
-            CacheStrategies.WriteBack,
-            CacheStrategies.ReadThrough,
-            CacheStrategies.WriteAround);
+            CacheStrategy.CacheAside,
+            CacheStrategy.WriteThrough,
+            CacheStrategy.WriteBack,
+            CacheStrategy.ReadThrough,
+            CacheStrategy.WriteAround);
 
         services.UseCacheStore<DistributedCacheStorage>(
-            CacheStrategies.CacheAside,
-            CacheStrategies.WriteThrough,
-            CacheStrategies.WriteBack,
-            CacheStrategies.ReadThrough,
-            CacheStrategies.WriteAround);
+            CacheStrategy.CacheAside,
+            CacheStrategy.WriteThrough,
+            CacheStrategy.WriteBack,
+            CacheStrategy.ReadThrough,
+            CacheStrategy.WriteAround);
 
         Services = services.BuildServiceProvider();
     }
 
     private CacheStorage CreateCacheStorage(ICacheStrategy strategy) => new(strategy);
 
-    public static TheoryData<CacheStores, CacheStrategies> AllStrategyOperationCombinations()
+    public static TheoryData<CacheStore, CacheStrategy> AllStrategyOperationCombinations()
     {
-        var data = new TheoryData<CacheStores, CacheStrategies>();
-        CacheStores[] stores = { CacheStores.InMemory, CacheStores.Distributed };
-        CacheStrategies[] strategies = { CacheStrategies.CacheAside, CacheStrategies.WriteThrough, CacheStrategies.WriteBack, CacheStrategies.ReadThrough, CacheStrategies.WriteAround };
+        var data = new TheoryData<CacheStore, CacheStrategy>();
+        CacheStore[] stores = { CacheStore.InMemory, CacheStore.Distributed };
+        CacheStrategy[] strategies = { CacheStrategy.CacheAside, CacheStrategy.WriteThrough, CacheStrategy.WriteBack, CacheStrategy.ReadThrough, CacheStrategy.WriteAround };
 
         foreach (var store in stores)
         {
@@ -56,7 +56,7 @@ public class CacheStorageTests : IDisposable
 
     [Theory]
     [MemberData(nameof(AllStrategyOperationCombinations))]
-    public async Task GetOrSetAsync_CacheHit_ReturnsCachedValue(CacheStores storageType, CacheStrategies strategyType)
+    public async Task GetOrSetAsync_CacheHit_ReturnsCachedValue(CacheStore storageType, CacheStrategy strategyType)
     {
         // Arrange
         var strategy = Services.GetRequiredKeyedService<ICacheStorage>(storageType);
@@ -78,7 +78,7 @@ public class CacheStorageTests : IDisposable
     public async Task CacheAside_InMemory_GetOrSetAsync_CacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.CacheAside));
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStore.InMemory, CacheStrategy.CacheAside));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_CacheAside";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -100,7 +100,7 @@ public class CacheStorageTests : IDisposable
     public async Task ReadThrough_InMemory_GetOrSetAsync_DataSourceAndCacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.ReadThrough));
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStore.InMemory, CacheStrategy.ReadThrough));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_ReadThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -119,7 +119,7 @@ public class CacheStorageTests : IDisposable
     public async Task ReadThrough_InMemory_GetOrSetAsync_CacheMiss_FetchesFromDataSourceAndCaches()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.ReadThrough));
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStore.InMemory, CacheStrategy.ReadThrough));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_ReadThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -140,7 +140,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteThrough_InMemory_UpdateAsync_WritesToCacheAndDataSource()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.WriteThrough));
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStore.InMemory, CacheStrategy.WriteThrough));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteThrough";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -159,7 +159,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteBack_InMemory_UpdateAsync_WritesToCacheAndQueuesDataSourceUpdate()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.WriteBack));
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStore.InMemory, CacheStrategy.WriteBack));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteBack";
         Product expectedValue = new() { Key = key, Value = "Initial" };
@@ -178,7 +178,7 @@ public class CacheStorageTests : IDisposable
     public async Task WriteAround_InMemory_UpdateAsync_WritesToDataSourceOnly()
     {
         // Arrange
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStores.InMemory, CacheStrategies.WriteAround));
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>((CacheStore.InMemory, CacheStrategy.WriteAround));
         var storage = CreateCacheStorage(operation!);
         var key = "key_InMemoryCacheStrategy_WriteAround";
         Product initialValue = new() { Key = key, Value = "Initial" };

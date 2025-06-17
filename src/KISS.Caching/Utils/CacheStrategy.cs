@@ -3,7 +3,7 @@ namespace KISS.Caching.Utils;
 /// <summary>
 /// Enumerates the caching strategies supported by KISS.Caching, describing how cache and data storage interact.
 /// </summary>
-public enum CacheStrategies
+public enum CacheStrategy
 {
     /// <summary>
     /// Cache-Aside: The application loads data into the cache on demand and is responsible for cache population and invalidation.

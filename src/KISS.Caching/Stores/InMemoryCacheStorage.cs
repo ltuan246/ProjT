@@ -4,7 +4,7 @@ namespace KISS.Caching.Stores;
 ///     Provides an in-memory cache strategy using <see cref="IMemoryCache" /> for storing and retrieving cached items.
 /// </summary>
 /// <param name="Cache">The in-memory cache instance.</param>
-[CacheStore(CacheStores.InMemory)]
+[CacheStore(CacheStore.InMemory)]
 public sealed record InMemoryCacheStorage(IMemoryCache Cache) : ICacheStorage
 {
     /// <inheritdoc />
