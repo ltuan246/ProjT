@@ -14,69 +14,40 @@ public class CacheStorageTests : IDisposable
         var services = new ServiceCollection();
 
         // Register dependencies
-        services.AddMemoryCache();
-        services.AddDistributedMemoryCache(); // Memory-based IDistributedCache
         services.AddDbContext<MemoryDbContext>(options =>
            options.UseSqlite(Connection), ServiceLifetime.Scoped);
         services.AddScoped<IDataStorage, SqliteDataSource>();
 
-        // Register strategies
-        services.AddKeyedScoped<ICacheStorage>("InMemoryCacheStorage", (sp, key) =>
-            new InMemoryCacheStorage(sp.GetRequiredService<IMemoryCache>()));
-        services.AddKeyedScoped<ICacheStorage>("DistributedCacheStorage", (sp, key) =>
-            new DistributedCacheStorage(sp.GetRequiredService<IDistributedCache>()));
-        // services.AddSingleton<ICacheStorage, FileBasedCacheStrategy>();
-        // services.AddSingleton<ICacheStorage, HybridCacheStrategy>();
+        services.UseCacheStore<InMemoryCacheStorage>(
+            CacheStrategies.CacheAside,
+            CacheStrategies.WriteThrough,
+            CacheStrategies.WriteBack,
+            CacheStrategies.ReadThrough,
+            CacheStrategies.WriteAround);
 
-        // Register operations as factories to allow strategy injection
-        services.AddKeyedScoped<ICacheStrategy>("InMemory_CacheAside", (sp, key) =>
-           new CacheAsideStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("InMemory_WriteThrough", (sp, key) =>
-            new WriteThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("InMemory_WriteBack", (sp, key) =>
-            new WriteBackStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("InMemory_ReadThrough", (sp, key) =>
-            new ReadThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("InMemory_WriteAround", (sp, key) =>
-            new WriteAroundStrategy(sp.GetRequiredKeyedService<ICacheStorage>("InMemoryCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-
-        services.AddKeyedScoped<ICacheStrategy>("Distributed_CacheAside", (sp, key) =>
-            new CacheAsideStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("Distributed_WriteThrough", (sp, key) =>
-            new WriteThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("Distributed_WriteBack", (sp, key) =>
-            new WriteBackStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("Distributed_ReadThrough", (sp, key) =>
-            new ReadThroughStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
-        services.AddKeyedScoped<ICacheStrategy>("Distributed_WriteAround", (sp, key) =>
-            new WriteAroundStrategy(sp.GetRequiredKeyedService<ICacheStorage>("DistributedCacheStorage"), sp.GetRequiredService<IDataStorage>()));
+        services.UseCacheStore<DistributedCacheStorage>(
+            CacheStrategies.CacheAside,
+            CacheStrategies.WriteThrough,
+            CacheStrategies.WriteBack,
+            CacheStrategies.ReadThrough,
+            CacheStrategies.WriteAround);
 
         Services = services.BuildServiceProvider();
     }
 
-    private CacheStorage CreateCacheStorage(ICacheStrategy strategy)
-    {
-        return new CacheStorage(strategy);
-    }
+    private CacheStorage CreateCacheStorage(ICacheStrategy strategy) => new(strategy);
 
-    private static string GetOperationKey(Type strategyType, Type operationType)
+    public static TheoryData<CacheStores, CacheStrategies> AllStrategyOperationCombinations()
     {
-        string strategyName = strategyType.Name.Replace("CacheStrategy", "");
-        string operationName = operationType.Name.Replace("Strategy", "");
-        return $"{strategyName}_{operationName}";
-    }
+        var data = new TheoryData<CacheStores, CacheStrategies>();
+        CacheStores[] stores = { CacheStores.InMemory, CacheStores.Distributed };
+        CacheStrategies[] strategies = { CacheStrategies.CacheAside, CacheStrategies.WriteThrough, CacheStrategies.WriteBack, CacheStrategies.ReadThrough, CacheStrategies.WriteAround };
 
-    public static TheoryData<Type, Type> AllStrategyOperationCombinations()
-    {
-        var data = new TheoryData<Type, Type>();
-        Type[] strategies = { typeof(InMemoryCacheStorage), typeof(DistributedCacheStorage) };
-        Type[] operations = { typeof(CacheAsideStrategy), typeof(WriteThroughStrategy), typeof(WriteBackStrategy), typeof(ReadThroughStrategy), typeof(WriteAroundStrategy) };
-
-        foreach (var strategy in strategies)
+        foreach (var store in stores)
         {
-            foreach (var operation in operations)
+            foreach (var operation in strategies)
             {
-                data.Add(strategy, operation);
+                data.Add(store, operation);
             }
         }
 
@@ -85,13 +56,13 @@ public class CacheStorageTests : IDisposable
 
     [Theory]
     [MemberData(nameof(AllStrategyOperationCombinations))]
-    public async Task GetOrSetAsync_CacheHit_ReturnsCachedValue(Type strategyType, Type operationType)
+    public async Task GetOrSetAsync_CacheHit_ReturnsCachedValue(CacheStores storageType, CacheStrategies strategyType)
     {
         // Arrange
-        var strategy = Services.GetRequiredKeyedService<ICacheStorage>(strategyType.Name);
-        var operation = Services.GetRequiredKeyedService<ICacheStrategy>(GetOperationKey(strategyType, operationType));
+        var strategy = Services.GetRequiredKeyedService<ICacheStorage>($"{storageType}");
+        var operation = Services.GetRequiredKeyedService<ICacheStrategy>($"{storageType}_{strategyType}");
         var storage = CreateCacheStorage(operation!);
-        var key = $"key_{strategyType.Name}_{operationType.Name}";
+        var key = $"key_{storageType}_{strategyType}";
         Product expectedValue = new() { Key = key, Value = "Initial" };
         await strategy.SetAsync(key, expectedValue, Options);
 
