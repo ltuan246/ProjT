@@ -1,4 +1,4 @@
-namespace KISS.Caching.Strategies.Redis;
+namespace KISS.Caching.Stores.Redis;
 
 /// <summary>
 /// Provides a factory for creating and configuring Redis <see cref="ConnectionMultiplexer"/> instances from application configuration.

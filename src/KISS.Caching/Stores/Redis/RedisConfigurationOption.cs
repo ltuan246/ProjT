@@ -1,4 +1,4 @@
-namespace KISS.Caching.Strategies.Redis;
+namespace KISS.Caching.Stores.Redis;
 
 /// <summary>
 ///     Represents the configuration settings required to connect and interact with a Redis server.
