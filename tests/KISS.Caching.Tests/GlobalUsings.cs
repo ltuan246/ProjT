@@ -1,0 +1,14 @@
+global using System;
+global using System.IO;
+global using System.Threading.Tasks;
+global using Microsoft.Extensions.Caching.Memory;
+global using Microsoft.Extensions.Caching.Distributed;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Data.Sqlite;
+global using Microsoft.EntityFrameworkCore;
+global using MessagePack;
+global using KISS.Caching.Strategies;
+global using KISS.Caching.Stores;
+global using KISS.Caching.Mechanisms;
+global using KISS.Caching.Utils;
