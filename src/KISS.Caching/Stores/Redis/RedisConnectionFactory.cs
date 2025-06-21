@@ -1,16 +1,18 @@
 namespace KISS.Caching.Stores.Redis;
 
 /// <summary>
-/// Provides a factory for creating and configuring Redis <see cref="ConnectionMultiplexer"/> instances from application configuration.
+///     Provides a factory for creating and configuring Redis <see cref="ConnectionMultiplexer" /> instances from
+///     application configuration.
 /// </summary>
 public static class RedisConnectionFactory
 {
     /// <summary>
-    /// Creates and configures a <see cref="IConnectionMultiplexer"/> instance using the specified Redis configuration options.
+    ///     Creates and configures a <see cref="IConnectionMultiplexer" /> instance using the specified Redis configuration
+    ///     options.
     /// </summary>
     /// <param name="options">The Redis configuration options.</param>
-    /// <returns>A configured <see cref="IConnectionMultiplexer"/> instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="options"/> is null.</exception>
+    /// <returns>A configured <see cref="IConnectionMultiplexer" /> instance.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="options" /> is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown if no Redis endpoints are configured.</exception>
     public static IConnectionMultiplexer Create(IOptions<RedisConfigurationOption> options)
     {

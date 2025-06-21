@@ -6,7 +6,8 @@ namespace KISS.Caching.Strategies;
 /// <param name="CacheStorage">The cache storage mechanism.</param>
 /// <param name="DataStorage">The underlying data storage mechanism.</param>
 [CacheStrategy(CacheStrategy.WriteBack)]
-public sealed record WriteBackStrategy(ICacheStorage CacheStorage, IDataStorage DataStorage) : ICacheStrategy, IDisposable
+public sealed record WriteBackStrategy(ICacheStorage CacheStorage, IDataStorage DataStorage)
+    : ICacheStrategy, IDisposable
 {
     /// <summary>
     ///     Queue of pending asynchronous data storage update operations.
@@ -37,8 +38,5 @@ public sealed record WriteBackStrategy(ICacheStorage CacheStorage, IDataStorage 
     }
 
     /// <inheritdoc />
-    public void Dispose()
-    {
-        Queue.Dispose();
-    }
+    public void Dispose() => Queue.Dispose();
 }
