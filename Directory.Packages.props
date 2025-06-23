@@ -50,6 +50,12 @@
         <PackageVersion Include="Quartz.AspNetCore" Version="3.13.0" />
         <PackageVersion Include="Quartz.Plugins.TimeZoneConverter" Version="3.13.0" />
     </ItemGroup>
+  
+    <!-- MassTransit -->
+    <ItemGroup>
+        <PackageVersion Include="MassTransit" Version="8.5.0" />
+        <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.0" />
+    </ItemGroup>
 
     <!-- xUnit -->
     <ItemGroup>
