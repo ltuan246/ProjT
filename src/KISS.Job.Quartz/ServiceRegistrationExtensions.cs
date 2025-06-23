@@ -3,7 +3,7 @@
 /// <summary>
 ///     Creating extension methods on the IServiceCollection interface.
 /// </summary>
-public static class QuartzServiceRegistrationExtensions
+public static class ServiceRegistrationExtensions
 {
     /// <summary>
     ///     Used to configure QuartzOptions instances.
