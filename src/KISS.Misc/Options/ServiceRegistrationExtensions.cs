@@ -3,7 +3,7 @@ namespace KISS.Misc.Options;
 /// <summary>
 ///     Dynamically invoking a generic method.
 /// </summary>
-public static class ConfigureOptionsExtensions
+public static class ServiceRegistrationExtensions
 {
     private const string ConfigureOptionsMethodName = nameof(OptionsConfigurationServiceCollectionExtensions.Configure);
 

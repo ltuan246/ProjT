@@ -10,38 +10,41 @@
 
     <!-- GlobalPackageReference  -->
     <ItemGroup>
-        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="$(MicrosoftExtensionsPackageVersion)"/>
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="$(MicrosoftExtensionsPackageVersion)" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(MicrosoftExtensionsPackageVersion)"/>
-        <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="$(MicrosoftExtensionsPackageVersion)"/>
+        <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(MicrosoftExtensionsPackageVersion)" />
+        <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="$(MicrosoftExtensionsPackageVersion)" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556"/>
+        <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="$(MicrosoftExtensionsPackageVersion)" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
     </ItemGroup>
 
     <!-- Use third party .NET libraries -->
     <ItemGroup>
-        <PackageVersion Include="CsvHelper" Version="32.0.3"/>
-        <PackageVersion Include="MailKit" Version="4.4.0"/>
+        <PackageVersion Include="CsvHelper" Version="32.0.3" />
+        <PackageVersion Include="MailKit" Version="4.4.0" />
         <PackageVersion Include="MessagePack" Version="3.1.3" />
     </ItemGroup>
 
     <!-- Dapper - a simple object mapper for .Net -->
     <ItemGroup>
-        <PackageVersion Include="Dapper" Version="2.1.35"/>
+        <PackageVersion Include="Dapper" Version="2.1.35" />
     </ItemGroup>
 
     <!-- Quartz - Open-source job scheduling system for .NET -->
@@ -59,10 +62,10 @@
 
     <!-- xUnit -->
     <ItemGroup>
-        <PackageVersion Include="coverlet.collector" Version="6.0.0"/>
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
-        <PackageVersion Include="xunit" Version="2.5.3"/>
-        <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3"/>
+        <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+        <PackageVersion Include="xunit" Version="2.5.3" />
+        <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
         <PackageVersion Include="BenchmarkDotNet" Version="0.14.0" />
     </ItemGroup>
 
