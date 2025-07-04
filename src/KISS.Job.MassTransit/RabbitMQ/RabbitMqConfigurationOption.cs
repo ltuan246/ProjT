@@ -1,4 +1,4 @@
-namespace KISS.Job.MassTransit;
+namespace KISS.Job.MassTransit.RabbitMQ;
 
 /// <summary>
 /// Represents configuration options for connecting to a RabbitMQ server.
