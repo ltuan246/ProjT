@@ -44,3 +44,9 @@ If you’re like me and want to spend less time on boilerplate and more time bui
 - [drawDB](https://github.com/drawdb-io/drawdb) - Free, simple, and intuitive online database design tool and SQL generator.
 - [kaggle](https://www.kaggle.com/) - [Datasets] Explore, analyze, and share quality data.
 - [Mermaid Live Editor](https://github.com/mermaid-js/mermaid-live-editor) - Edit, preview and share mermaid charts/diagrams.
+
+## Assets
+- [Awesome .NET!](https://github.com/quozd/awesome-dotnet) - A collection of awesome .NET libraries, tools, frameworks, and software.
+- [Payloads All The Things](https://github.com/swisskyrepo/PayloadsAllTheThings) - A list of useful payloads and bypasses for Web Application Security.
+- [Docling](https://github.com/docling-project/docling) - Docling simplifies document processing, parsing diverse formats.
+- [Fast-Endpoints](https://fast-endpoints.com/) - Minimal APIs.
