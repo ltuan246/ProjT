@@ -44,3 +44,4 @@ If you’re like me and want to spend less time on boilerplate and more time bui
 - [drawDB](https://github.com/drawdb-io/drawdb) - Free, simple, and intuitive online database design tool and SQL generator.
 - [kaggle](https://www.kaggle.com/) - [Datasets] Explore, analyze, and share quality data.
 - [Mermaid Live Editor](https://github.com/mermaid-js/mermaid-live-editor) - Edit, preview and share mermaid charts/diagrams.
+- [Infisical](https://github.com/Infisical/infisical) - The open-source secret management platform: Sync secrets/configs across your team/infrastructure and prevent secret leaks.
